@@ -1,8 +1,8 @@
 {
   "format": "obsidian-vault-backup-v1",
-  "captured_at": "2026-10-26T18:01:54.762081+01:00",
+  "captured_at": "2026-10-26T19:32:41.958979+01:00",
   "count": 4292,
-  "bytes": 207471577,
+  "bytes": 207474562,
   "directories": [
     ".",
     ".obsidian",
@@ -1256,13 +1256,13 @@
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/gtd-engine.js",
-      "bytes": 457887,
-      "sha256": "50362ae756e810420c1bbd0b394606f77831d43ab2e76cda7f743cfcb9fd0010"
+      "bytes": 458036,
+      "sha256": "46580384b1932867e321a5bf9d1772077c2528b742b59196acd477f635cbb490"
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/main.js",
-      "bytes": 51046,
-      "sha256": "c6bbcad000f6efc3fb26218bef8e498158a3aefb422dd5a19e6abbefe3da911e"
+      "bytes": 53882,
+      "sha256": "95d8c57fa24036ea49cd4ad42567d5c5c7f0fc304a3a5c90e4627e36a5a7d6b1"
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/manifest.json",

@@ -1,0 +1,2459 @@
+[
+  {
+    "id": "ref-001",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-141935-mandala-capture-native-tab.md",
+    "label": "engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-002",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-062559-mandala-capture-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-003",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-150000-timeline-hub-collection-removal.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-004",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-072832-timeline-hub-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-005",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-161000-mandala-daily-native-tab.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-006",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-092325-mandala-daily-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-007",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-201000-time-view-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-008",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-104816-time-view-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-009",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-212000-hub-three-columns.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-010",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-110239-hub-three-columns-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-011",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-233000-keyword-bus-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-012",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-09/20260930-114527-keyword-bus-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-013",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-weekly-native-performance.md",
+    "label": "weekly implementation record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-014",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790821160588-weekly-native-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-015",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-keyword-persistent-scan-cache.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-016",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790822951875-keyword-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-017",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-hub-weekly-source-fix.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-018",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790823472888-hub-weekly-source-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-019",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-weekly-switch-performance.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-020",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790824896365-weekly-switch-perf-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-021",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-reference-persistent-cache.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-022",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790828492074-reference-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-023",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../../../results/antinet-drawer-projection/CODE-REVIEW.md",
+    "label": "独审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-024",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../../../results/antinet-drawer-projection/deployment.json",
+    "label": "部署",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-025",
+    "document": "memory/obsidian-plugin-system/atlas/contracts.md",
+    "reference": "../cards/2026-10-22-antinet-drawer-extension-ownership.md",
+    "label": "实现经验",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-026",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/s2-a1/DELIVERY.md",
+    "label": "A1a交付",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-027",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/s2-a1/FINAL.md",
+    "label": "独立终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-028",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "当前PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-029",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/a1/FINAL.md",
+    "label": "A1终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-030",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/a2/PREFLIGHT.md",
+    "label": "A2预审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-031",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/a2/NAV-DEPENDENCIES.md",
+    "label": "导航依赖",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-032",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/a3/DELIVERY.md",
+    "label": "候选与验证",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-033",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/mermaid-address-semantics.md",
+    "reference": "../../change-records/2026/2026-10/20261003-160419-mermaid-0.1.31-deployment.md",
+    "label": "0.1.31 部署",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-034",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records-index.md",
+    "label": "工程变更记录目录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-035",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-06/20260622-145223-workflow-rules-engineering-change-record-cards.md",
+    "label": "记录卡规则",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-036",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-06/20260622-150733-workflow-rules-fixed-backup-flow.md",
+    "label": "固定备份流程",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-037",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-06/20260622-151124-workflow-rules-lightweight-backup-gate.md",
+    "label": "轻量备份闸门",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-038",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-06/20260623-193037-project-execution-overview-ai-context-export.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-039",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-06/20260623-113953-mandala-project-plan-workspace-key-table.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-040",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-07/20260704-project-overview-ai-context-shards.md",
+    "label": "AI 上下文分片",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-041",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-07/20260704-project-overview-build-shard-pipeline.md",
+    "label": "分片流水线",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-042",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-07/20260723-120847-project-overview-primary-key-kill-mode.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-043",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-07/20260725-160850-mandala-current-plan-history-lifecycle.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-044",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-07/20260706-182700-skill-obsidian-project-continuity.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-045",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-08/20260811-201900-temporal-framework-repository-dev.md",
+    "label": "起点",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-046",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-08/20260802-ontology-history-lifecycle-daily-completion.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-047",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260901-092508-mandala-timeline-effective-context-runtime-deploy.md",
+    "label": "Mandala/Timeline 部署",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-048",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260901-133547-goal-effective-operational-context-deployment.md",
+    "label": "目标域部署",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-049",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260903-121700-workspace-active-bridge-retirement-staging.md",
+    "label": "Workspace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-050",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260903-182900-collection-card-active-bridge-deployment.md",
+    "label": "Collection",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-051",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260911-ontology-meta-hub-state-graph-deploy.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-052",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260915-183700-ontology-concave-grid-deploy.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-053",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260922-ontology-hover-linkage-deploy.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-054",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-09/20260929-eva-editor-performance.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-055",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261006-023105-daqian-unified-core-p2-prototype.md",
+    "label": "P2 原型",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-056",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261006-202127-daqian-p4-shared-kernel.md",
+    "label": "P4 共享内核",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-057",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/20261011-atlas-framework-core-performance.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-058",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/20261012-native-core-chain.md",
+    "label": "native core chain",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-059",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/20261012-trial-deploy.md",
+    "label": "trial deploy",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-060",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261012-context-key-management-p1-deployed.md",
+    "label": "P1 部署",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-061",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261013-context-key-host-0.3-deployment.md",
+    "label": "0.3 部署",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-062",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261013-tracking-authority-release.md",
+    "label": "追踪权威",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-063",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261013-address-retirement-release.md",
+    "label": "地址退役",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-064",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261013-context-key-p2-persistent-store.md",
+    "label": "持久存储",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-065",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/2026-10-15-hotfix-ckm-eva.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-066",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../cards/20261016-obsidian-plugin-relative-require-and-size-caps.md",
+    "label": "相对 require 与体积上限",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-067",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/2026-10-15-p2c-center-adapter.md",
+    "label": "中心适配",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-068",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/2026-10-16-p2c-naming-activation.md",
+    "label": "命名激活",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-069",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/20261017-c2-completion.md",
+    "label": "C2 完成",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-070",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261019-230000-c2-native-batch2.md",
+    "label": "原生修复第二批",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-071",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261020-071000-c3-narrow-slice-deploy.md",
+    "label": "窄切片",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-072",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261020-165647-c3-y1-deploy.md",
+    "label": "Y1",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-073",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261021-021116-p2e-creation-adoption-deploy.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-074",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records/2026/2026-10/20261021-053059-eva-p1-collection-relation-adapter-sync.md",
+    "label": "记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-075",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+    "reference": "../../change-records-index.md",
+    "label": "目录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-076",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "活动 PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-077",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../workspaces/context-key-bus-management/build.py",
+    "label": "P1 接线",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-078",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../workspaces/context-key-bus-management/rename-panel/build.py",
+    "label": "改名与NAW接线",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-079",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../workspaces/context-key-bus-management/rename-panel/context-key-rename-manager.cjs",
+    "label": "PEO管理实现",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-080",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../workspaces/context-key-bus-management/p2/identity-model.cjs",
+    "label": "隔离身份原型",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-081",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/rename-panel/DELIVERY.md",
+    "label": "交付说明",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-082",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/rename-panel/deployment-receipt.json",
+    "label": "部署回执",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-083",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/rename-panel/POST-DEPLOY-REVIEW.md",
+    "label": "独立部署核验",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-084",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../change-records/20261013-context-key-rename-panel.md",
+    "label": "工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-085",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/p2/READINESS.md",
+    "label": "P2盘点",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-086",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../workspaces/context-key-bus-management/host/README.md",
+    "label": "宿体README",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-087",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/host/package.json",
+    "label": "包清单与hash",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-088",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/host/unit-tests.json",
+    "label": "隔离测试",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-089",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../workspaces/context-key-bus-management/host/README.md",
+    "label": "0.2说明",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-090",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/host-management/package.json",
+    "label": "包/hash",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-091",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/host-management/management-tests.json",
+    "label": "委托测试",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-092",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../change-records/2026/2026-10/20261014-p3-creation-owners-staging.md",
+    "label": "本批工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-093",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../change-records/2026/2026-10/20261014-p3-predeployment-completion.md",
+    "label": "工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-094",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+    "reference": "../../change-records/2026/2026-10/20261014-context-authority-roadmap.md",
+    "label": "本次工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-095",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-096",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../state/MATERIAL_AUDIT.md",
+    "label": "MATERIAL_AUDIT",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-097",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../project_workspaces/active-project.json",
+    "label": "活动项目指针",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-098",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/collection-source-route-20261011/RESULT.md",
+    "label": "原Collection来源返回",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-099",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/collection-ontology-service-20261011/RESULT.md",
+    "label": "ontology正式服务",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-100",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/collection-ontology-ui-20261011/RESULT.md",
+    "label": "原表格UI接线",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-101",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/collection-ontology-ui-20261011/FINAL-REVIEW.md",
+    "label": "最终独立核查",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-102",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/path-resolution-20261011/RESULT.md",
+    "label": "路径解析",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-103",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/hot-read-implementation-20261011/RESULT.md",
+    "label": "正常读取分层",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-104",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/compact-journal-20261011/RESULT.md",
+    "label": "增量日志",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-105",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../workspaces/daqian-unified-core/p4/native-runtime/native-ui/integrated-host.cjs",
+    "label": "宿主刷新分类",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-106",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../workspaces/daqian-unified-core/p4/native-runtime/native-ui/action-create-ui.cjs",
+    "label": "行动台投影",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-107",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../workspaces/daqian-unified-core/p4/native-runtime/business-workspace/store.cjs",
+    "label": "store查询与提交",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-108",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/atlas-framework-update-20261011/manifest.json",
+    "label": "更新清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-109",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../state/INPUT_PROFILE.yaml",
+    "label": "INPUT_PROFILE",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-110",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4a/OWNERSHIP.md",
+    "label": "P4-A ownership",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-111",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4a/source-review.md",
+    "label": "source-review",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-112",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/collection-view/final-review-followup-v3.md",
+    "label": "冻结终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-113",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4a/P4A_PLAN.md",
+    "label": "P4-A入口",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-114",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4a/OWNERSHIP.md",
+    "label": "OWNERSHIP",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-115",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4a/CONTRACTS.md",
+    "label": "CONTRACTS",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-116",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4a/STORAGE.md",
+    "label": "STORAGE",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-117",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4a/architecture-final-review-v2.md",
+    "label": "v2终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-118",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b1/source-manifest-v9.json",
+    "label": "source-manifest-v9",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-119",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b1/implementation-review-v2.md",
+    "label": "独立实现终审v2",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-120",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2/source-manifest-v2.json",
+    "label": "source-manifest-v2",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-121",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2/implementation-review-v2.md",
+    "label": "独立实现终审v2",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-122",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2/source-probe-report-v2.json",
+    "label": "20个来源探针",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-123",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2-services/implementation-review-v2.md",
+    "label": "实现终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-124",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2-services/source-manifest-v2.json",
+    "label": "源码清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-125",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2-services/tests-v2.tap",
+    "label": "26项测试",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-126",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2-projection/implementation-review-v2.md",
+    "label": "最终核查",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-127",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2-projection/tests-v3.tap",
+    "label": "31项测试",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-128",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4b2-projection/source-manifest-v3.json",
+    "label": "7源清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-129",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-workspace-peo/implementation-review-v2.md",
+    "label": "实现终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-130",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-workspace-peo/tests-v5.tap",
+    "label": "测试17项",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-131",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-workspace-peo/source-manifest-v5.json",
+    "label": "程序清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-132",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-provisioning/implementation-review-v2.md",
+    "label": "实现终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-133",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-provisioning/tests-v2.tap",
+    "label": "测试38项",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-134",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-provisioning/source-manifest-v2.json",
+    "label": "程序清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-135",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-provisioning/source-manifest-v2.json",
+    "label": "C2 v2八文件清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-136",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-workspace-peo/source-manifest-v5.json",
+    "label": "C1 v5清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-137",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-tracking/implementation-review-v1.md",
+    "label": "实现核查",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-138",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-tracking/tests-v1.tap",
+    "label": "测试55项",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-139",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-tracking/source-manifest-v1.json",
+    "label": "当前十文件",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-140",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-authority/implementation-review-v1.md",
+    "label": "实现核查",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-141",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-authority/tests-v2.tap",
+    "label": "测试25项",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-142",
+    "document": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+    "reference": "../../../../results/daqian-unified-core-20261006/p4/native-foundation/p4c-authority/source-manifest-v1.json",
+    "label": "六文件组装清单",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-143",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260929-eva-editor-performance.md",
+    "label": "20260929-eva-editor-performance",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-144",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-performance-audit.md",
+    "label": "Record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-145",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-reveal-performance.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-146",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-bus-latency-audit.md",
+    "label": "Documentation record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-147",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-scan-performance.md",
+    "label": "Record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-148",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-scan-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-149",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-daily-review-history-view-group.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-150",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-daily-review-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-151",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-keyword-incremental-scan.md",
+    "label": "record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-152",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-141935-mandala-capture-native-tab.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-153",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-062559-mandala-capture-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-154",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-150000-timeline-hub-collection-removal.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-155",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-072832-timeline-hub-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-156",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-161000-mandala-daily-native-tab.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-157",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-092325-mandala-daily-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-158",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-201000-time-view-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-159",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-104816-time-view-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-160",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-212000-hub-three-columns.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-161",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-110239-hub-three-columns-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-162",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-233000-keyword-bus-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-163",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-09/20260930-114527-keyword-bus-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-164",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-weekly-native-performance.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-165",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790821160588-weekly-native-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-166",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-keyword-persistent-scan-cache.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-167",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790822951875-keyword-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-168",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-hub-weekly-source-fix.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-169",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790823472888-hub-weekly-source-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-170",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-weekly-switch-performance.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-171",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790824896365-weekly-switch-perf-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-172",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-reference-persistent-cache.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-173",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790828492074-reference-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-174",
+    "document": "memory/obsidian-plugin-system/atlas/log.md",
+    "reference": "../change-records/2026/2026-10/20261001-skill-workflow-performance.md",
+    "label": "工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-175",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/atom-note-sidebar.md",
+    "reference": "../../change-records/2026/2026-09/20260927-atom-note-sidebar.md",
+    "label": "20260927 ATOM sidebar",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-176",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/atom-note-sidebar.md",
+    "reference": "../../change-records/2026/2026-09/20260927-atom-note-sidebar-deployment.md",
+    "label": "20260927 installation",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-177",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/collection-card-view.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r30-directory-renewal/README.md",
+    "label": "证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-178",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/daily-note-review.md",
+    "reference": "../../change-records/2026/2026-09/20260930-daily-review-history-view-group.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-179",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/daily-note-review.md",
+    "reference": "../../change-records/2026/2026-09/20260930-daily-review-deployment.md",
+    "label": "Deployment evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-180",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/eva-cross-view-relations.md",
+    "reference": "../../change-records/2026/2026-09/20260929-eva-editor-performance.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-181",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/eva-cross-view-relations.md",
+    "reference": "../../../../state/staging/eva-editor-perf-20260929/unit-results.json",
+    "label": "unit results",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-182",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/eva-cross-view-relations.md",
+    "reference": "../../../../state/staging/eva-editor-perf-20260929/browser-results.json",
+    "label": "browser results",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-183",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/eva-cross-view-relations.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r32-health-pending/README.md",
+    "label": "r32 证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-184",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/gtd-task-manager.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/s2-a1d/PROPOSAL.md",
+    "label": "本批方案",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-185",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/gtd-task-manager.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r30-directory-renewal/README.md",
+    "label": "证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-186",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/gtd-task-manager.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r32-health-pending/README.md",
+    "label": "r32 证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-187",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/gtd-task-manager.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r33-creation-storm/README.md",
+    "label": "证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-188",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-performance-audit-20260929/PLAN.md",
+    "label": "Audit plan",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-189",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-performance-audit-20260929/measurements.json",
+    "label": "function measurements",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-190",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-performance-audit-20260929/browser-measurements.json",
+    "label": "browser measurements",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-191",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-performance-audit-20260929/runtime-inventory.json",
+    "label": "runtime inventory",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-192",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260929-keyword-performance-audit.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-193",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-reveal-perf-20260929/PLAN.md",
+    "label": "plan",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-194",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-reveal-perf-20260929/browser-results.json",
+    "label": "browser results",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-195",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-reveal-perf-20260929/unit-results.json",
+    "label": "unit results",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-196",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-reveal-perf-20260929/deployment.json",
+    "label": "deployment",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-197",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260929-keyword-reveal-performance.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-198",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-bus-audit-20260929/PLAN.md",
+    "label": "diagnostic plan",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-199",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-bus-audit-20260929/audit.cjs",
+    "label": "harness",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-200",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-bus-audit-20260929/audit-results.json",
+    "label": "latest measurements",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-201",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-bus-audit-20260929/runtime-inventory.json",
+    "label": "runtime inventory",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-202",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260929-keyword-bus-latency-audit.md",
+    "label": "documentation change record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-203",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-scan-perf-20260929/PLAN.md",
+    "label": "plan",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-204",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-scan-perf-20260929/results.json",
+    "label": "verification",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-205",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-scan-perf-20260929/browser-results.json",
+    "label": "Edge regression",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-206",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260929-keyword-scan-performance.md",
+    "label": "change record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-207",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260929-keyword-scan-performance-deployment.md",
+    "label": "deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-208",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-scan-history-audit-20260930/results.json",
+    "label": "historical audit",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-209",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-scan-history-audit-20260930/PLAN.md",
+    "label": "implementation plan",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-210",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-incremental-scan-20260930/results.json",
+    "label": "regressions",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-211",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../state/staging/keyword-incremental-scan-20260930/browser-results.json",
+    "label": "Edge regression",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-212",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260930-keyword-incremental-scan.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-213",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260930-233000-keyword-bus-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-214",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-09/20260930-114527-keyword-bus-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-215",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-10/20261001-keyword-persistent-scan-cache.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-216",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../change-records/2026/2026-10/20261001-1790822951875-keyword-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-217",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+    "reference": "../../../../results/antinet-drawer-projection/deployment.json",
+    "label": "10-22 部署记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-218",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-09/20260930-141935-mandala-capture-native-tab.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-219",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-09/20260930-062559-mandala-capture-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-220",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-09/20260930-161000-mandala-daily-native-tab.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-221",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-09/20260930-092325-mandala-daily-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-222",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-09/20260930-201000-time-view-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-223",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-09/20260930-104816-time-view-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-224",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-10/20261001-weekly-native-performance.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-225",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-10/20261001-1790821160588-weekly-native-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-226",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-10/20261001-weekly-switch-performance.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-227",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../change-records/2026/2026-10/20261001-1790824896365-weekly-switch-perf-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-228",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r30-directory-renewal/README.md",
+    "label": "证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-229",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+    "reference": "../../change-records/2026/2026-10/20261003-mermaid-performance-slice-c.md",
+    "label": "Slice C",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-230",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+    "reference": "../../change-records/2026/2026-07/20260714-201511-mermaid-floating-widget-slice-a1-scroll-prewarm-isolation.md",
+    "label": "Slice A1",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-231",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+    "reference": "../../change-records/2026/2026-07/20260715-004852-mermaid-derived-index-slice-b-maintenance.md",
+    "label": "Slice B",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-232",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+    "reference": "../../change-records/2026/2026-10/20261003-mermaid-interaction-slice-d.md",
+    "label": "Slice D",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-233",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+    "reference": "../../change-records/2026/2026-10/20261003-124140-mermaid-0.1.28-deployment.md",
+    "label": "0.1.28 deployment",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-234",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+    "reference": "../../change-records/2026/2026-10/20261003-140207-mermaid-label-leader-slice-e.md",
+    "label": "工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-235",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+    "reference": "../../change-records/2026/2026-10/20261003-142103-mermaid-0.1.29-deployment.md",
+    "label": "部署记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-236",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/ontology-meta-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-ontology-comment-images.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-237",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/ontology-meta-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-ontology-comment-album.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-238",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r21-configured-directory/COVERAGE.md",
+    "label": "r21覆盖与成本",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-239",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r21-configured-directory/FINAL-INDEPENDENT.md",
+    "label": "独立终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-240",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "活动PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-241",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/s2-a1/DELIVERY.md",
+    "label": "A1a交付",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-242",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/s2-a1/FINAL.md",
+    "label": "独立终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-243",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "当前PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-244",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/a3/DELIVERY.md",
+    "label": "A3交付",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-245",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/a3/FINAL.md",
+    "label": "独立终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-246",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "当前PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-247",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/stable-experiment-split-20261022/REBASE-FINAL-VERIFY.md",
+    "label": "重建复核",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-248",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/a2/NAV-DEPENDENCIES.md",
+    "label": "依赖矩阵",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-249",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "当前PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-250",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../change-records/2026/2026-10/20261001-weekly-native-performance.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-251",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../change-records/2026/2026-10/20261001-1790821160588-weekly-native-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-252",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r22-auto-chain/AUTO-CHAIN.md",
+    "label": "r22自动链证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-253",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r23-view-content/COVERAGE.md",
+    "label": "r23证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-254",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r24-stopped-publication/COVERAGE.md",
+    "label": "r24证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-255",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r25-owner-changes/COVERAGE.md",
+    "label": "r25覆盖",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-256",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r26-center-rename/COVERAGE.md",
+    "label": "证据与边界",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-257",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r30-directory-renewal/README.md",
+    "label": "r30证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-258",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r30-directory-renewal/FINAL-INDEPENDENT.md",
+    "label": "终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-259",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r31-nav-phase-guard/README.md",
+    "label": "r31 证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-260",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r31-nav-phase-guard/FINAL-INDEPENDENT.md",
+    "label": "终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-261",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r32-health-pending/README.md",
+    "label": "r32 证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-262",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r33-creation-storm/README.md",
+    "label": "r33 证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-263",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r33-creation-storm/FINAL-INDEPENDENT.md",
+    "label": "终审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-264",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/reference-graph-widget.md",
+    "reference": "../../change-records/2026/2026-09/20260927-reference-collective-graph.md",
+    "label": "Engineering trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-265",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/reference-graph-widget.md",
+    "reference": "../../change-records/2026/2026-09/20260927-reference-collective-deployment.md",
+    "label": "Deployment trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-266",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/reference-graph-widget.md",
+    "reference": "../../change-records/2026/2026-10/20261001-reference-persistent-cache.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-267",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/reference-graph-widget.md",
+    "reference": "../../change-records/2026/2026-10/20261001-1790828492074-reference-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-268",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/supermemo-concept-display.md",
+    "reference": "../../../../results/antinet-drawer-projection/CODE-REVIEW.md",
+    "label": "代码独审",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-269",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/supermemo-concept-display.md",
+    "reference": "../../../../results/antinet-drawer-projection/verification.json",
+    "label": "测试",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-270",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/supermemo-concept-display.md",
+    "reference": "../../../../results/antinet-drawer-projection/deployment.json",
+    "label": "10-22 部署",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-271",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/timeline-planner.md",
+    "reference": "../../change-records/2026/2026-09/20260930-150000-timeline-hub-collection-removal.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-272",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/timeline-planner.md",
+    "reference": "../../change-records/2026/2026-09/20260930-072832-timeline-hub-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-273",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/timeline-planner.md",
+    "reference": "../../change-records/2026/2026-09/20260930-201000-time-view-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-274",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/timeline-planner.md",
+    "reference": "../../change-records/2026/2026-09/20260930-104816-time-view-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-275",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-daily-review-history-view-group.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-276",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-daily-review-deployment.md",
+    "label": "Deployment evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-277",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-141935-mandala-capture-native-tab.md",
+    "label": "engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-278",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-062559-mandala-capture-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-279",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-150000-timeline-hub-collection-removal.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-280",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-072832-timeline-hub-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-281",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-161000-mandala-daily-native-tab.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-282",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-092325-mandala-daily-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-283",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-212000-hub-three-columns.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-284",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-09/20260930-110239-hub-three-columns-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-285",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-10/20261001-weekly-native-performance.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-286",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-10/20261001-1790821160588-weekly-native-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-287",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-10/20261001-hub-weekly-source-fix.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-288",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+    "reference": "../../change-records/2026/2026-10/20261001-1790823472888-hub-weekly-source-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-289",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/workspace-mount.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/s2-a1c/PROPOSAL.md",
+    "label": "本批方案与义务",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-290",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/workspace-mount.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/s2-a1c/test-results.json",
+    "label": "验证",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-291",
+    "document": "memory/obsidian-plugin-system/atlas/plugins/workspace-mount.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r30-directory-renewal/README.md",
+    "label": "证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-292",
+    "document": "memory/obsidian-plugin-system/atlas/unknowns-register.md",
+    "reference": "../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r30-directory-renewal/PREFLIGHT.md",
+    "label": "r30",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-293",
+    "document": "memory/obsidian-plugin-system/atlas/unknowns-register.md",
+    "reference": "../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r31-nav-phase-guard/README.md",
+    "label": "r31",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-294",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/dialogue-graph-drawing.md",
+    "reference": "../../cards/2026-09-14-independent-routes-need-clearance.md",
+    "label": "independent route experience",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-295",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/dialogue-graph-drawing.md",
+    "reference": "../../../../skills/dialogue-graph-drawing/SKILL.md",
+    "label": "dialogue-graph-drawing",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-296",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/dialogue-graph-drawing.md",
+    "reference": "../../change-records/2026/2026-09/20260923-dialogue-groups-spacing-skill.md",
+    "label": "strict groups and spacing",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-297",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/dialogue-graph-drawing.md",
+    "reference": "../../change-records/2026/2026-09/20260923-153400-dialogue-inline-publication.md",
+    "label": "original-canvas publication",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-298",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/dialogue-graph-drawing.md",
+    "reference": "../../change-records/2026/2026-09/20260930-ontology-dialogue-refresh.md",
+    "label": "drawing record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-299",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r21-configured-directory/COVERAGE.md",
+    "label": "r21",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-300",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../../../state/PLAN.md",
+    "label": "活动PLAN",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-301",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../change-records/2026/2026-10/20261002-070334-next-action-deployment.md",
+    "label": "工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-302",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r22-auto-chain/AUTO-CHAIN.md",
+    "label": "r22自动链证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-303",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r23-view-content/COVERAGE.md",
+    "label": "r23证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-304",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r24-stopped-publication/COVERAGE.md",
+    "label": "r24证据",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-305",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r25-owner-changes/COVERAGE.md",
+    "label": "r25覆盖",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-306",
+    "document": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+    "reference": "../../../../results/context-key-bus-management-20261012/sync-bus-r/integration-r26-center-rename/COVERAGE.md",
+    "label": "证据与边界",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-307",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261003-mermaid-performance-slice-c.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-308",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260929-eva-editor-performance.md",
+    "label": "deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-309",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260929-eva-framework-landing.md",
+    "label": "20260929-eva-framework-landing",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-310",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-performance-audit.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-311",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-reveal-performance.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-312",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-bus-latency-audit.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-313",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-scan-performance.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-314",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260929-keyword-scan-performance-deployment.md",
+    "label": "deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-315",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-daily-review-history-view-group.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-316",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-daily-review-deployment.md",
+    "label": "deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-317",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-keyword-incremental-scan.md",
+    "label": "engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-318",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-ontology-comment-images.md",
+    "label": "change record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-319",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-ontology-comment-album.md",
+    "label": "change record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-320",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-ontology-dialogue-refresh.md",
+    "label": "record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-321",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-141935-mandala-capture-native-tab.md",
+    "label": "Engineering trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-322",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-062559-mandala-capture-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-323",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-150000-timeline-hub-collection-removal.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-324",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-072832-timeline-hub-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-325",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-161000-mandala-daily-native-tab.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-326",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-092325-mandala-daily-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-327",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-201000-time-view-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-328",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-104816-time-view-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-329",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-212000-hub-three-columns.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-330",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-110239-hub-three-columns-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-331",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-233000-keyword-bus-performance.md",
+    "label": "Engineering evidence",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-332",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-09/20260930-114527-keyword-bus-performance-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-333",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-weekly-native-performance.md",
+    "label": "Engineering trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-334",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790821160588-weekly-native-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-335",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-keyword-persistent-scan-cache.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-336",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790822951875-keyword-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-337",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-hub-weekly-source-fix.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-338",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790823472888-hub-weekly-source-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-339",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-weekly-switch-performance.md",
+    "label": "Trace",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-340",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790824896365-weekly-switch-perf-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-341",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-reference-persistent-cache.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-342",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-1790828492074-reference-restart-deployment.md",
+    "label": "Deployment record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-343",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261001-skill-workflow-performance.md",
+    "label": "Engineering record",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-344",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261003-mermaid-interaction-slice-d.md",
+    "label": "工程记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-345",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261003-124140-mermaid-0.1.28-deployment.md",
+    "label": "部署记录",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-346",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261003-140207-mermaid-label-leader-slice-e.md",
+    "label": "独立工程账本",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-347",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261003-142103-mermaid-0.1.29-deployment.md",
+    "label": "工程账本",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-348",
+    "document": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+    "reference": "../change-records/2026/2026-10/20261003-091437-mermaid-29-31-atlas.md",
+    "label": "20261003-091437-mermaid-29-31-atlas",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-349",
+    "document": "prompts/rules/runtime_environment.md",
+    "reference": "/mnt/d/han/学习的文件夹/7- codex来跑/卡片对话式工作流/agent-end-to-end-blog-writing-main/AGENTS.md",
+    "label": "`/mnt/d/han/学习的文件夹/7- codex来跑/卡片对话式工作流/agent-end-to-end-blog-writing-main/AGENTS.md`",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-350",
+    "document": "prompts/rules/runtime_environment.md",
+    "reference": "/mnt/d/han/学习的文件夹/7- codex来跑/卡片对话式工作流/agent-end-to-end-blog-writing-main/CLAUDE.md",
+    "label": "`/mnt/d/han/学习的文件夹/7- codex来跑/卡片对话式工作流/agent-end-to-end-blog-writing-main/CLAUDE.md`",
+    "status": "external_source_not_bundled"
+  },
+  {
+    "id": "ref-351",
+    "document": "skills/obsidian-system-plugin-dev/SKILL.md",
+    "reference": "../evolutionary-software-design/SKILL.md",
+    "label": "演进式软件设计 Skill",
+    "status": "external_source_not_bundled"
+  }
+]

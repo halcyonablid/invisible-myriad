@@ -699,7 +699,32 @@ module.exports = class GtdTaskManagerPlugin extends Plugin {
       if (!live() || leaf.view !== view || !(view instanceof GtdTaskManagerView) || !view.hostAlive()) return false;
       api = view.engineApi;
       if (api?.isReady?.() !== true || text(api.sourceNotePath) !== lease.source.path) return false;
-      if (intent === 'navigate') {
+      if (intent === 'navigate' && requestedNodeKey) {
+        // r40: focus needs layout, and a background-tab leaf has none. Run the navigation hidden first (structure,
+        // render, receipt when already visible); reveal only when the target exists, so an unreachable target keeps
+        // the old contract (no reveal, false) and EVA retries never steal focus. Then wait for layout and apply again.
+        if (!this.navigationInputsClearV1()) return false;
+        if (typeof api.applyPendingNavigationV1 !== 'function') return false;
+        const generation = view.mountGeneration;
+        const same = () => live() && leaf.view === view && view.engineApi === api && view.mountGeneration === generation && view.hostAlive();
+        if (reusableNavigation) {
+          await api.applyPendingNavigationV1(requestedNodeKey);
+          if (!same()) return false;
+        }
+        if (api.getNavigationResultV1?.(requestedNodeKey) !== true) {
+          const itemId = parseJumpNodeKey(requestedNodeKey).itemId;
+          const esc = s => (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(s) : JSON.stringify(String(s)).slice(1, -1);
+          const root = view.contentEl;
+          const target = root?.querySelector?.(`[data-gtd-node-key="${esc(requestedNodeKey)}"]`) || root?.querySelector?.(`[data-gtd-anchor-id="${esc(itemId)}"]`);
+          if (!target) return false;
+          await this.app.workspace.revealLeaf(leaf);
+          await this.waitLayoutV1(view);
+          if (!same() || !this.navigationInputsClearV1()) return false;
+          if ((await api.applyPendingNavigationV1(requestedNodeKey)) !== true || !same()) return false;
+          if (api.getNavigationResultV1?.(requestedNodeKey) !== true) return false;
+          return leaf;
+        }
+      } else if (intent === 'navigate') {
         if (!this.navigationInputsClearV1()) return false;
         // A new engine already paints/consumes pending focus during startup. Do not repaint it again.
         if (reusableNavigation) {
@@ -713,6 +738,27 @@ module.exports = class GtdTaskManagerPlugin extends Plugin {
       this.app.workspace.revealLeaf(leaf);
       return leaf;
     } catch (_) { return false; }
+  }
+
+  // r40: one frame of the leaf's window for the reveal to take layout, bounded by a main-window timer (background or
+  // pop-out windows may pause rAF and throttle their own timers); the loser is cancelled.
+  async waitLayoutV1(view) {
+    const win = view?.contentEl?.win || view?.contentEl?.ownerDocument?.defaultView || window;
+    const raf = typeof win?.requestAnimationFrame === 'function' ? win : null;
+    const timers = typeof window.setTimeout === 'function' ? window : null;
+    if (!raf && !timers) { await Promise.resolve(); return; }
+    await new Promise(resolve => {
+      let frame = null, timer = null, done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (frame !== null) { try { raf.cancelAnimationFrame?.(frame); } catch (_) {} }
+        if (timer !== null) { try { timers.clearTimeout?.(timer); } catch (_) {} }
+        resolve();
+      };
+      if (timers) timer = timers.setTimeout(finish, 100);
+      if (raf) frame = raf.requestAnimationFrame(() => finish());
+    });
   }
 
   async reloadOpenViews() {

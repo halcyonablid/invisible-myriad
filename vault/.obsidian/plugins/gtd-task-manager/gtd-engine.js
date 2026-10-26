@@ -2602,7 +2602,8 @@ return (async () => {
         }
         const target=container.querySelector(`[data-gtd-node-key="${escapeSelectorValue(nodeKey)}"]`)
             ||container.querySelector(`[data-gtd-anchor-id="${escapeSelectorValue(item.id)}"]`);
-        if(!target?.isConnected||focusGtdRelationTarget(target,{behavior:options.behavior||'auto',viewportRatio:0.34})!==true)return false;
+        // r40: a hidden (background-tab) target has no layout; scrolling it is a no-op, so it is not a receipt.
+        if(!target?.isConnected||target.getClientRects().length===0||focusGtdRelationTarget(target,{behavior:options.behavior||'auto',viewportRatio:0.34})!==true)return false;
         pulseGtdRelationTarget(target);
         navigationReceipt={key:nodeKey,source:currentNotePath,generation:renderGeneration,pass:tracking.consumer.current()};
         getRelationsPluginApi()?.markLastFocusedNode?.(nodeKey);

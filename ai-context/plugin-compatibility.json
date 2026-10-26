@@ -1,0 +1,965 @@
+{
+  "role": "NEWERA plugin sharing vault; not the abandoned unified-core development route",
+  "confirmed_by_user": "2026-10-27",
+  "captured_at": "2026-10-26T19:32:41.958979+01:00",
+  "plugins": [
+    {
+      "directory": "advanced-canvas",
+      "id": "advanced-canvas",
+      "name": "Advanced Canvas",
+      "version": "3.2.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "2196a6cacf2503ea19f8b51688c2e61b63ce95d375132256b354e03912e8ed9a",
+        "main.js": "b714db838af95019ca562f290a5fff05457df48c6328886c7f935bcd7162543f",
+        "styles.css": "37f9a4d800a1268b5dd92cd07cbe6716c971ffda2faf82bcb4d996389314db0a"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "antinet-tree-structure",
+      "id": "antinet-tree-structure",
+      "name": "Antinet 树的结构",
+      "version": "0.1.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "008c4c0b64ae912aa68f45ad79e2d978380d9dd3391d2467803e1f2a9c59b62d",
+        "main.js": "be3ea22057c97695ccdf85cb1f1c17461d8faa181de48d94bb94a3794cc5c05d",
+        "styles.css": "cd3e548e2253018d095242c39c552320cb3b08231ffa24d057e71fb2aaff115f"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "atom-note-sidebar",
+      "id": "atom-note-sidebar",
+      "name": "ATOM 侧栏导航",
+      "version": "1.0.4",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "bf70252537e08aa12c0e93c87f215d4eecf719ef3d36006577bcbbd62edf7363",
+        "main.js": "d723d655d074ecef31cbbcdced22f8945247e1729ac05d3dd702b93fd1f369c8",
+        "styles.css": "d0b172d1b984b45f06f36a544eaa322723bff7cdbe8d681350d8ea15f265ba00"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "better-export-pdf",
+      "id": "better-export-pdf",
+      "name": "Better Export PDF",
+      "version": "1.11.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "a2c72272632d446ac469f7d4ce66bd71e70b8a27b158416c5a69a53acd8451d8",
+        "main.js": "91f3f3631329dc8909699d9e31de0986879248fd6e1b78589cb693c01b636f57",
+        "styles.css": "23d4474b4be52e5c9bd992518642da4053e30601e2e09ce0f0fa44a903f9e10e"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "better-search-views",
+      "id": "better-search-views",
+      "name": "Better Search Views",
+      "version": "0.3.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "c2fb504c8d782f81d1e2ff91f1eb8047a0582ffe1633dd6d82418038f48960e5",
+        "main.js": "0a5769a2489d8a9ba53684df4177e75dc935747d17609c1a0fc82586d80b0139",
+        "styles.css": "b1a76bc74afc05ba753feed37824fab4bb09df3332a7251db10d5cd4dfa428d5"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "calendar",
+      "id": "calendar",
+      "name": "Calendar",
+      "version": "1.5.10",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "f3e9581338648512baa12d5b458490f7fd367918f7bdb6bd86171ce57be7d08b",
+        "main.js": "7fb339e9cf9fdbe5a801fa2b8ab85b366b5b3777fbd193cbc8728bc27711d125"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true
+      }
+    },
+    {
+      "directory": "cmdr",
+      "id": "cmdr",
+      "name": "Commander",
+      "version": "0.5.4",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "5f1f46e98df586cd936d1fb682434487a9e17aa2a83eb6749daca3f43d7a9236",
+        "main.js": "b478be6a2d8eb18133136636c070e2cb65f4406a5cd4b06e2fef4e4a3a529d81",
+        "styles.css": "7a23b5f94e87a95f21a44919646bc25ffa3dc7d2a94feb0cc68a9ca21fd17329"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "collection-card-view",
+      "id": "collection-card-view",
+      "name": "Collection Card View",
+      "version": "0.1.1",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "1418b2d4659b58373fbbfb6280e662c2da6982b5282da042dee4bd659f0cf20c",
+        "main.js": "e3cb8ef3c09d2fc60e5e45ff058bf6bf63597d671038e93d9885a0d006a0af1b",
+        "styles.css": "5c0071b00b160523043cc1d629d3664d77719c95e8229522b069f763ae76e03f"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "context-key-manager",
+      "id": "context-key-manager",
+      "name": "主键管理中心",
+      "version": "0.3.1",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "dbca687e1420d1eacbf56db6ef2efc0258a4f2c7d961d5fae4ecd8d5d86da067",
+        "main.js": "0edb649ea1f453527fde9dd0284c573944a26e6834044823fd624204ac415e77",
+        "styles.css": "441658598791bffd1a92423971741d03dc460cad07661e48b59650b329d7dc49"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "create-similar-note",
+      "id": "create-similar-note",
+      "name": "相似笔记 · Similar Note",
+      "version": "1.0.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "bf8ff440c69248a8fcdd87a1e34ed55eb7a610ce3dc4c480aa3a4181483b877a",
+        "main.js": "5bc6c9decd5df28b8b8dc8eefa119949ecee902334fd188e7165be27122741d8",
+        "styles.css": "0f6c9b80a1e9b0ffdc18ec22a2259d8d4ad62e36059dc883233e3cdad7070e84"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "daily-note-review",
+      "id": "daily-note-review",
+      "name": "Daily Note Review",
+      "version": "0.2.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "d7e52811a4d3ff1b61404d754da4843a48ca33430b39978641b33522b7a1add5",
+        "main.js": "a453b2836e4f559812071282fb3adef2c1b7b5a87492760373719d2c9f06a2de",
+        "styles.css": "94e4dfe551e11b808955b8123c6dc5b94ea1d487f9192d03dcd2e884591e3762"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "dataview",
+      "id": "dataview",
+      "name": "Dataview",
+      "version": "0.5.68",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "9235db47112da81b85591c79ecb9ae2574e5e72207056e976472f90616286185",
+        "main.js": "794e9eaede73920bb8d54b0eda4f5de2182d698cc638774500f24f14bcd4da0b",
+        "styles.css": "3306dd9032e00f989ba7233a37fd255bc4d3f4340cee661762e952f3f6aa1de9"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "eva-branch-sidebar",
+      "id": "eva-branch-sidebar",
+      "name": "EVA 分支树",
+      "version": "1.0.3",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "74d209b0da2a821c2dd84d01cf0e25eb288779f51109e0316a4a699ed74470d1",
+        "main.js": "16102b145833b63a8e67fdf961d779ea674cea4f2fbd08f71ab45a39b5221970",
+        "styles.css": "050a1f7bdee47b21289fd8f2f6346cf8ae508fe634c5b06e7cac0a0f8655c32f"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "eva-cross-view-relations",
+      "id": "eva-cross-view-relations",
+      "name": "EVA Cross View Relations",
+      "version": "0.1.1",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "90f56741a5d7dbab685076197f4e2f5a3ad70cdd1eb21db6ec5342185e63b02c",
+        "main.js": "6a828cf4f6302082e5bcc0b2bfbfc7c1fa5c31ab742ff91bd9ad37ae1aa7d9ef",
+        "styles.css": "f41e41cbf666027864b442f36075d1f373c9a018f4114ab603374cd1daa76988"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "eva-incremental-indexer",
+      "id": "eva-incremental-indexer",
+      "name": "EVA Incremental Indexer",
+      "version": "0.1.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "ef05612cb4a86bb6cb52779b7025a87d683be0f3bae4ccaadc8ca6f7e853665b",
+        "main.js": "2933e6de4957057f914800b9f8a052cf532c5c772816887aa6004ca93fcaa0ed",
+        "styles.css": "266cd93ca568c584d6bb818a4446c0ed5956486b2de674d1a519d5890a618eb3"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "eva-tree-view",
+      "id": "eva-tree-view",
+      "name": "EVA Tree View",
+      "version": "0.1.4",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "26d1b0896dc305f2a5f55ae07db1afa27d95dee9af383ebed5ea3abb1d9d075f",
+        "main.js": "e25afbdbd56386ea16b7408f99f5c05688ba3d5de629972c3a7d2773e3486d63",
+        "styles.css": "17b0757e7e76387a73bb5c108384170a3ebf865b3b6f8aea7c22958d43c60c17"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "file-tree-alternative",
+      "id": "file-tree-alternative",
+      "name": "File Tree Alternative",
+      "version": "2.6.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "04e65988304e5921222c4e4131baa41cce5e42b8d49410aba4aa42e4dbe15b19",
+        "main.js": "be763e647ee20226ae97ad4ec467b3dc0379a19db13d0360df3ab1ac109a7c4f",
+        "styles.css": "a2d0abf1a781f6e3312be86904ea5e87d877486fda5f189d075b83fdb1e5d702"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "floating-toc",
+      "id": "floating-toc",
+      "name": "floating toc",
+      "version": "2.7.1",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "de9975eef896cbe0d5580d380363df88c0800933958ca785f5bb9824c4640f95",
+        "main.js": "05e02fdc635a02e255d24b92ceac4d40a2a92445180f767907872c880cffec24",
+        "styles.css": "8023cecff12739e3f5f7a734d89dc831f6e204806628de1e459fa543d4aacf29"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "gtd-task-manager",
+      "id": "gtd-task-manager",
+      "name": "GTD Task Manager",
+      "version": "0.1.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "af9e07f5d418742a9837aff902c386705fb119d50c0c40a6e5ee88c6399ddcb4",
+        "main.js": "95d8c57fa24036ea49cd4ad42567d5c5c7f0fc304a3a5c90e4627e36a5a7d6b1",
+        "styles.css": "ebffeb8480208afe6c8c7d6ea1dc28e26cfe7a4075796fb89241b0932f4455b8"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "highlightr-plugin",
+      "id": "highlightr-plugin",
+      "name": "Highlightr",
+      "version": "1.2.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "2c1b21c61afd8ebeacd365774553e42d317f372a8c45f07b930909e451f787a3",
+        "main.js": "bf7e3b388da76a9154ecfca301b9d9387f06f94224e95c7fcc9e2d243aa87c06",
+        "styles.css": "6fdd3e52f7df3ff4a74297d346fb4832309406d2aa061f7c9dc12591cb89a72f"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "keyword-index-plugin",
+      "id": "keyword-index-plugin",
+      "name": "Keyword Index Plugin",
+      "version": "0.1.23",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "cad43d5ef919ede5dddb6670d5ff2c4c1ca4158618a256c49758dc653ddf2a43",
+        "main.js": "1d3b889849baf8795f4adb5d54a6c6e43bda8462836811e6bb6e08a668272f7f",
+        "styles.css": "bbfccf5766c1600799a57b4b17b1ab6a99f9781a5686910b3f18a0a845cb175b"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "mandala-time-blocks",
+      "id": "mandala-time-blocks",
+      "name": "Mandala Time Blocks",
+      "version": "0.1.14",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "8ff08fc8700e6dde988a983e5d7313f621d6f3fffd169df178042648d64e2a74",
+        "main.js": "9dacf45f2c1e3be4688a0092580b0fd0d84b0c156c5a362125190e99b5a797fc",
+        "styles.css": "6937cef7c15881bc2fc3ce06d6aa00993c3ed2be3409212d8d3f80ba932500e6"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "mermaid-floating-widget",
+      "id": "mermaid-floating-widget",
+      "name": "Mermaid Floating Widget",
+      "version": "0.1.32",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "6f85051ca06c814b44e8d0e8d74771532f2727f7b3d668a2d6932ab83c315328",
+        "main.js": "1d6095c1aecee5e8f04c48862b9fb1d15f854a5905c204a47404064b59c03ec3"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true
+      }
+    },
+    {
+      "directory": "mermaid-tools",
+      "id": "mermaid-tools",
+      "name": "Mermaid Tools",
+      "version": "1.4.1",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "b782728db69ebf71396918d30dca69f22b725a53f0b4d3e15b905ca0c33e0535",
+        "main.js": "08aff776020506474b67d71f3b3087b472002f7df757433a235e5817b64829d9",
+        "styles.css": "a9be66be1bc4211e3f059bfcadb72bb8368b88cddf88fb88753e8485cb11b237"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "metadata-menu",
+      "id": "metadata-menu",
+      "name": "Metadata Menu",
+      "version": "0.8.12",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "5e553e4132c8d6d9f7992fec2cdb570cc108a1f32daee4d4c24c017c6c9a2fbd",
+        "main.js": "e45263b64d2688ac3b8e20e6262b51f95ceed4efbce1d88a43d421a9d8764415",
+        "styles.css": "b08f764bb08ae8ea06c1def27f97a2da16b4cc1920bbb618aaae2dcc7cf4f3cf"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "modalforms",
+      "id": "modalforms",
+      "name": "Modal forms",
+      "version": "1.70.2",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "f429d08246130044048ca9a2eb6203f3c2ae5f508f3fdedce753ce79ec3b1f33",
+        "main.js": "0ae432d40444b4a97df9ec9b05a34bbccbd86f8a55cb0b7ad69e9330f820e9c5",
+        "styles.css": "00bded8482d79a8fcc2f782920f5a23d9417b18af4c7d5a4ace3757a0593ab10"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "mononote",
+      "id": "mononote",
+      "name": "Mononote",
+      "version": "1.2.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "75ff009edded0aac1c11e7571ae53b9c75f5a36af3246784e2d1eb77160aa8b7",
+        "main.js": "0ee785bf4a573cd4f4f18a0e0cc96feecf8363461a587279ab47a5d7e08702ce"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true
+      }
+    },
+    {
+      "directory": "next-action-workbench",
+      "id": "next-action-workbench",
+      "name": "下一步行动台",
+      "version": "0.1.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "bc1aac1ad97ac6cb226458f7691fe93a12c3705da7b2267e8114df42bebacb42",
+        "main.js": "5e2e3e95d06ee70be421bfa54fafcb87226169cb9171c3496aea8469dc2f7690",
+        "styles.css": "cf54f6b776c457103ed6b257facb45b60d85fa86bb481d1c0812b856a1090836"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "nldates-obsidian",
+      "id": "nldates-obsidian",
+      "name": "Natural Language Dates",
+      "version": "0.6.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "dfdcbdd8272d839ec0620af3a1fa7ab1f785ad3cdc6feed1f18ccb7b09621f29",
+        "main.js": "387d36a43412f761c0c69320655a7ec09aa9189ae2267550224cacc861e63fd6"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true
+      }
+    },
+    {
+      "directory": "note-folder-autorename",
+      "id": "note-folder-autorename",
+      "name": "Note Folder Autorename",
+      "version": "0.1.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "ea20e3569084543dd76c4d2dac5df5193f7ebf22e95743028b81ba968a126060",
+        "main.js": "089f7086bb8dff2f1e800688df8b6289f7120505e2931bfcf5b25df90e0e9d44",
+        "styles.css": "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-bulk-rename-plugin",
+      "id": "obsidian-bulk-rename-plugin",
+      "name": "Bulk Rename",
+      "version": "0.5.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "13f57ac8eaeb9ce3a4bf26e1452ffc6a9c48af0464d853d321ae65fa7a94eb6e",
+        "main.js": "a9d6112e73c307b024e75f163f7f441f8ea266aa9d2d56e538356efe36eb50e2",
+        "styles.css": "1f4a4a025f12d870c939d111de77380a9ac5453f639818979fc7a0a6803cb42d"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-excalidraw-plugin",
+      "id": "obsidian-excalidraw-plugin",
+      "name": "Excalidraw",
+      "version": "2.28.1",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "15dd0e8af2427f81ea401bf21639cef67e4507e3fc2d981213103dd1accf0522",
+        "main.js": "9d424e61cc49a33eb01d42548a2751d22ae46f9fd3897105c2a6a60a2f99b380",
+        "styles.css": "173e9c161a01c53b3c173344e023de4d327fd0658e476961b46b0e6a93117ded"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-excel-to-markdown-table",
+      "id": "obsidian-excel-to-markdown-table",
+      "name": "Excel to Markdown Table",
+      "version": "0.4.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "aa4b1b87346a90e54107245ebcd122b8dabb79340019a6148265f4938c04948b",
+        "main.js": "438bdb0804869c607ccbf0b2ab8b07e76d65ee85249ea17a4b03399896853ea0",
+        "styles.css": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-heading-shifter",
+      "id": "obsidian-heading-shifter",
+      "name": "Heading Shifter",
+      "version": "1.10.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "a344ca16a1f78385e8ea502280ef2dda090ac8955284909103c266dbe27ac8a1",
+        "main.js": "d9f1e40cd24496a1a0b1b273e6facef75b7f11f750bcf261ac91ca56eda3aa9f"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true
+      }
+    },
+    {
+      "directory": "obsidian-minimal-settings",
+      "id": "obsidian-minimal-settings",
+      "name": "Minimal Theme Settings",
+      "version": "9.0.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "2038f9c1f5ca026ebc1f3e156bad97c671d2c401a20718384508ef72071e8c5f",
+        "main.js": "2aba659130a4bd73b7a5ab2b5780223dd747812d1e7e6ac50d242cb0533c75ff",
+        "styles.css": "50084760da927a5bf5ac1b9d3b960dc52e1d0a3bf690e54df8f4d76f8212628c"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-pandoc",
+      "id": "obsidian-pandoc",
+      "name": "Pandoc Plugin",
+      "version": "0.4.1",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "4d15400af4396fec59d393045a7ad4b6855cf6ba07674b28b212ab2cd3606dc8",
+        "main.js": "b44d8f69a76ffb5069f2493af4f02777b9cec22e7aa1b9fde52bc5268764e87b",
+        "styles.css": "32bd1df3f5cfb74566243e31118ab348878d3cac258d19da66f248b45729f9a4"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-style-settings",
+      "id": "obsidian-style-settings",
+      "name": "Style Settings",
+      "version": "1.0.9",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "9cffdc20cf2aa1354820e0050b694b0f9b576446e3d5d44a36ae8b0187e5bfb8",
+        "main.js": "1828abaacdab4c5578b705a625c585b30512f8efad4c7cfc5a18e70cc3557468",
+        "styles.css": "ee7937d2be50653a89ccb30ae5f0572b23507d5b7f1328d005271a363075bfd8"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-tabs",
+      "id": "obsidian-tabs",
+      "name": "Obsidian Tabs",
+      "version": "1.0.7",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "1b8e2e2d7a9cbbcca41f0e098d3cf4999e477774fcb0f96a6c114416c65aa164",
+        "main.js": "42d0887ba45cc86c8789170e51ccebb1a189284ae4f3bcf2d5bd6402fca853fd",
+        "styles.css": "b3ee876d4726dc4e2aa67f53bb77694bdc50d4000de781295dcd2ed9712c12e9"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-text-format",
+      "id": "obsidian-text-format",
+      "name": "Text Format",
+      "version": "3.1.0",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "13b13ffca7eeeb4c3016f355365659ed87f22aaf20c84ce79a929a0b5a2d96c4",
+        "main.js": "fc1e1e2c2828d0f76ba20797c94bc6caa59ca51c73e3c33ab4e906bc60f275d6",
+        "styles.css": "47ef7a54efd21925aff51c66b68a36aa67ee27a84fa1a4910c064183e7136053"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian-zoom",
+      "id": "obsidian-zoom",
+      "name": "Zoom",
+      "version": "1.1.2",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "26aab971230096c6353da6d0b365237ca73359c8382882b8735dcabe2579cd3e",
+        "main.js": "0989474cf934ded5e31f0bcf16f9ba3dba7e21c282d1a42f83ebd2fe75f0d862",
+        "styles.css": "c0e1faa3838d08147db0c3c954088893fd5715577c420318b62da8114478c0ee"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "obsidian42-brat",
+      "id": "obsidian42-brat",
+      "name": "BRAT",
+      "version": "1.0.6",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "fbf096034dbe75a49ad65736daef37d48098d681c928ac9a8d95ed4be81a1f30",
+        "main.js": "bf48d080e0685e020ec7397fe9cd9f4b707d0b51f45f1afc81e7adf445c9198c",
+        "styles.css": "126406adec99f17d9b28d65784b999969c7266602206cc77740ec78ebd9e26d7"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "ontology-meta-hub",
+      "id": "ontology-meta-hub",
+      "name": "Ontology Meta Hub",
+      "version": "0.1.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "53e90669c4587fc317ee86b7ab48dd7d9e5bb5cf675024cd3666b2c5351eb270",
+        "main.js": "e73cd06ae7b6ccc7bc116b57e92453a230c6fba6aec6074909f481472a316482",
+        "styles.css": "dc5d3ee88ed4427fb71421b17ddc923e1f7239b98bf28aecb1eaed6b0ce02fae"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "outliner-md",
+      "id": "outliner-md",
+      "name": "Outliner.md",
+      "version": "0.1.12",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "fd47d7d993cf95190f56afd8c953a2a2d683f1f9e8c873b14a022a601425f201",
+        "main.js": "c45eadb578e08c8830ab43290db812e2143f18a07edaece56b4ddbdb7f322213",
+        "styles.css": "724cd314628b170e1f8172eb9bcdad61b263276fb0c54bcc1b422ae9996d9b7d"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "pane-relief",
+      "id": "pane-relief",
+      "name": "Pane Relief",
+      "version": "0.5.9",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "8ebc011269cc0e526d39e2f5feeb3e6162bdf44cfba4abe9bf965214598b5a8b",
+        "main.js": "ea51e58be6e43dbded4becf1c472760a6c42957ea79b6de7c288a1641766bad0",
+        "styles.css": "4aba25887a5a1f434afa4ead0bcb2e130f0bd9eb747129ce91ab2e4dc3db4fd7"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "periodic-notes",
+      "id": "periodic-notes",
+      "name": "Periodic Notes",
+      "version": "0.0.17",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "bda29323f75d3b3fcbda489335825b97fe4b574914d04635e9a7e67f2414049c",
+        "main.js": "ccf1a18673693d1036fc7614c3af9d23e5edfe425d1053df81dddcc29b1f8b0e",
+        "styles.css": "613f3985d4c84900ed2e25d8a46efb7b3ace6889fb71217055084084eb146238"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "project-execution-overview",
+      "id": "project-execution-overview",
+      "name": "Project Execution Overview",
+      "version": "0.1.7",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "e25ae3b0c5950f5855c4064116a66583e99dc0ab80f3f8d02c3e0af09dfb2f4c",
+        "main.js": "2a40717546ec20f5ac8470f1bf2d6f355ac6f9afc3a851e9054fea487eb8982a",
+        "styles.css": "2b61552e5cbd4a7667b7eafb03e103d9b1467fbe2529cadaec080386262bf7e2"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "recent-files-obsidian",
+      "id": "recent-files-obsidian",
+      "name": "Recent Files",
+      "version": "1.7.10",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "6dbfa314a4b5df3f7f8283fd41bc64d149bef3c1128e15b5a94dc690b55fb0d7",
+        "main.js": "2e884136b7fd86cb9ac019d358752d45785459bf93b25af22697e4b2c501915e",
+        "styles.css": "2ee49c92ab0bb848221a09626f7ba676bbe85372c4c8065ee7790b0832cb3ddb"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "reference-graph-widget",
+      "id": "reference-graph-widget",
+      "name": "Reference Graph Widget",
+      "version": "0.1.1",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "46a9aed3ba8e870ca87c8259512ec45bbf0e6f6b8862aae64a1ac7d74b77ab47",
+        "main.js": "70f32d1eb4e0c9d58edb80fe2d8d33a497dfe6ca7c2c17bb3d7f8e17ba875955",
+        "styles.css": "452d50f4f6e2b91acbe866e269d7df13ca45b8c071f72891c6ee97516d29d55e"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "supermemo-concept-display",
+      "id": "supermemo-concept-display",
+      "name": "SuperMemo Concept Display",
+      "version": "0.4.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "8fb4b2a74abc7d4aaf4d161159abbadd81b8daf5a122afbf94852711ebaabe68",
+        "main.js": "b2077cb6e8b250af9736678ee8cd712822e65bd2a7a76ea606f38eea0a5dd758",
+        "styles.css": "5bdec314252b244e473e44cfd24a1e8818d54598ce5d1ff8ba1974015833f9cf"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "supermemo-plan",
+      "id": "supermemo-plan",
+      "name": "SuperMemo Plan",
+      "version": "0.1.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "894b89a404a613cf23ac8e59b0ecd7cc0a19bc7342cde2040d45482c5223b592",
+        "main.js": "9dae57e0885cf6371a92638921ce019726dd70496c892b544a2dc28345b078d5",
+        "styles.css": "3643db783b3746a8a1828c816b9a5e035a92dd4b57b40cfb750a78380b849a15"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "tag-wrangler",
+      "id": "tag-wrangler",
+      "name": "Tag Wrangler",
+      "version": "0.6.5",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "271a93e605b09f689fb4b05af1f73f5080e0876fc247635e4fe9e2c2d88ada96",
+        "main.js": "ec4f90d5ccb3321171166874f9edac75ea007cd7894ef639bc6ed499db77db4a",
+        "styles.css": "2791736163933c844b964a335b4de76368c97aa1ddc916161d11f50ce0828320"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "templater-obsidian",
+      "id": "templater-obsidian",
+      "name": "Templater",
+      "version": "2.25.1",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "b99280d2c4ab2cd22ad010c12faeedf255bcf385d127d973b89f85deb27d23fd",
+        "main.js": "9a02fb4b3d608163ccd7c0197877f939c5308b3596a29da9ad54f6545075ef65",
+        "styles.css": "67a6dd2d1d6dedca1287c334ca884ec4196433f71ca47388a0bd3eac14cf8b5f"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "temporal-framework",
+      "id": "temporal-framework",
+      "name": "时间框架",
+      "version": "0.1.0",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "78c5e097ab62ea2a28730c64d7c0369cb786005140649d24674b1d9ca2529f70",
+        "main.js": "b6b11a72d91d117cdada69c4d78ffc0177f0b2704d32192b133ced4e285db171",
+        "styles.css": "430e6efe5bd7ac5208cb7d86b5c585e0f321d5197598965ffdd97ebeb0acdd31"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "timeline-planner",
+      "id": "timeline-planner",
+      "name": "Timeline Planner",
+      "version": "0.1.2",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "d50f0e703c4c9d9a068bfe9d723eb3e2519bb9c1165ab78c48cc47908db3da2a",
+        "main.js": "a0212c5e0cc09719670846b60d2fbd32f194d66b855d7b9255955ebec48063de",
+        "styles.css": "709b92c2873e6241765fe1307746ed941ecbbecd8175b8a0246692b238a3e187"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "tray",
+      "id": "tray",
+      "name": "Tray",
+      "version": "0.3.5",
+      "enabled": false,
+      "files_sha256": {
+        "manifest.json": "80e8ee02d7fb99c82b947d7ad93ac2dfb0663f4850b6148c7de38037efe44a34",
+        "main.js": "0471a590b8a3e308293f5d2ea70805377ac1566053728565d63ea4b55094ad42"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true
+      }
+    },
+    {
+      "directory": "view-group-hub",
+      "id": "view-group-hub",
+      "name": "View Group Hub",
+      "version": "0.2.7",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "40ccbbf688412b4cd45753184bf338bfda94634c268c0db2bdf92b366031b195",
+        "main.js": "f1bd988fe1f761a826db026b7a402a5499614b1523be667b230bee7d7cb4a87b",
+        "styles.css": "800c067f8083b4d3edd2732cd9858d810e890fe46c012c60c4920ef87b71979b"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    },
+    {
+      "directory": "workspace-mount",
+      "id": "workspace-mount",
+      "name": "Workspace Mount",
+      "version": "0.1.4",
+      "enabled": true,
+      "files_sha256": {
+        "manifest.json": "66ab4ed71506d4156e37143899586048124ecede55a722ed05db53da8bf681db",
+        "main.js": "d72a34ddcb5f71509247d8306b1d987034f55622c0fe772e2f51cce0ad4220b5",
+        "styles.css": "6ad493fd80217ad72ad76d0e55fbebc180d8f149c59d6e60d9446548d2d3cbfe"
+      },
+      "newera_comparison": {
+        "manifest.json": true,
+        "main.js": true,
+        "styles.css": true
+      }
+    }
+  ],
+  "comparison_scope": "manifest.json, main.js, styles.css only; does not compare notes, data.json or runtime behavior"
+}

@@ -1,0 +1,715 @@
+{
+  "format": "daqian-ai-context-v1",
+  "created_at": "2026-10-27T02:37:40.679126+08:00",
+  "role": "NEWERA plugin sharing companion",
+  "workflow_commit": "0fda68c6a4c14b933cfc6a4300024b348d57c7af",
+  "external_reference_count": 351,
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 24,
+      "sha256": "b01d109160000fa6c81f41844d5ed3bb468cbef2c8ab2d8128a70e6ac19e414f",
+      "source_kind": "release-entry-and-evidence"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 919,
+      "sha256": "76c9af8d6575f5600f68a48b5b9016a4f33ad992d7de8f3c4bed51e64e4db945",
+      "source_kind": "release-entry-and-evidence"
+    },
+    {
+      "path": "CURRENT_BASELINE.md",
+      "bytes": 5077,
+      "sha256": "830f972b7d30a94e71e5c75b767ecad32986713ef2492236e17cdb6eb8a87526",
+      "source_kind": "release-entry-and-evidence"
+    },
+    {
+      "path": "external-references.json",
+      "bytes": 104415,
+      "sha256": "1776d0a79ac982f632bcf75eefbc995ed172cb4fdc1c10384a4f79df9671a829",
+      "source_kind": "release-entry-and-evidence"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/00-system-map.md",
+      "bytes": 11675,
+      "sha256": "991ce077faa5e484ef0fe45d5a4c9c287eb6bdb711b1e5d98b2b4ced706b1627",
+      "source_sha256": "82fcfac4159f0cc1f183833436ab0cc58e4414db8106217035d8d3db62226f39",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/aliases.md",
+      "bytes": 3639,
+      "sha256": "b98b0444238d737cbb98c26e9efe6b147d871f51d9cf94158e0bc2f37079d612",
+      "source_sha256": "6006b4f768e6c212ca6354ff5873dbba76cfdf2fbd546d588bed296af5770765",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/api-registry.md",
+      "bytes": 50532,
+      "sha256": "b64e6f6b4d801afc2d64a43b694aeaa5af0561bd537fe7406c93d01b80b33776",
+      "source_sha256": "bff3a6f3d1962874b6fe2a720f2eaf38543b9b11c1bc121b8dda4ecf96b69fc9",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/contracts.md",
+      "bytes": 153681,
+      "sha256": "4593a8694c202c062e1cb53aaf84974081fa8b97cbd6fa860f88a279cc8977d2",
+      "source_sha256": "37dc62b22e384fa7611fbfe34164787b11c07df2709b4180056f847f685e5dc5",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/glossary.md",
+      "bytes": 10054,
+      "sha256": "62c34f49b41123116bc259e74e17630925b6730c72d433786d3bc07697c4662e",
+      "source_sha256": "59c3b6abcba1d7d32390cb645415a2c26e0bebb2f1079a2f62b2b1331b346a91",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/index.md",
+      "bytes": 8579,
+      "sha256": "d23b1a0ba92949b0720ed06d6fb41e196fda37b274753da38ada159bc3fd8857",
+      "source_sha256": "4bb5f3041f9483a7f51c3e5d2f5d09e7ef27d9305088af97c326548ef40e6739",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/context-capsule-key.md",
+      "bytes": 23212,
+      "sha256": "18b892520c3635ad5fc84f6062269f8115e9648868e691631d0086d3f6bf86b3",
+      "source_sha256": "b202a57f7fc7c983aae2b6275f0097b8e5006b342841bad3eca60a01f0423193",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/cross-plugin-aggregation-mapreduce-pipeline.md",
+      "bytes": 21322,
+      "sha256": "832bdd028c8daf6f8630d6b8c0d5ae11d97e57197d91e4c076a378e9f22a8efc",
+      "source_sha256": "99fc662ad13165e176fce42c4e94c412828eca59b2819e5b6b07abec009fd91f",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/effective-operational-context-key.md",
+      "bytes": 23554,
+      "sha256": "9d8e8f1ae9a2b5851cd8f41951930eb6340cff22fb3154ce0ea449d3621bdf16",
+      "source_sha256": "9d8e8f1ae9a2b5851cd8f41951930eb6340cff22fb3154ce0ea449d3621bdf16",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/generative-context-reconstruction.md",
+      "bytes": 6161,
+      "sha256": "85a1a3f96e43d1a499d7d6ee152df08a511f2211db214e4f3c084eab97698004",
+      "source_sha256": "66a8d381aec2281fd6394b8ce1e8985dbaf792dba4765949bb27d03a5a946ee1",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/keyword-symbolic-interface.md",
+      "bytes": 7035,
+      "sha256": "ee644bf53c3b251985d30b8e2d5f603481634adf66bc61cdcbf38f397e291cf6",
+      "source_sha256": "3bf7768c5ed279e49d62dcf825507562481607a927c3bd9db80cea8d2ecb2aff",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/llm-wiki-operating-model.md",
+      "bytes": 4667,
+      "sha256": "4a97535437a99d59c2a157a6898e34cbd64337864f135f3875d0a323f511baa2",
+      "source_sha256": "5cc0a5379cc9eb8b932b67254265a5c132d04b97cd867ee678f74e38d0a2ddab",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/mermaid-address-semantics.md",
+      "bytes": 16546,
+      "sha256": "5ec3fe513b0476de0ad77c93cfbb32e763472f1d1606a3a3c49d8a94c1b7e93d",
+      "source_sha256": "cf5c7b0692670b2193c3aa1c0d7ab12ffb3e2a2173b62a61dd73ac0e8bdb1572",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/recent-maintenance-sentinels.md",
+      "bytes": 9068,
+      "sha256": "3f11bd3874057c3e4cd783817005a11e2f2021db1a3872b3725d3d6de15505d9",
+      "source_sha256": "b11fc8ef6f3b9837c2a909a6d2f90ad59963f02b0af087313af74bbe66a68787",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/system-evolution.md",
+      "bytes": 14586,
+      "sha256": "c0c3152389e20dc303c200398d8ac0ec68471024a7388d1828b78699c6339054",
+      "source_sha256": "7f539a9b30a4856899e2661f5b5ddc2ae423c912c32fd1b4cf08afd3cfb5a1b6",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/unified-context-key-management.md",
+      "bytes": 29973,
+      "sha256": "4a7e471901365cb8fb405a80c50347768dab162a9f98b8e8e27e0df58c71577d",
+      "source_sha256": "75144b9bdcbb03d7d76d10f9c47e01e654485f8ba506122b805c1c69e96dd865",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/knowledge/unified-core-transition.md",
+      "bytes": 136905,
+      "sha256": "314be0b258de08acc870a9cf3010b1bd23e7d58d46d5437f1b6f37ce5fb9b6a0",
+      "source_sha256": "bd58d730ec4fdcfa5264ccbe65b8430a209e0c943f5209a41c79b7feb876971f",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/log.md",
+      "bytes": 315884,
+      "sha256": "1841ba549a11cd39fb30d9943b15f462f2286260ecba8096da810f0d0ad25c2e",
+      "source_sha256": "5040e90c50ba8a3a4d77306b6f1fac7a459dbd994cde5f0ef2e9e577ed2ab426",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/atom-note-sidebar.md",
+      "bytes": 16956,
+      "sha256": "d9eb7d8d8d5a3082c6f846b0dde15c2f597ee274cb7d9f1b7700be7bbdaf50d4",
+      "source_sha256": "838ecb754f5bd11c69ddeaaacff4a5d48bc51383d2d5077733e8b91c768ee908",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/collection-card-view.md",
+      "bytes": 10785,
+      "sha256": "91562568201812a6f8eb982e0871d6e1573a473799e461ebe336cddc71a081a2",
+      "source_sha256": "e9bf1b2f08de2d9451be7bb7a5fdb79adf2159ce07974856ba095f38e555c8e2",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/context-key-manager.md",
+      "bytes": 9493,
+      "sha256": "a7d6a3bf4f02b482206bbb21738d5b5bb53b0e0c406eb7cbd64355c154707d5e",
+      "source_sha256": "0c3a9b687401dcec7212a704489fa43bb670135a0641e330110ca919f1fcf727",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/daily-note-review.md",
+      "bytes": 7143,
+      "sha256": "40a442b61bb5b07596a53c1005b44ae8eadc4fb650a5f8adea38bf3d08fae69b",
+      "source_sha256": "a6666066b30f368d86c83bc3f5594f607deead95e34707136cb73535750b022e",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/eva-branch-sidebar.md",
+      "bytes": 6594,
+      "sha256": "b3502d2b2a271eeb43d6d3c5c6c712ea63e803d57170b6034c3f24d07ac43699",
+      "source_sha256": "b919857541d38adc37c9e9cabda4503dbf0466d7b42022c9553d86d4386f1921",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/eva-cross-view-relations.md",
+      "bytes": 16850,
+      "sha256": "7b83438a22aa2f751a9a2488d95be909b8a6b9c4ef0374afd6d46ffbfcc78a47",
+      "source_sha256": "6c87ced21520817e10be9d59472594d140db8bda6e974c74ba40a4b02716b8d2",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/eva-incremental-indexer.md",
+      "bytes": 2623,
+      "sha256": "1604ad4594ce600739eaaaa9fe4ea2f2abb0b94979f90bf0aeca9ca38415cc78",
+      "source_sha256": "51598e18d7ae9f6c665d0494a1a0bd70af3fc7db693cb4ee63c2fa33afdf62db",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/gtd-task-manager.md",
+      "bytes": 13364,
+      "sha256": "762ab95309f22473b2d473c99a1273d658a76f2f7412612e7463746a09201b16",
+      "source_sha256": "ab55840554619fa00d67ec53d6075a13c7c4fef16c347417a2b0f0c4dd40b77c",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/keyword-index-plugin.md",
+      "bytes": 43936,
+      "sha256": "9637b8ca4aa8ebb1122527cdc5a830d40c50eb3f27561043b3dd980c356ab61c",
+      "source_sha256": "5f23c567964551740ce418af69d5d68a7815063431f60452ccc1c257816f6ccd",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/mandala-time-blocks.md",
+      "bytes": 104265,
+      "sha256": "17dfc88fe9324845ef75c7c024689e363abe02917d52bb5e4965a73d0804435a",
+      "source_sha256": "10488925e3a8175c8487c988666dffa693798bac7265702ffa96888b8624969b",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/mermaid-floating-widget.md",
+      "bytes": 16903,
+      "sha256": "0830dd9a4f1118e32cb91d43a593df51b078eaaa6a2b8fb10c96103d09861f88",
+      "source_sha256": "144914e179aa64b023a9c68772f915539b47c73bee3ea2fd250a3af16875fe7f",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/next-action-workbench.md",
+      "bytes": 5304,
+      "sha256": "bce3abb5aff3826e6ffc155ae9bb0bf8c1a406d49c2cd676b0cfbaaf73d9714d",
+      "source_sha256": "a0575ad1c57dd39e0b34eb08347c4a8d0711e1d3f8985f7de88ab8c962bda2e7",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/ontology-meta-hub.md",
+      "bytes": 69390,
+      "sha256": "4a9aa6a55acb72a360b56cc33743ce0fee8756b4054a11cd68ba5392ea791940",
+      "source_sha256": "5d7eec2897ba61c46600cf5200f34a76a9e869224f7079ec65dc0b51c825b37a",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/personal-fund-ledger.md",
+      "bytes": 2737,
+      "sha256": "2ed705eb502d08dbc3d06fb5940304c3a7a59b807c81394cca43f9adc97c67a5",
+      "source_sha256": "2bbe7af9ad667bee5e374d1b957cea2e14f0c893e8c50f02d3dae6379429f74e",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/project-execution-overview.md",
+      "bytes": 47578,
+      "sha256": "cb6545b7ef82725004c705b215e063cf900f27f0d839d7077abfd443db128107",
+      "source_sha256": "9c33a407baf6e5b6b9606d35bda86ab8dc35c5d693c5506ad2283017e8a95360",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/reference-graph-widget.md",
+      "bytes": 10731,
+      "sha256": "3c6809cd5011ebcacebc9ed734a669b857f222f7f742442cf1500691298aa733",
+      "source_sha256": "a8bb97cbafec82b3d8e4abb023990d7373b5c45c29dd955a12623778e3e62982",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/state-capsules.md",
+      "bytes": 13181,
+      "sha256": "94c56775a22e779a40ce38b715a1f88899526095299da8e4b5b28ec3cb58e622",
+      "source_sha256": "94c56775a22e779a40ce38b715a1f88899526095299da8e4b5b28ec3cb58e622",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/supermemo-concept-display.md",
+      "bytes": 48033,
+      "sha256": "4b09557fde4b639643993d2e1924acc596177a14d658937ccc60f06404ef7b8a",
+      "source_sha256": "9e03deab7e22c792a9ca7a9a2fcf43f4a630eea2232b9bd01ad42327f46bfa0a",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/temporal-framework.md",
+      "bytes": 37544,
+      "sha256": "d31e3041e866fdfde0214cd391724c0be9a6f589be7d20a0daad0d60bf96d23a",
+      "source_sha256": "9ce7551f12999be5d4fee7834d4c43680ff4e9756af6a660df5eb0438d84ab20",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/timeline-planner.md",
+      "bytes": 7559,
+      "sha256": "a582a4fe6a75bff5e42eebe60e28ec94393752ac25db753ba7ff5b7e7f5dee60",
+      "source_sha256": "cf2406bf2558738cef4bc9bfdf3fd3715e3764e1c9414e05787c59683839b66e",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/view-group-hub.md",
+      "bytes": 13611,
+      "sha256": "91be76ce7eaa57f36200798e1c300f724810e13c2503f18efaedcec16bab984d",
+      "source_sha256": "f29f1bbc58db19fd97d187bd0479251627b9acd7186a528da6134b977705c0f1",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/plugins/workspace-mount.md",
+      "bytes": 57623,
+      "sha256": "5b8eedb38bfc523e6f216b5f18eb1e2f1e928fb8d981c08485c3733ffb29a32d",
+      "source_sha256": "fd67d86b51ec15fab4059f14beda2c0cb9a0af3bec1ec955a9efd55c59b75f55",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/purpose.md",
+      "bytes": 1844,
+      "sha256": "e20f15333ab90d2b9d6c06b7ff4ad6571154995381019b309d8877c60ffc05e4",
+      "source_sha256": "8dcd9e7683b6a88d613df55ea6f4de782cf515b21ef7bfae1ff60b0c08faf622",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/README.md",
+      "bytes": 4251,
+      "sha256": "827c3fd246e87a84827123c145dba8df4ad2b78084c64adc29c8cdbc236259e6",
+      "source_sha256": "0395750ee9c13e25b3e5ed06a928a987b5fae7ad744bcae2317423b6ee1b01f2",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/schema.md",
+      "bytes": 2684,
+      "sha256": "5774a9f4578e2327c249984ed659e321b501e1d74e31139cece62afd653c0669",
+      "source_sha256": "c87ceb8817bfdbd6c3f743cb44047c4324d5c2880d69040fed50bf1ebc4fcbae",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/unknowns-register.md",
+      "bytes": 23534,
+      "sha256": "d9457c7448222ae1d3f6994f9619d346f9e07064e44eff7b36e229bfad830b59",
+      "source_sha256": "84e2c784a22ff99dbee817e04e67818e43bbf10f3674af86b481995f673c45a4",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/workflows/dialogue-graph-drawing.md",
+      "bytes": 8309,
+      "sha256": "c67efe5af6844236f43bd5cd64ef8071e85f49121fe93030232ecb1754407955",
+      "source_sha256": "5667d1e56a4722393578d5808e3ec2483fc37a98cd891f56a2960849b28e3377",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/workflows/keyword-antinet-bus.md",
+      "bytes": 5555,
+      "sha256": "eea6b7994916884b37c2f4b64578fe27eec6484b84d44b8ac8645d32299323a4",
+      "source_sha256": "103ea2c5b888f4bfd4fa32d306f50d66e45785505d99095daeb162248f05b45c",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/workflows/operational-context-to-next-action.md",
+      "bytes": 13432,
+      "sha256": "2de77c1ea80ee07e6ce56d59aa24c26abe57749197cc44282506c88fd876a521",
+      "source_sha256": "9ab19d93ded055f80c511c317c3b6fafad278f7aca481229e569f9d42839eee8",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/workflows/planning-record-execute-review.md",
+      "bytes": 11904,
+      "sha256": "0ca887105d00a5613f672ae8d6072bbd0613452fde398877b31b18657fc6e89f",
+      "source_sha256": "b561231feae1714e343bca9d336dbbbade8e83b23c70855aea5313e868b9a918",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/atlas/workflows/project-coaching.md",
+      "bytes": 6027,
+      "sha256": "0ecc25b6270a6c9a0d13ab7dd8c125d668eddf636adaffe0e26a45042bbb8d0c",
+      "source_sha256": "13b3b578f9fc267a8ccac938bf0d11b1fedd67d6365caa2a4bc1e5c2e473d26b",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/change-records/2026/2026-10/20261026-daqian-route-abandoned.md",
+      "bytes": 3977,
+      "sha256": "d2a8be02aff4b6a26c7627c864452ff10d1200f2bb5ecb7a1844cf4205c436ba",
+      "source_sha256": "1c5c327b90f63b949fb24c9a1bc38a6e9b9cdb26d5b7e6888bb8ec6de2c917f0",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/entry-index.md",
+      "bytes": 5501,
+      "sha256": "ef935f29d30b65e2aaf1eda80b9134320972d612681fd86bae4845e4f8aaab2d",
+      "source_sha256": "ef935f29d30b65e2aaf1eda80b9134320972d612681fd86bae4845e4f8aaab2d",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/index.md",
+      "bytes": 1033,
+      "sha256": "0bf42b3fc7acbee14972c7e5fb93ee191d2f20436e3f39baac9cb6571a44cd10",
+      "source_sha256": "b9958443c4b25d1a1fad3b40450ad3b50e379da62fd6af0ba2c6f857cd0b0886",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/maintenance-log.md",
+      "bytes": 479281,
+      "sha256": "4b564d354232893e5e8ce6cd021377a3242cfde7fa06716b053c8f84c9541c72",
+      "source_sha256": "9873ea08d50735f924dc13bed0b858281e243451fd232e5bb6d6f57800d3bd5b",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/purpose.md",
+      "bytes": 1966,
+      "sha256": "4c53f48af4ee514e6c3bf5bd919adaae00ee3e690c1905a44ae5be844f3dea3f",
+      "source_sha256": "3acbae59c045b6d7660873df87ee34e03d47328015eea679b1de3d77fb672632",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/question-map.md",
+      "bytes": 28478,
+      "sha256": "86a5d1cd388d73fb1967db816ef893b615ac0f1f7dad2c46d963d7943ad621f9",
+      "source_sha256": "86a5d1cd388d73fb1967db816ef893b615ac0f1f7dad2c46d963d7943ad621f9",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/README.md",
+      "bytes": 2725,
+      "sha256": "0bf1cd19d00e4e1537561f89555bc0cb80a48480311ee85f8bdaa9d2c232e406",
+      "source_sha256": "e43891b45baa597b25d3743867db6ada96e89fe16fe92d3de8408aded0f54354",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/registry.md",
+      "bytes": 12018,
+      "sha256": "28a7c2b26c13119a8ef7201668913930ba8287f35bcd935f932a374f73a77d58",
+      "source_sha256": "ce54aaa0fa70d25b4ecfa150c66c18a5aa20445d48d6f3abd1d6d3acd06d982a",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/schema.md",
+      "bytes": 3213,
+      "sha256": "3c5dd95791e51ddda7814e21a76255bd611f9e4d9406768b43d68899a13b20ba",
+      "source_sha256": "e5bab8605fb7f040c1590d7d338eada8faecdd0ccfd2de5d8b5dda05be6118b0",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "memory/obsidian-plugin-system/framework/update-protocol.md",
+      "bytes": 8012,
+      "sha256": "cdced0088f96b1a8b825a79031db53957fd07419fb7c40cc3b33de2cc3c9e491",
+      "source_sha256": "87dbf20c21cb5c838e4f29bdc4139196f8afc4059d45f2478b047d71fb03ae6d",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "output/reports/obsidian_plugin_system_framework.md",
+      "bytes": 10003,
+      "sha256": "74a150c4cfa4814cff2a762992b2dc30e837f0c482c89a04e48a1683a396b4a8",
+      "source_sha256": "e9809d84cc9f0685bc0eca9967e40d1aad1213afad265683516253c186993a3b",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "plugin-compatibility.json",
+      "bytes": 34280,
+      "sha256": "9e067ef3b5c5b0e0396aa81bc63a3f39af966055f427e430e55e574c24e734c4",
+      "source_kind": "release-entry-and-evidence"
+    },
+    {
+      "path": "prompts/rules/project_continuity.md",
+      "bytes": 10387,
+      "sha256": "d59efe2382a49ce9ce9130dc0aebbd503925d1f332a587fd92eb7b4ee04d261b",
+      "source_sha256": "8987e4d706664adf2bbfced9fd55a23d187550cfccd1dfb43e1146eed14a839e",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "prompts/rules/runtime_environment.md",
+      "bytes": 6145,
+      "sha256": "35f772d101db57473863be6bd188b8442d55d37db4e7334b47f2eb33c7cac2e4",
+      "source_sha256": "414c08e91f67083785f17154124e75f8b680eb4670417d7cffd0dfbfe6d2cd60",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "prompts/rules/second_brain.md",
+      "bytes": 8142,
+      "sha256": "321d2d4d4afc1c9b4a6e64e31c82ff4f52e2b6e707f48b816a07e3abe6e07caa",
+      "source_sha256": "973ba1fedb84fcc40a4ee456d683fcca1c76c8a020e2f11dc8fc3c073fbf8ecd",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "prompts/rules/workflow_core.md",
+      "bytes": 31439,
+      "sha256": "9fd6513a8e4813eec33559495beef5d83865046397cab95440d07405089140c6",
+      "source_sha256": "951b1d81b9320423b89fc541ec2a9083ff0775267a047c36d222e6656aa05cdf",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4101,
+      "sha256": "fbdefa945d44a617a3c7ab7677b83a92cdf3a9d446a029078004aa74df284fcb",
+      "source_kind": "release-entry-and-evidence"
+    },
+    {
+      "path": "REFERENCE_BOUNDARIES.md",
+      "bytes": 97594,
+      "sha256": "62857a4b7604aaf1d60d91bb0a5d5857f4132e1b626496d0e88d77f645292e78",
+      "source_kind": "release-entry-and-evidence"
+    },
+    {
+      "path": "scripts/atlas_query.py",
+      "bytes": 10031,
+      "sha256": "572d2029f900de4b72361ccc2086f61c4928edbdd8cfcb3f7c8652e7425fe71e",
+      "source_sha256": "572d2029f900de4b72361ccc2086f61c4928edbdd8cfcb3f7c8652e7425fe71e",
+      "source_kind": "workflow",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/appendices/communication-preflight-checklist.md",
+      "bytes": 646,
+      "sha256": "1ad23cd983c304b8d7f699ea273c79356d8336eb2e7c5761a91b1bc083407c9a",
+      "source_sha256": "1ad23cd983c304b8d7f699ea273c79356d8336eb2e7c5761a91b1bc083407c9a",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/appendices/console-ops-runbook.md",
+      "bytes": 5412,
+      "sha256": "6e9209360940061db422bef63200720f02fa47787e685746da260a7fc7f6d382",
+      "source_sha256": "6e9209360940061db422bef63200720f02fa47787e685746da260a7fc7f6d382",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/appendices/paradigm-panel-visual-state-semantics.md",
+      "bytes": 525,
+      "sha256": "27a7209d961cb16f92dbfaafc9645e0402d237bf9d2380d3ce09f9a48f68ed26",
+      "source_sha256": "27a7209d961cb16f92dbfaafc9645e0402d237bf9d2380d3ce09f9a48f68ed26",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/legacy/cross-plugin-protocols.md",
+      "bytes": 2996,
+      "sha256": "a639cdeec882d75046c84281e4c2e7346870af092bec83c1266369d1ef226d89",
+      "source_sha256": "a639cdeec882d75046c84281e4c2e7346870af092bec83c1266369d1ef226d89",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/legacy/view-stability-and-scroll.md",
+      "bytes": 2682,
+      "sha256": "d9ce91fe31848d7f894391a693ea10e03a9ec8ab0d86393b668b285d3060bae7",
+      "source_sha256": "d9ce91fe31848d7f894391a693ea10e03a9ec8ab0d86393b668b285d3060bae7",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/protocols/00-protocol-index.md",
+      "bytes": 2229,
+      "sha256": "017feccb9cbb196c0dad7ab84d51236a2733d582914e2cee0a13e3d468cc7650",
+      "source_sha256": "017feccb9cbb196c0dad7ab84d51236a2733d582914e2cee0a13e3d468cc7650",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/protocols/domain/keyword-bus-pattern.md",
+      "bytes": 2817,
+      "sha256": "b4b5ada128139c4d2e037fceb00332c1292fb1cb8bb2b184f40f7cdfac9521d5",
+      "source_sha256": "b4b5ada128139c4d2e037fceb00332c1292fb1cb8bb2b184f40f7cdfac9521d5",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/protocols/primary/host-identity-and-bridge-discovery.md",
+      "bytes": 2944,
+      "sha256": "310ca0a9e502a7c47756a8cecd866a8853959945e837ec353df0ab83d7bb4697",
+      "source_sha256": "310ca0a9e502a7c47756a8cecd866a8853959945e837ec353df0ab83d7bb4697",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/protocols/primary/local-write-view-stability.md",
+      "bytes": 2607,
+      "sha256": "4a56876c406644a818130c6c3a98221ffa5f0abf391e9cdfafcf1578c47e6929",
+      "source_sha256": "4a56876c406644a818130c6c3a98221ffa5f0abf391e9cdfafcf1578c47e6929",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/protocols/primary/paradigm-mount-identity-and-toc-state-chain.md",
+      "bytes": 2847,
+      "sha256": "8ebc53a6a3c1548ad0976239235d555447e4854c9a601f824aca0bc45411eb0a",
+      "source_sha256": "8ebc53a6a3c1548ad0976239235d555447e4854c9a601f824aca0bc45411eb0a",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/protocols/primary/queued-restore-runtime-protection.md",
+      "bytes": 2553,
+      "sha256": "4d784e1203a12c22945b7bcc86cf5765f271baad55c3fe41921a7e25deefc186",
+      "source_sha256": "4d784e1203a12c22945b7bcc86cf5765f271baad55c3fe41921a7e25deefc186",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/protocols/primary/verify-allows-evolution.md",
+      "bytes": 2554,
+      "sha256": "4146b30ab11de78c6d529f2f3dabaccbbf844b5f86192a86b1c37b5b6a1707fa",
+      "source_sha256": "4146b30ab11de78c6d529f2f3dabaccbbf844b5f86192a86b1c37b5b6a1707fa",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/standards/audit-trail-protocol.md",
+      "bytes": 2629,
+      "sha256": "b4f4de533d62657eee0ac0ab69098a218062f2c3b7701608e22a37cf1cfacec6",
+      "source_sha256": "b4f4de533d62657eee0ac0ab69098a218062f2c3b7701608e22a37cf1cfacec6",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/standards/console-logging-standard.md",
+      "bytes": 2331,
+      "sha256": "303c44912342e4fbc3c8d7a4bdb6076500daef954efd37c842f567ec967356a1",
+      "source_sha256": "303c44912342e4fbc3c8d7a4bdb6076500daef954efd37c842f567ec967356a1",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/standards/release-guardrails.md",
+      "bytes": 2010,
+      "sha256": "efe9f64045657b22a99d5b5932212d8815949507e35f85c7ee15745156f63bc7",
+      "source_sha256": "efe9f64045657b22a99d5b5932212d8815949507e35f85c7ee15745156f63bc7",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/standards/system-boundaries.md",
+      "bytes": 2706,
+      "sha256": "98cc551a321d256774e140b8fe621a7599d9e0f2f76613f4ce26c695fb96af81",
+      "source_sha256": "98cc551a321d256774e140b8fe621a7599d9e0f2f76613f4ce26c695fb96af81",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/references/standards/workflow-performance-observability.md",
+      "bytes": 12051,
+      "sha256": "89bd13855c70f21d254f6df7bee2ecb221ab97f78e03f84c49e0a3961a153738",
+      "source_sha256": "45b24dbbc0d8e7f7dd84c2e8f26704f0ef8aaf305a89c44708d3e706dc94c32a",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "skills/obsidian-system-plugin-dev/SKILL.md",
+      "bytes": 49648,
+      "sha256": "5cd912995a9c71984b7e579ea9c0654d3bf2b04e419cd0585065efccfede9f52",
+      "source_sha256": "a71a2340d05da0c7fd4c02c0dcb53c358e9434a4abff33cdc434dc135cb40683",
+      "source_kind": "global-dev-skill",
+      "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    }
+  ]
+}
