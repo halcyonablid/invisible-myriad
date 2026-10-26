@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "defaultSourceNotePath": "九宫格目标.md",
+  "dateRange": {
+    "start": "2026-03-25",
+    "end": "2026-12-31"
+  },
+  "filters": {
+    "activeBranchId": "",
+    "activeLeafId": ""
+  },
+  "widget": {
+    "left": 120,
+    "top": 80,
+    "width": 1400,
+    "height": 900
+  }
+}

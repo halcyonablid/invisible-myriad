@@ -1,0 +1,9 @@
+{
+  "id": "eva-incremental-indexer",
+  "name": "EVA Incremental Indexer",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Incremental ATOM note indexer with content hashing, vault event listeners, dirty queue, and EVA JSON export.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

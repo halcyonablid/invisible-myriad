@@ -1,0 +1,5 @@
+{
+  "fullScanOnStartup": true,
+  "autoExportOnFlush": true,
+  "outputFolder": ""
+}

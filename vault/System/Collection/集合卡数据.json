@@ -1,0 +1,310 @@
+{
+  "schemaVersion": "1.0",
+  "lastModified": "2026-10-21T02:33:54.419Z",
+  "activeTabId": "tab_mv56h2cidyfop",
+  "tabsById": {
+    "dq-collection-tab": {
+      "id": "dq-collection-tab",
+      "name": "分享的明确行动",
+      "emoji": "",
+      "parentTabId": null,
+      "createdAt": "2026-10-05T09:00:00+08:00",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    },
+    "tab_default": {
+      "id": "tab_default",
+      "name": "新的行动",
+      "emoji": "",
+      "parentTabId": null,
+      "createdAt": "2026-10-05T09:00:00+08:00",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    },
+    "tab_muvd1tvl1fp8w": {
+      "id": "tab_muvd1tvl1fp8w",
+      "name": "001- 尝试整合成为一个大的插件",
+      "emoji": "",
+      "parentTabId": null,
+      "createdAt": "2026-10-05T14:44:12.034Z",
+      "updatedAt": "2026-10-05T14:44:12.034Z"
+    },
+    "tab_muvdc4imjj4aq": {
+      "id": "tab_muvdc4imjj4aq",
+      "name": "测试",
+      "emoji": "",
+      "parentTabId": null,
+      "createdAt": "2026-10-05T14:52:12.382Z",
+      "updatedAt": "2026-10-05T14:52:12.382Z"
+    },
+    "tab_muvdg5qrcx0nx": {
+      "id": "tab_muvdg5qrcx0nx",
+      "name": "协作测试B",
+      "emoji": "",
+      "parentTabId": null,
+      "createdAt": "2026-10-05T14:55:20.595Z",
+      "updatedAt": "2026-10-05T14:55:20.595Z"
+    },
+    "tab_mv56h2cidyfop": {
+      "id": "tab_mv56h2cidyfop",
+      "name": "036R- 沈灏的书",
+      "emoji": "",
+      "parentTabId": null,
+      "createdAt": "2026-10-12T11:37:47.299Z",
+      "updatedAt": "2026-10-12T11:37:47.299Z"
+    },
+    "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a": {
+      "id": "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "name": "099T- P2E测试项目",
+      "emoji": "",
+      "accentColor": "",
+      "kind": "project",
+      "parentTabId": null,
+      "boundParadigmIds": [],
+      "boundParadigmItemKeys": [],
+      "boundParadigmId": null,
+      "tabKeywordsById": {},
+      "tabKeywordOrder": [],
+      "createdAt": "2026-10-21T02:32:03.321Z",
+      "updatedAt": "2026-10-21T02:32:03.321Z"
+    },
+    "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "id": "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "name": "099T001- P2E测试目标",
+      "emoji": "",
+      "accentColor": "",
+      "kind": "project",
+      "parentTabId": null,
+      "boundParadigmIds": [],
+      "boundParadigmItemKeys": [],
+      "boundParadigmId": null,
+      "tabKeywordsById": {},
+      "tabKeywordOrder": [],
+      "createdAt": "2026-10-21T02:33:54.418Z",
+      "updatedAt": "2026-10-21T02:33:54.418Z"
+    }
+  },
+  "tabOrder": [
+    "dq-collection-tab",
+    "tab_default",
+    "tab_muvd1tvl1fp8w",
+    "tab_muvdc4imjj4aq",
+    "tab_muvdg5qrcx0nx",
+    "tab_mv56h2cidyfop",
+    "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+    "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+  ],
+  "tabChildrenByParent": {
+    "__root__": [
+      "dq-collection-tab",
+      "tab_default",
+      "tab_muvd1tvl1fp8w",
+      "tab_muvdc4imjj4aq",
+      "tab_muvdg5qrcx0nx",
+      "tab_mv56h2cidyfop",
+      "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+    ]
+  },
+  "tabTreeCollapsedById": {},
+  "itemsById": {
+    "dq-collection-1": {
+      "id": "dq-collection-1",
+      "title": "把开场缩到六十秒",
+      "comment": "完全虚构的演示条目。完成标准：可以在十分钟分享中直接使用。",
+      "tabId": "dq-collection-tab",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": {
+        "path": "Examples/ATOM@1.3-一次排练只改一个问题.md",
+        "ctime": null
+      },
+      "createdAt": "2026-10-05T09:00:00+08:00",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    },
+    "dq-collection-2": {
+      "id": "dq-collection-2",
+      "title": "选择三张演示卡",
+      "comment": "完全虚构的演示条目。完成标准：可以在十分钟分享中直接使用。",
+      "tabId": "dq-collection-tab",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": {
+        "path": "Examples/ATOM@1.2-把材料压缩成三张卡.md",
+        "ctime": null
+      },
+      "createdAt": "2026-10-05T09:00:00+08:00",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    },
+    "dq-collection-3": {
+      "id": "dq-collection-3",
+      "title": "完成一轮计时排练",
+      "comment": "完全虚构的演示条目。完成标准：可以在十分钟分享中直接使用。",
+      "tabId": "dq-collection-tab",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": {
+        "path": "Examples/ATOM@1.5-演示路线与完成标准.md",
+        "ctime": null
+      },
+      "createdAt": "2026-10-05T09:00:00+08:00",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    },
+    "item_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7": {
+      "id": "item_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "title": "有一个疑问，数据需要整合吗？什么形式",
+      "comment": "",
+      "tabId": "tab_muvd1tvl1fp8w",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": null,
+      "createdAt": "2026-10-05T14:45:21.081Z",
+      "updatedAt": "2026-10-05T14:45:21.081Z"
+    },
+    "item_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62": {
+      "id": "item_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "title": "真的会提速吗？这个合成一个内核的价值是什么呢",
+      "comment": "",
+      "tabId": "tab_muvd1tvl1fp8w",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": null,
+      "createdAt": "2026-10-12T09:20:58.315Z",
+      "updatedAt": "2026-10-12T09:20:58.315Z"
+    },
+    "item_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8": {
+      "id": "item_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "title": "感觉不合成一个，反而会比较快",
+      "comment": "",
+      "tabId": "tab_muvd1tvl1fp8w",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": null,
+      "createdAt": "2026-10-12T09:21:24.429Z",
+      "updatedAt": "2026-10-12T09:21:24.429Z"
+    },
+    "item_naw_b7833f28-5fda-41f0-84d0-630660127a83": {
+      "id": "item_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "title": "为什么呢，是数量吗，是校验吗",
+      "comment": "",
+      "tabId": "tab_muvd1tvl1fp8w",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": null,
+      "createdAt": "2026-10-12T09:49:49.345Z",
+      "updatedAt": "2026-10-12T09:49:49.345Z"
+    },
+    "item_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b": {
+      "id": "item_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+      "title": "这个就很快",
+      "comment": "",
+      "tabId": "tab_muvdg5qrcx0nx",
+      "parentId": null,
+      "isCollapsed": false,
+      "noteExpanded": false,
+      "noteBinding": null,
+      "createdAt": "2026-10-12T11:35:25.855Z",
+      "updatedAt": "2026-10-12T11:35:25.855Z"
+    }
+  },
+  "childrenByParentByTab": {
+    "dq-collection-tab::__root__": [
+      "dq-collection-1",
+      "dq-collection-2",
+      "dq-collection-3"
+    ],
+    "tab_default::__root__": [],
+    "tab_muvd1tvl1fp8w::__root__": [
+      "item_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "item_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "item_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "item_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7"
+    ],
+    "tab_muvdc4imjj4aq::__root__": [],
+    "tab_muvdg5qrcx0nx::__root__": [
+      "item_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b"
+    ],
+    "tab_mv56h2cidyfop::__root__": [],
+    "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a::__root__": [],
+    "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396::__root__": []
+  },
+  "actionEntryReceipts": {
+    "306f2a29-c2c4-4177-86a0-e0c87d21f7c7": {
+      "fingerprint": "032e4a876591cdaa361d18b900ffebd1636ebad6c9c9f2b44c7b9bbfb96bfe3b",
+      "result": {
+        "ok": true,
+        "persisted": true,
+        "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+        "itemId": "item_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+        "tabId": "tab_muvd1tvl1fp8w",
+        "sourceNotePath": "System/Collection/Collection.md"
+      },
+      "createdAt": "2026-10-05T14:45:21.081Z"
+    },
+    "23448ef4-9863-4ba6-ab34-9ed12e2f1a62": {
+      "fingerprint": "592d105eca86c793fb8ae61a8e8b3f1675504c19d388e22d126dad4bc70af126",
+      "result": {
+        "ok": true,
+        "persisted": true,
+        "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+        "itemId": "item_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+        "tabId": "tab_muvd1tvl1fp8w",
+        "sourceNotePath": "System/Collection/Collection.md"
+      },
+      "createdAt": "2026-10-12T09:20:58.315Z"
+    },
+    "e3d22f39-a7f2-49fb-acc7-3fba6b22bab8": {
+      "fingerprint": "7629eddf89f0f3a11b5e4501b75ebbeb2b96ec0bfc5155b9b77c1fbddd376d39",
+      "result": {
+        "ok": true,
+        "persisted": true,
+        "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+        "itemId": "item_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+        "tabId": "tab_muvd1tvl1fp8w",
+        "sourceNotePath": "System/Collection/Collection.md"
+      },
+      "createdAt": "2026-10-12T09:21:24.429Z"
+    },
+    "b7833f28-5fda-41f0-84d0-630660127a83": {
+      "fingerprint": "d8652c3655c6b9495e36f89c6b65ed6b952e09f0cc5d0556ed7c77ff9d6a15d8",
+      "result": {
+        "ok": true,
+        "persisted": true,
+        "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+        "itemId": "item_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+        "tabId": "tab_muvd1tvl1fp8w",
+        "sourceNotePath": "System/Collection/Collection.md"
+      },
+      "createdAt": "2026-10-12T09:49:49.345Z"
+    },
+    "4140fdd3-fcef-4ea6-968f-6d3e3d134f7b": {
+      "fingerprint": "46332be1ab69f015274fde95b78eefe9cbdd86840391276d4f5752cbed7daa6f",
+      "result": {
+        "ok": true,
+        "persisted": true,
+        "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvdg5qrcx0nx|item_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+        "itemId": "item_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+        "tabId": "tab_muvdg5qrcx0nx",
+        "sourceNotePath": "System/Collection/Collection.md"
+      },
+      "createdAt": "2026-10-12T11:35:25.855Z"
+    }
+  },
+  "contextCreationReceipts": {
+    "create-c68fbfc9-e9c7-44ec-89a9-131988bda64a:carrier": {
+      "planHash": "7c7a26b4398734c13601cea244e836a1e9713b2494bcb0dbd1cf44263d4428d3",
+      "tabId": "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "createdAt": "2026-10-21T02:32:03.321Z"
+    },
+    "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396:carrier": {
+      "planHash": "415bbbc302b346025eda0f59d06545505d2fe2f05414f4c40bfd373d25347924",
+      "tabId": "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "createdAt": "2026-10-21T02:33:54.418Z"
+    }
+  }
+}

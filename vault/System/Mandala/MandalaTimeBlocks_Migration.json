@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "legacySource": {
+    "databasePath": "TimeLog_Database.json",
+    "settingsPath": "TimeLog_Settings.json",
+    "importedAt": ""
+  },
+  "itemMappings": {},
+  "stagingRecords": {},
+  "auditTrail": []
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "2.0",
+  "updated": "2026-10-26T16:10:46.812Z",
+  "vault_name": "大千-协作实验版",
+  "indexes": {
+    "by_keyword": {
+      "材料": [
+        "ATOM@001.002",
+        "ATOM@2.1"
+      ],
+      "分享": [
+        "ATOM@1",
+        "ATOM@1.5"
+      ],
+      "观察": [
+        "ATOM@2"
+      ],
+      "回顾": [
+        "ATOM@1.4"
+      ],
+      "问题": [
+        "ATOM@1.1"
+      ],
+      "行动": [
+        "ATOM@1.3"
+      ]
+    },
+    "by_tree_structure": [
+      "ATOM@001.003",
+      "ATOM@1.1"
+    ],
+    "by_tree_visible": [
+      "ATOM@001.003",
+      "ATOM@1.1"
+    ],
+    "by_mermaid_start": [],
+    "by_parent": {},
+    "by_antinet_type": {
+      "atom": [
+        "ATOM@001.003",
+        "ATOM@1.1"
+      ],
+      "unknown": [
+        "ATOM@001.002",
+        "ATOM@1",
+        "ATOM@1.3",
+        "ATOM@1.4",
+        "ATOM@1.5",
+        "ATOM@2",
+        "ATOM@2.1"
+      ]
+    }
+  },
+  "stats": {
+    "indexed_keywords_count": 6,
+    "tree_structure_count": 2,
+    "tree_visible_count": 2,
+    "mermaid_start_count": 0,
+    "mermaid_hidden_count": 0,
+    "last_reason": "startup"
+  }
+}

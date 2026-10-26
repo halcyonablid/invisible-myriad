@@ -1,0 +1,9 @@
+{
+  "id": "atom-note-sidebar",
+  "name": "ATOM 侧栏导航",
+  "version": "1.0.4",
+  "minAppVersion": "1.7.2",
+  "description": "在右侧以虚拟列表浏览全部 ATOM 笔记，用命令定位主页面当前笔记。需要 Dataview。",
+  "author": "Personal Tools",
+  "isDesktopOnly": true
+}

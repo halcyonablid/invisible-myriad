@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "keywordToNode": {
+    "099t001- p2e测试目标": {
+      "keyword": "099T001- P2E测试目标",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+    }
+  },
+  "nodeKeywords": {
+    "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396": [
+      "099T001- P2E测试目标"
+    ]
+  },
+  "keywordMeta": {},
+  "meta": {
+    "source": "mandala-time-blocks"
+  },
+  "managedContextCreationsV1": {
+    "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "version": 1,
+      "txId": "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "domain": "goal"
+    }
+  }
+}

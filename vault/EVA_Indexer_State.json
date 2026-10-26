@@ -1,0 +1,541 @@
+{
+  "schema_version": "2.0",
+  "updated": "2026-10-26T16:10:46.809Z",
+  "byPath": {
+    "Examples/ATOM@2.1-观察先于解释.md": "ATOM@2.1",
+    "Examples/ATOM@2-城市微花园观察.md": "ATOM@2",
+    "Examples/ATOM@1.5-演示路线与完成标准.md": "ATOM@1.5",
+    "Examples/ATOM@1.4-回顾不是重新列计划.md": "ATOM@1.4",
+    "Examples/ATOM@1.3-一次排练只改一个问题.md": "ATOM@1.3",
+    "Examples/ATOM@1-准备十分钟分享.md": "ATOM@1",
+    "Examples/ATOM@1.1-先说清楚听众的问题.md": "ATOM@1.1",
+    "Examples/ATOM@001.003- 把材料压缩成三张卡.md": "ATOM@001.003",
+    "Examples/ATOM@001.002- 把材料压缩成三张卡.md": "ATOM@001.002"
+  },
+  "byNoteId": {
+    "ATOM@2.1": {
+      "noteId": "ATOM@2.1",
+      "path": "Examples/ATOM@2.1-观察先于解释.md",
+      "file_path": "Examples/ATOM@2.1-观察先于解释.md",
+      "fileName": "ATOM@2.1-观察先于解释.md",
+      "file_name": "ATOM@2.1-观察先于解释.md",
+      "mtime": 1791185086000,
+      "size": 262,
+      "hash": "b5f2b94c19c505651c0a1b60061e31e116b939c8e9772bbd37ab3050a7b9e079",
+      "note": {
+        "id": "ATOM@2.1",
+        "title": "观察先于解释",
+        "file_path": "Examples/ATOM@2.1-观察先于解释.md",
+        "file_name": "ATOM@2.1-观察先于解释.md",
+        "created": "2026-10-05T14:42:53.978Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "观察先于解释",
+          "关键词管理": [
+            "材料"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "材料"
+          ],
+          "tree_position": {},
+          "word_count": 13,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [],
+      "refs": {
+        "keywords": [
+          "材料"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@2": {
+      "noteId": "ATOM@2",
+      "path": "Examples/ATOM@2-城市微花园观察.md",
+      "file_path": "Examples/ATOM@2-城市微花园观察.md",
+      "fileName": "ATOM@2-城市微花园观察.md",
+      "file_name": "ATOM@2-城市微花园观察.md",
+      "mtime": 1791185086000,
+      "size": 334,
+      "hash": "84134d488c9c6069300887e6367eb945709880222dc9a1aeb78c24218885deb8",
+      "note": {
+        "id": "ATOM@2",
+        "title": "城市微花园观察",
+        "file_path": "Examples/ATOM@2-城市微花园观察.md",
+        "file_name": "ATOM@2-城市微花园观察.md",
+        "created": "2026-10-05T14:42:53.977Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "城市微花园观察",
+          "关键词管理": [
+            "观察"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "观察"
+          ],
+          "tree_position": {},
+          "word_count": 14,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@2",
+          "target": "ATOM@2.1",
+          "type": "wikilink",
+          "context": "题：设计一次十分钟阳台植物观察。它展示同一套结构可以承载不同内容，不与分享项目合并。\r \r 下一站：[[Examples/ATOM@2.1-观察先于解释]]。",
+          "created": "2026-10-05T14:43:18.906Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [
+          "观察"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@1.5": {
+      "noteId": "ATOM@1.5",
+      "path": "Examples/ATOM@1.5-演示路线与完成标准.md",
+      "file_path": "Examples/ATOM@1.5-演示路线与完成标准.md",
+      "fileName": "ATOM@1.5-演示路线与完成标准.md",
+      "file_name": "ATOM@1.5-演示路线与完成标准.md",
+      "mtime": 1791185086000,
+      "size": 290,
+      "hash": "e6756587066210364dc6c0b3d4d9b6f5d40eb5f3c4f0cc89539017fe339ffc30",
+      "note": {
+        "id": "ATOM@1.5",
+        "title": "演示路线与完成标准",
+        "file_path": "Examples/ATOM@1.5-演示路线与完成标准.md",
+        "file_name": "ATOM@1.5-演示路线与完成标准.md",
+        "created": "2026-10-05T14:42:53.974Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "演示路线与完成标准",
+          "关键词管理": [
+            "分享"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "分享"
+          ],
+          "tree_position": {},
+          "word_count": 19,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [],
+      "refs": {
+        "keywords": [
+          "分享"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@1.4": {
+      "noteId": "ATOM@1.4",
+      "path": "Examples/ATOM@1.4-回顾不是重新列计划.md",
+      "file_path": "Examples/ATOM@1.4-回顾不是重新列计划.md",
+      "fileName": "ATOM@1.4-回顾不是重新列计划.md",
+      "file_name": "ATOM@1.4-回顾不是重新列计划.md",
+      "mtime": 1791185086000,
+      "size": 361,
+      "hash": "018e9b8ac28206eecd3185268b2d88f75c0e8eb4f30fa45ff34dbd7d81fffaac",
+      "note": {
+        "id": "ATOM@1.4",
+        "title": "回顾不是重新列计划",
+        "file_path": "Examples/ATOM@1.4-回顾不是重新列计划.md",
+        "file_name": "ATOM@1.4-回顾不是重新列计划.md",
+        "created": "2026-10-05T14:42:53.974Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "回顾不是重新列计划",
+          "关键词管理": [
+            "回顾"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "回顾"
+          ],
+          "tree_position": {},
+          "word_count": 14,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@1.4",
+          "target": "ATOM@1.5",
+          "type": "wikilink",
+          "context": "看到材料链接后更容易理解行动。下一轮先展示材料，再展示计划。这里不是作者的真实经历。\r \r 下一站：[[Examples/ATOM@1.5-演示路线与完成标准]]。",
+          "created": "2026-10-05T14:43:18.906Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [
+          "回顾"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@1.3": {
+      "noteId": "ATOM@1.3",
+      "path": "Examples/ATOM@1.3-一次排练只改一个问题.md",
+      "file_path": "Examples/ATOM@1.3-一次排练只改一个问题.md",
+      "fileName": "ATOM@1.3-一次排练只改一个问题.md",
+      "file_name": "ATOM@1.3-一次排练只改一个问题.md",
+      "mtime": 1791185086000,
+      "size": 349,
+      "hash": "2a6726d9f0b6b1a772b915ebf9f656a31f5ceb58a9271bbdb84f1b66c5478ee1",
+      "note": {
+        "id": "ATOM@1.3",
+        "title": "一次排练只改一个问题",
+        "file_path": "Examples/ATOM@1.3-一次排练只改一个问题.md",
+        "file_name": "ATOM@1.3-一次排练只改一个问题.md",
+        "created": "2026-10-05T14:42:53.973Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "一次排练只改一个问题",
+          "关键词管理": [
+            "行动"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "行动"
+          ],
+          "tree_position": {},
+          "word_count": 14,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@1.3",
+          "target": "ATOM@1.4",
+          "type": "wikilink",
+          "context": "轮排练发现开场过长。下一步行动是把开场缩到六十秒；完成标准是计时读完且保留核心问题。\r \r 下一站：[[Examples/ATOM@1.4-回顾不是重新列计划]]。",
+          "created": "2026-10-05T14:43:18.907Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [
+          "行动"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@1": {
+      "noteId": "ATOM@1",
+      "path": "Examples/ATOM@1-准备十分钟分享.md",
+      "file_path": "Examples/ATOM@1-准备十分钟分享.md",
+      "fileName": "ATOM@1-准备十分钟分享.md",
+      "file_name": "ATOM@1-准备十分钟分享.md",
+      "mtime": 1791185086000,
+      "size": 352,
+      "hash": "baa450c600410cf454bc62768acc07c177f9fa783d5c72eae5e58cddb6432956",
+      "note": {
+        "id": "ATOM@1",
+        "title": "准备十分钟分享",
+        "file_path": "Examples/ATOM@1-准备十分钟分享.md",
+        "file_name": "ATOM@1-准备十分钟分享.md",
+        "created": "2026-10-05T14:42:53.971Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "准备十分钟分享",
+          "关键词管理": [
+            "分享"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "分享"
+          ],
+          "tree_position": {},
+          "word_count": 14,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@1",
+          "target": "ATOM@1.1",
+          "type": "wikilink",
+          "context": "在周五向三位朋友介绍大千。成功标准：朋友能独立找到一份材料、创建一个行动、写下回顾。\r \r 下一站：[[Examples/ATOM@1.1-先说清楚听众的问题]]。",
+          "created": "2026-10-05T14:43:18.907Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [
+          "分享"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@1.1": {
+      "noteId": "ATOM@1.1",
+      "path": "Examples/ATOM@1.1-先说清楚听众的问题.md",
+      "file_path": "Examples/ATOM@1.1-先说清楚听众的问题.md",
+      "fileName": "ATOM@1.1-先说清楚听众的问题.md",
+      "file_name": "ATOM@1.1-先说清楚听众的问题.md",
+      "mtime": 1793030924149,
+      "size": 405,
+      "hash": "45ed5df54b18121905529faf6f01336720e9c90ce92d34bd33eb8d75edcfad9c",
+      "note": {
+        "id": "ATOM@1.1",
+        "title": "先说清楚听众的问题",
+        "file_path": "Examples/ATOM@1.1-先说清楚听众的问题.md",
+        "file_name": "ATOM@1.1-先说清楚听众的问题.md",
+        "created": "2026-10-05T14:42:53.972Z",
+        "modified": "2026-10-26T16:08:44.149Z",
+        "yaml": {
+          "title": "先说清楚听众的问题",
+          "关键词管理": [
+            "问题"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ],
+          "antinet": "atom",
+          "树的结构": true,
+          "atomle": true
+        },
+        "computed": {
+          "index_keywords": [
+            "问题"
+          ],
+          "tree_position": {},
+          "word_count": 23,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@1.1",
+          "target": "ATOM@001.002",
+          "type": "wikilink",
+          "context": "个人知识系统。他们想知道：资料放哪里？今天做什么？做完如何回看？每个问题只演示一次操作。  下一站：[[ATOM@001.002- 把材料压缩成三张卡]]。",
+          "created": "2026-10-26T16:08:44.953Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [
+          "问题"
+        ],
+        "parent": null,
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@001.003": {
+      "noteId": "ATOM@001.003",
+      "path": "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
+      "file_path": "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
+      "fileName": "ATOM@001.003- 把材料压缩成三张卡.md",
+      "file_name": "ATOM@001.003- 把材料压缩成三张卡.md",
+      "mtime": 1793030932541,
+      "size": 105,
+      "hash": "aacd29ca55aa1f03e54497ce69e09d376572e7471685048126a9a661a888e851",
+      "note": {
+        "id": "ATOM@001.003",
+        "title": "把材料压缩成三张卡",
+        "file_path": "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
+        "file_name": "ATOM@001.003- 把材料压缩成三张卡.md",
+        "created": "2026-10-26T16:08:52.539Z",
+        "modified": "2026-10-26T16:08:52.541Z",
+        "yaml": {
+          "qishiriqidate": "2026-10-27",
+          "qishiriqitime": "00:08:52",
+          "atomle": true,
+          "antinet": "atom",
+          "树的结构": true
+        },
+        "computed": {
+          "index_keywords": [],
+          "tree_position": {},
+          "word_count": 12,
+          "has_content": false
+        },
+        "_ext": {}
+      },
+      "links": [],
+      "refs": {
+        "keywords": [],
+        "parent": null,
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@001.002": {
+      "noteId": "ATOM@001.002",
+      "path": "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+      "file_path": "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+      "fileName": "ATOM@001.002- 把材料压缩成三张卡.md",
+      "file_name": "ATOM@001.002- 把材料压缩成三张卡.md",
+      "mtime": 1791185086000,
+      "size": 337,
+      "hash": "2afdda8c2acbeb080b07f177bb4f27ed240e68d44a3552fdab73c8604d370585",
+      "note": {
+        "id": "ATOM@001.002",
+        "title": "把材料压缩成三张卡",
+        "file_path": "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+        "file_name": "ATOM@001.002- 把材料压缩成三张卡.md",
+        "created": "2026-10-05T14:42:53.973Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "把材料压缩成三张卡",
+          "关键词管理": [
+            "材料"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "材料"
+          ],
+          "tree_position": {},
+          "word_count": 14,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@001.002",
+          "target": "ATOM@1.3",
+          "type": "wikilink",
+          "context": "卡一讲问题，卡二讲行动，卡三讲回顾。删去工具名堆叠，每张卡保留一个可以试做的例子。\r \r 下一站：[[Examples/ATOM@1.3-一次排练只改一个问题]]。",
+          "created": "2026-10-26T16:08:44.953Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [
+          "材料"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    }
+  },
+  "indexes": {
+    "by_keyword": {
+      "材料": [
+        "ATOM@2.1",
+        "ATOM@001.002"
+      ],
+      "观察": [
+        "ATOM@2"
+      ],
+      "分享": [
+        "ATOM@1.5",
+        "ATOM@1"
+      ],
+      "回顾": [
+        "ATOM@1.4"
+      ],
+      "行动": [
+        "ATOM@1.3"
+      ],
+      "问题": [
+        "ATOM@1.1"
+      ]
+    },
+    "by_tree_structure": [
+      "ATOM@1.1",
+      "ATOM@001.003"
+    ],
+    "by_tree_visible": [],
+    "by_mermaid_start": [],
+    "by_parent": {},
+    "by_antinet_type": {
+      "unknown": [
+        "ATOM@2.1",
+        "ATOM@2",
+        "ATOM@1.5",
+        "ATOM@1.4",
+        "ATOM@1.3",
+        "ATOM@1",
+        "ATOM@001.002"
+      ],
+      "atom": [
+        "ATOM@1.1",
+        "ATOM@001.003"
+      ]
+    }
+  },
+  "stats": {
+    "total_notes": 9,
+    "total_links": 6,
+    "last_reason": "startup"
+  }
+}

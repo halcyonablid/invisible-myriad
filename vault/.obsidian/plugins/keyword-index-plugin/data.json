@@ -1,0 +1,30 @@
+{
+  "indexPath": "data/keyword_index.json",
+  "scanFolder": "Examples",
+  "autoSyncOnRename": true,
+  "evaNoteCandidatePaths": [
+    "EVA_Notes.json",
+    "data/EVA_Notes.json"
+  ],
+  "keywordComments": {},
+  "uiState": {
+    "capsuleExpanded": {
+      "dq-keyword-分享": true,
+      "dq-keyword-问题": true,
+      "dq-keyword-材料": true,
+      "dq-keyword-行动": true,
+      "dq-keyword-回顾": true,
+      "dq-keyword-观察": true
+    },
+    "notesDrawerOpen": {
+      "dq-keyword-分享": false,
+      "dq-keyword-问题": false,
+      "dq-keyword-材料": true,
+      "dq-keyword-行动": false,
+      "dq-keyword-回顾": false,
+      "dq-keyword-观察": false
+    },
+    "drawerExpanded": {},
+    "keywordViewMode": "all"
+  }
+}

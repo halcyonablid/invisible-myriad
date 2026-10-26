@@ -1,0 +1,183 @@
+[
+  {
+    "status": "active",
+    "created": "2026-10-05",
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [],
+    "parentId": null,
+    "id": "dq-gtd-project",
+    "type": "project",
+    "project": "准备十分钟分享",
+    "content": null,
+    "sortOrder": 10
+  },
+  {
+    "status": "active",
+    "created": "2026-10-05",
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [],
+    "parentId": null,
+    "id": "dq-gtd-idea",
+    "type": "inbox",
+    "project": null,
+    "content": "如果先让朋友找一张卡，再解释系统，会怎样？",
+    "sortOrder": 20
+  },
+  {
+    "status": "active",
+    "created": "2026-10-05",
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [],
+    "parentId": null,
+    "id": "dq-gtd-next",
+    "type": "next_action",
+    "project": "准备十分钟分享",
+    "content": "试着用一个材料跳转解释入口",
+    "sortOrder": 30
+  },
+  {
+    "id": "1791211452082",
+    "type": "project",
+    "status": "active",
+    "created": "2026-10-05",
+    "project": "001- 尝试整合成为一个大的插件",
+    "content": null,
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [
+      "context-001"
+    ],
+    "parentId": null,
+    "sortOrder": 20
+  },
+  {
+    "id": "1791211932425",
+    "type": "project",
+    "status": "active",
+    "created": "2026-10-05",
+    "project": "测试",
+    "content": null,
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [
+      "context-context-1791211932398"
+    ],
+    "parentId": null,
+    "sortOrder": 30
+  },
+  {
+    "id": "1791212120640",
+    "type": "project",
+    "status": "active",
+    "created": "2026-10-05",
+    "project": "协作测试B",
+    "content": null,
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [
+      "context-b"
+    ],
+    "parentId": null,
+    "sortOrder": 40
+  },
+  {
+    "id": "1791805067353",
+    "type": "project",
+    "status": "active",
+    "created": "2026-10-12",
+    "project": "036R- 沈灏的书",
+    "content": null,
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [
+      "context-036r"
+    ],
+    "parentId": null,
+    "sortOrder": 50
+  },
+  {
+    "id": "project-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+    "type": "project",
+    "status": "active",
+    "created": "2026-10-21",
+    "project": "099T- P2E测试项目",
+    "content": null,
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [
+      "context-c68fbfc9-e9c7-44ec-89a9-131988bda64a"
+    ],
+    "parentId": null,
+    "sortOrder": 60,
+    "managedContextCreationV1": {
+      "version": 1,
+      "txId": "create-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "sourceNotePath": "System/GTD/GTD.md",
+      "projectId": "project-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "tagId": "context-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "contextKey": "099T- P2E测试项目"
+    }
+  },
+  {
+    "id": "project-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+    "type": "project",
+    "status": "active",
+    "created": "2026-10-21",
+    "project": "099T001- P2E测试目标",
+    "content": null,
+    "scheduled": null,
+    "deadline": null,
+    "isFirstClass": false,
+    "isFocusSession": false,
+    "isDimmed": false,
+    "isCollapsed": false,
+    "tags": [
+      "context-04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+    ],
+    "parentId": null,
+    "sortOrder": 70,
+    "managedContextCreationV1": {
+      "version": 1,
+      "txId": "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "sourceNotePath": "System/GTD/GTD.md",
+      "projectId": "project-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "tagId": "context-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "contextKey": "099T001- P2E测试目标"
+    }
+  }
+]

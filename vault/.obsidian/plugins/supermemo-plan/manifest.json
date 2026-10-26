@@ -1,0 +1,9 @@
+{
+  "id": "supermemo-plan",
+  "name": "SuperMemo Plan",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Whole-moved plugin version of the SuperMemo plan DataviewJS program.",
+  "author": "local",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,70 @@
+{
+  "defaultSourceNotePath": "System/Mandala/Mandala.md",
+  "dashboardState": {
+    "tab": "weeklyTracking",
+    "manageView": "grid",
+    "manageCurrentId": "root",
+    "typeFilter": "all",
+    "typeFilterIds": [],
+    "keywordSearchQuery": "",
+    "nodeSearchQuery": "",
+    "dailyLessonDate": "2026-10-05",
+    "dailyScoreDomain": "lesson",
+    "dailyScoreLessonSide": "normal",
+    "weeklyTrackingTab": "projectPlan",
+    "weeklyTrackingRequest": {
+      "nodeRef": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+      "initialTab": "projectPlan",
+      "source": "project-execution-overview",
+      "groupId": "",
+      "primaryNodeKey": "",
+      "workspaceNodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+      "goalNodeId": "",
+      "mandalaNodeId": "",
+      "title": "测试",
+      "groupTitle": "",
+      "itemLabel": "",
+      "label": "",
+      "workspaceTitle": "测试",
+      "workspaceLabel": "",
+      "goalTitle": "",
+      "mandalaTitle": "",
+      "viewLabel": "项目管理 / Workspace 主键",
+      "contextLabel": "项目管理 / Workspace 主键",
+      "workspaceMode": false,
+      "readOnlyNavigation": false,
+      "focusDomain": "",
+      "focusEntityId": "",
+      "focusDisplayTitle": ""
+    },
+    "weeklyTrackingScrollByTab": {
+      "summary": 0,
+      "projectPlan": 0,
+      "workspaceSummary": 168.6666717529297,
+      "workspaceNode:jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5": 0,
+      "workspaceNode:jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04": 0
+    },
+    "collapsedNodeIds": [],
+    "contentScrollTop": 0,
+    "migrationStagingFilter": "all",
+    "migrationQuery": "",
+    "timelineEmbeddedView": "dayblock",
+    "timelineMandalaSourceFilter": "all"
+  },
+  "structuredFieldDraftStore": {
+    "version": 1,
+    "draftsByKey": {}
+  },
+  "dailyLessonOntologyRecoveryStore": {
+    "version": 1,
+    "recordsByKey": {}
+  },
+  "longitudinalOntologyRecoveryStore": {
+    "version": 1,
+    "recordsByKey": {}
+  },
+  "timeBlockRecordDrafts": {},
+  "timeCaptureDrafts": {},
+  "dailyViewDrafts": {},
+  "weeklyViewDrafts": {}
+}

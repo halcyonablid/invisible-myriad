@@ -1,0 +1,9 @@
+{
+  "id": "supermemo-concept-display",
+  "name": "SuperMemo Concept Display",
+  "version": "0.4.0",
+  "minAppVersion": "1.5.0",
+  "description": "Manage SuperMemo Concepts, subject structures, Antinet trees, and relation-local meaning capsules.",
+  "author": "local",
+  "isDesktopOnly": false
+}

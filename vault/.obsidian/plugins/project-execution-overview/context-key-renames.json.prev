@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "primaryNodeKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+      "domain": "project",
+      "oldLabels": [
+        "测试"
+      ],
+      "oldDisplayLabel": "测试",
+      "newDisplayLabel": "001- 测试",
+      "repair": false,
+      "providers": [
+        {
+          "id": "workspace-mount",
+          "label": "Workspace Mount",
+          "excluded": false,
+          "state": "verified",
+          "reason": "",
+          "plan": {
+            "version": 2,
+            "pluginId": "workspace-mount",
+            "scope": {
+              "sourceNotePath": "System/Workspace/Workspace.md",
+              "dataPath": "System/Workspace/Workspace_Items.json",
+              "keywordPath": "System/Workspace/Workspace_TabCapsuleKeywords.json"
+            },
+            "newDisplayLabel": "001- 测试",
+            "targets": [
+              {
+                "carrierId": "tab_ws_muvdc4i0wmnyl",
+                "oldLabels": [
+                  "测试"
+                ],
+                "recordHash": "a3e6317881ca438e92589989a41e1cafd2295f1e3b796d4d8d84efe0bc8f6feb",
+                "storageKey": "测试"
+              }
+            ],
+            "search": {
+              "oldLabels": [
+                "测试"
+              ],
+              "repair": false
+            }
+          },
+          "matchedCount": 1,
+          "attempts": 9,
+          "previousPlan": null
+        },
+        {
+          "id": "gtd-task-manager",
+          "label": "GTD",
+          "excluded": false,
+          "state": "verified",
+          "reason": "",
+          "plan": {
+            "version": 2,
+            "pluginId": "gtd-task-manager",
+            "scope": {
+              "sourceNotePath": "System/GTD/GTD.md",
+              "dataPath": "System/GTD/GTD_Tags.json",
+              "keywordPath": "System/GTD/GTD_TagKeywords.json"
+            },
+            "newDisplayLabel": "001- 测试",
+            "targets": [
+              {
+                "carrierId": "context-context-1791211932398",
+                "oldLabels": [
+                  "测试"
+                ],
+                "recordHash": "21bb782fae0b777c8ee1717b3c153d54f87a25adcb123734922f866765133d13",
+                "storageKey": "测试"
+              }
+            ],
+            "search": {
+              "oldLabels": [
+                "测试"
+              ],
+              "repair": false
+            }
+          },
+          "matchedCount": 1,
+          "attempts": 8,
+          "previousPlan": null
+        },
+        {
+          "id": "collection-card-view",
+          "label": "Collection Card",
+          "excluded": false,
+          "state": "verified",
+          "reason": "v.render is not a function",
+          "plan": {
+            "version": 2,
+            "pluginId": "collection-card-view",
+            "scope": {
+              "sourceNotePath": "System/Collection/Collection.md",
+              "dataPath": "System/Collection/集合卡数据.json",
+              "keywordPath": "System/Collection/Collection_TabCapsuleKeywords.json"
+            },
+            "newDisplayLabel": "001- 测试",
+            "targets": [
+              {
+                "carrierId": "tab_muvdc4imjj4aq",
+                "oldLabels": [
+                  "测试"
+                ],
+                "recordHash": "97ebb6da9555c70425130b269cd75df7009be8bab6ff269071a5cd48d40b9b44",
+                "storageKey": "测试"
+              }
+            ],
+            "search": {
+              "oldLabels": [
+                "测试"
+              ],
+              "repair": false
+            }
+          },
+          "matchedCount": 1,
+          "attempts": 8,
+          "previousPlan": null
+        },
+        {
+          "id": "state-capsules",
+          "label": "State Capsules",
+          "excluded": true,
+          "state": "excluded",
+          "reason": "disabled-at-confirmation"
+        }
+      ],
+      "priorId": null,
+      "id": "rename-02d0feb0-cda1-4549-8294-d8d4f0a99399",
+      "confirmedAt": "2026-10-05T15:34:06.397Z",
+      "status": "pending",
+      "reason": ""
+    }
+  ]
+}

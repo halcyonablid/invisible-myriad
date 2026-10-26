@@ -1,0 +1,333 @@
+.daily-note-review-host {
+  padding: 0;
+}
+
+.dnr-root {
+  min-height: 100%;
+  color: var(--text-normal);
+  background: var(--background-primary);
+}
+
+.dnr-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.dnr-toolbar button {
+  height: 30px;
+  min-width: 34px;
+  padding: 0 10px;
+}
+
+.dnr-toolbar .dnr-review-meta-toggle {
+  border-color: color-mix(in srgb, #10b981 42%, var(--background-modifier-border));
+}
+
+.dnr-toolbar .dnr-review-meta-toggle.is-active {
+  background: color-mix(in srgb, #10b981 18%, var(--background-primary));
+  color: var(--text-normal);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #10b981 36%, transparent);
+}
+
+.dnr-date-input {
+  height: 30px;
+  min-width: 150px;
+}
+
+.dnr-review-meta-days {
+  width: 64px;
+  height: 30px;
+  padding: 0 8px;
+}
+
+.dnr-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.dnr-tab {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  font-size: 12px;
+}
+
+.dnr-tab.is-active {
+  color: var(--text-normal);
+  background: var(--background-primary);
+  font-weight: 700;
+  box-shadow: inset 0 2px 0 var(--color-accent);
+}
+
+.dnr-status,
+.dnr-empty {
+  margin: 14px 12px;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+}
+
+.dnr-error {
+  color: var(--text-error);
+}
+
+.dnr-history-status {
+  margin: 10px 12px 0;
+  padding: 8px 10px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.5;
+  border-left: 3px solid var(--color-accent);
+  background: var(--background-secondary);
+}
+
+.dnr-history-status button { margin-top: 6px; }
+
+.dnr-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 12px 8px;
+}
+
+.dnr-summary-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dnr-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.dnr-summary-meta span {
+  padding: 2px 7px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  background: var(--background-secondary);
+}
+
+.dnr-group-list {
+  display: grid;
+  gap: 10px;
+  padding: 4px 12px 18px;
+}
+
+.dnr-group {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+.dnr-group-untagged {
+  border-style: dashed;
+}
+
+.dnr-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--background-secondary);
+}
+
+.dnr-group-title-wrap {
+  min-width: 0;
+}
+
+.dnr-group-title {
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.dnr-group-subtitle {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.dnr-count {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: var(--text-on-accent);
+  background: var(--color-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dnr-note-list {
+  display: grid;
+}
+
+.dnr-note-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.dnr-note-row:hover {
+  background: var(--background-secondary-alt);
+}
+
+.dnr-note-main {
+  min-width: 0;
+}
+
+.dnr-note-title {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  color: var(--text-normal);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.dnr-note-title:hover {
+  color: var(--text-accent);
+}
+
+.dnr-note-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  margin-top: 4px;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dnr-note-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dnr-note-actions button {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+.dnr-keyword-window {
+  display: grid;
+  gap: 8px;
+  padding: 4px 12px 18px;
+}
+
+.dnr-keyword-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.dnr-keyword-row:hover {
+  background: var(--background-secondary-alt);
+}
+
+.dnr-keyword-main {
+  min-width: 0;
+}
+
+.dnr-keyword-title {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  color: var(--text-normal);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.dnr-keyword-title:hover {
+  color: var(--text-accent);
+}
+
+.dnr-keyword-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  margin-top: 4px;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dnr-keyword-actions {
+  flex-shrink: 0;
+}
+
+.dnr-keyword-actions button {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .dnr-summary,
+  .dnr-note-row,
+  .dnr-keyword-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dnr-summary-meta {
+    justify-content: flex-start;
+  }
+
+  .dnr-note-actions,
+  .dnr-keyword-actions {
+    justify-content: flex-start;
+  }
+}

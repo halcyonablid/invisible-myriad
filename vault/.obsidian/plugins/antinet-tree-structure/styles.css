@@ -1,0 +1,165 @@
+.antinet-tree-modal {
+  width: 90vw;
+  height: 90vh;
+  max-width: 1600px;
+  max-height: 1200px;
+  min-width: 520px;
+  min-height: 420px;
+}
+
+.antinet-tree-modal .modal-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.antinet-tree-root {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.antinet-tree-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  background: var(--background-secondary);
+}
+
+.antinet-tree-status {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antinet-tree-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.antinet-tree-actions button {
+  min-width: 34px;
+  white-space: nowrap;
+}
+
+.antinet-tree-zoom-label {
+  min-width: 46px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.antinet-tree-diagram-host {
+  flex: 1;
+  min-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.10), transparent 38%),
+    var(--background-primary);
+  padding: 18px;
+}
+
+.antinet-tree-diagram-host svg {
+  max-width: none;
+  display: block;
+  transform-origin: top left;
+  transition: width 80ms ease, height 80ms ease;
+}
+
+.antinet-tree-clickable-node {
+  cursor: pointer;
+}
+
+.antinet-tree-clickable-node:hover {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.35));
+}
+
+.antinet-tree-current-node {
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.35));
+}
+
+.antinet-tree-current-node > rect,
+.antinet-tree-current-node > polygon,
+.antinet-tree-current-node > path,
+.antinet-tree-current-node > circle,
+.antinet-tree-current-node > ellipse {
+  fill: #fff4cc !important;
+  stroke: #f59e0b !important;
+  stroke-width: 4px !important;
+}
+
+.antinet-tree-current-node > text,
+.antinet-tree-current-node > foreignObject,
+.antinet-tree-current-node > foreignObject .nodeLabel {
+  color: #111827 !important;
+  fill: #111827 !important;
+}
+
+.antinet-tree-fold-toggle {
+  cursor: pointer;
+}
+
+.antinet-tree-fold-toggle circle {
+  fill: var(--background-primary);
+  stroke: #d97706;
+  stroke-width: 1.8px;
+}
+
+.antinet-tree-fold-toggle text {
+  fill: #b45309;
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}
+
+.antinet-tree-fold-toggle:hover circle {
+  fill: #f59e0b;
+}
+
+.antinet-tree-fold-toggle:hover text {
+  fill: var(--text-on-accent);
+}
+
+.antinet-node-code {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.antinet-tree-code {
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  background: var(--background-secondary);
+  font-size: 12px;
+  white-space: pre;
+}
+
+.antinet-tree-code-inline {
+  max-height: none;
+}
+
+.antinet-tree-error {
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--background-modifier-error);
+  border-radius: 10px;
+  color: var(--text-error);
+  background: rgba(239, 68, 68, 0.08);
+}

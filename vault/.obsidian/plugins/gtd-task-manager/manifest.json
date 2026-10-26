@@ -1,0 +1,9 @@
+{
+  "id": "gtd-task-manager",
+  "name": "GTD Task Manager",
+  "version": "0.1.2",
+  "minAppVersion": "1.7.2",
+  "description": "Standalone GTD task manager view with a native plugin engine while preserving existing JSON data contracts.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

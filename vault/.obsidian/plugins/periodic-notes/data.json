@@ -1,0 +1,8 @@
+{
+  "daily": {
+    "format": "YYYY-MM-DD",
+    "template": "Templates/每日回顾.md",
+    "folder": "Journal",
+    "enabled": true
+  }
+}

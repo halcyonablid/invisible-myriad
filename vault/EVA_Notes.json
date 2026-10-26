@@ -1,0 +1,398 @@
+{
+  "schema_version": "2.0",
+  "updated": "2026-10-26T16:10:46.812Z",
+  "vault_name": "大千-协作实验版",
+  "notes": {
+    "ATOM@001.002": {
+      "id": "ATOM@001.002",
+      "title": "把材料压缩成三张卡",
+      "file_path": "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+      "file_name": "ATOM@001.002- 把材料压缩成三张卡.md",
+      "created": "2026-10-05T14:42:53.973Z",
+      "modified": "2026-10-05T07:24:46.000Z",
+      "yaml": {
+        "title": "把材料压缩成三张卡",
+        "关键词管理": [
+          "材料"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ]
+      },
+      "computed": {
+        "index_keywords": [
+          "材料"
+        ],
+        "tree_position": {
+          "depth": 2,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 14,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@001.003": {
+      "id": "ATOM@001.003",
+      "title": "把材料压缩成三张卡",
+      "file_path": "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
+      "file_name": "ATOM@001.003- 把材料压缩成三张卡.md",
+      "created": "2026-10-26T16:08:52.539Z",
+      "modified": "2026-10-26T16:08:52.541Z",
+      "yaml": {
+        "qishiriqidate": "2026-10-27",
+        "qishiriqitime": "00:08:52",
+        "atomle": true,
+        "antinet": "atom",
+        "树的结构": true
+      },
+      "computed": {
+        "index_keywords": [],
+        "tree_position": {
+          "depth": 2,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 12,
+        "has_content": false,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@1": {
+      "id": "ATOM@1",
+      "title": "准备十分钟分享",
+      "file_path": "Examples/ATOM@1-准备十分钟分享.md",
+      "file_name": "ATOM@1-准备十分钟分享.md",
+      "created": "2026-10-05T14:42:53.971Z",
+      "modified": "2026-10-05T07:24:46.000Z",
+      "yaml": {
+        "title": "准备十分钟分享",
+        "关键词管理": [
+          "分享"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ]
+      },
+      "computed": {
+        "index_keywords": [
+          "分享"
+        ],
+        "tree_position": {
+          "depth": 1,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 14,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@1.1": {
+      "id": "ATOM@1.1",
+      "title": "先说清楚听众的问题",
+      "file_path": "Examples/ATOM@1.1-先说清楚听众的问题.md",
+      "file_name": "ATOM@1.1-先说清楚听众的问题.md",
+      "created": "2026-10-05T14:42:53.972Z",
+      "modified": "2026-10-26T16:08:44.149Z",
+      "yaml": {
+        "title": "先说清楚听众的问题",
+        "关键词管理": [
+          "问题"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ],
+        "antinet": "atom",
+        "树的结构": true,
+        "atomle": true
+      },
+      "computed": {
+        "index_keywords": [
+          "问题"
+        ],
+        "tree_position": {
+          "depth": 2,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 23,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@1.3": {
+      "id": "ATOM@1.3",
+      "title": "一次排练只改一个问题",
+      "file_path": "Examples/ATOM@1.3-一次排练只改一个问题.md",
+      "file_name": "ATOM@1.3-一次排练只改一个问题.md",
+      "created": "2026-10-05T14:42:53.973Z",
+      "modified": "2026-10-05T07:24:46.000Z",
+      "yaml": {
+        "title": "一次排练只改一个问题",
+        "关键词管理": [
+          "行动"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ]
+      },
+      "computed": {
+        "index_keywords": [
+          "行动"
+        ],
+        "tree_position": {
+          "depth": 2,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 14,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@1.4": {
+      "id": "ATOM@1.4",
+      "title": "回顾不是重新列计划",
+      "file_path": "Examples/ATOM@1.4-回顾不是重新列计划.md",
+      "file_name": "ATOM@1.4-回顾不是重新列计划.md",
+      "created": "2026-10-05T14:42:53.974Z",
+      "modified": "2026-10-05T07:24:46.000Z",
+      "yaml": {
+        "title": "回顾不是重新列计划",
+        "关键词管理": [
+          "回顾"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ]
+      },
+      "computed": {
+        "index_keywords": [
+          "回顾"
+        ],
+        "tree_position": {
+          "depth": 2,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 14,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@1.5": {
+      "id": "ATOM@1.5",
+      "title": "演示路线与完成标准",
+      "file_path": "Examples/ATOM@1.5-演示路线与完成标准.md",
+      "file_name": "ATOM@1.5-演示路线与完成标准.md",
+      "created": "2026-10-05T14:42:53.974Z",
+      "modified": "2026-10-05T07:24:46.000Z",
+      "yaml": {
+        "title": "演示路线与完成标准",
+        "关键词管理": [
+          "分享"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ]
+      },
+      "computed": {
+        "index_keywords": [
+          "分享"
+        ],
+        "tree_position": {
+          "depth": 2,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 19,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@2": {
+      "id": "ATOM@2",
+      "title": "城市微花园观察",
+      "file_path": "Examples/ATOM@2-城市微花园观察.md",
+      "file_name": "ATOM@2-城市微花园观察.md",
+      "created": "2026-10-05T14:42:53.977Z",
+      "modified": "2026-10-05T07:24:46.000Z",
+      "yaml": {
+        "title": "城市微花园观察",
+        "关键词管理": [
+          "观察"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ]
+      },
+      "computed": {
+        "index_keywords": [
+          "观察"
+        ],
+        "tree_position": {
+          "depth": 1,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 14,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    },
+    "ATOM@2.1": {
+      "id": "ATOM@2.1",
+      "title": "观察先于解释",
+      "file_path": "Examples/ATOM@2.1-观察先于解释.md",
+      "file_name": "ATOM@2.1-观察先于解释.md",
+      "created": "2026-10-05T14:42:53.978Z",
+      "modified": "2026-10-05T07:24:46.000Z",
+      "yaml": {
+        "title": "观察先于解释",
+        "关键词管理": [
+          "材料"
+        ],
+        "tags": [
+          "大千演示",
+          "虚构"
+        ]
+      },
+      "computed": {
+        "index_keywords": [
+          "材料"
+        ],
+        "tree_position": {
+          "depth": 2,
+          "parent_id": null,
+          "siblings": [],
+          "children": []
+        },
+        "word_count": 13,
+        "has_content": true,
+        "mermaid": {
+          "is_start": false,
+          "hide_in_tree": false
+        }
+      },
+      "_ext": {}
+    }
+  },
+  "stats": {
+    "total_notes": 9,
+    "atom_notes": 9,
+    "scan_duration_ms": 0,
+    "last_reason": "startup",
+    "indexed_keywords_count": 6,
+    "tree_structure_count": 2,
+    "tree_visible_count": 2,
+    "mermaid_start_count": 0,
+    "mermaid_hidden_count": 0
+  },
+  "schema_extensions": {
+    "custom_fields": [
+      "computed.mermaid.is_start",
+      "computed.mermaid.hide_in_tree",
+      "indexes.by_mermaid_start",
+      "indexes.by_tree_visible"
+    ],
+    "added_at": "2026-10-26T16:10:46.812Z"
+  },
+  "indexes": {
+    "by_keyword": {
+      "材料": [
+        "ATOM@001.002",
+        "ATOM@2.1"
+      ],
+      "分享": [
+        "ATOM@1",
+        "ATOM@1.5"
+      ],
+      "观察": [
+        "ATOM@2"
+      ],
+      "回顾": [
+        "ATOM@1.4"
+      ],
+      "问题": [
+        "ATOM@1.1"
+      ],
+      "行动": [
+        "ATOM@1.3"
+      ]
+    },
+    "by_tree_structure": [
+      "ATOM@001.003",
+      "ATOM@1.1"
+    ],
+    "by_tree_visible": [
+      "ATOM@001.003",
+      "ATOM@1.1"
+    ],
+    "by_mermaid_start": [],
+    "by_parent": {},
+    "by_antinet_type": {
+      "atom": [
+        "ATOM@001.003",
+        "ATOM@1.1"
+      ],
+      "unknown": [
+        "ATOM@001.002",
+        "ATOM@1",
+        "ATOM@1.3",
+        "ATOM@1.4",
+        "ATOM@1.5",
+        "ATOM@2",
+        "ATOM@2.1"
+      ]
+    }
+  }
+}

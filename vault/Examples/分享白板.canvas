@@ -1,0 +1,1 @@
+{"nodes":[{"id":"question","type":"text","text":"听众的问题是什么？","x":0,"y":0,"width":300,"height":140},{"id":"action","type":"text","text":"把开场缩到六十秒","x":420,"y":0,"width":300,"height":140}],"edges":[{"id":"qa","fromNode":"question","fromSide":"right","toNode":"action","toSide":"left"}]}

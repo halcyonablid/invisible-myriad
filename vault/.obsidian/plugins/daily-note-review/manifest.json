@@ -1,0 +1,9 @@
+{
+  "id": "daily-note-review",
+  "name": "Daily Note Review",
+  "version": "0.2.0",
+  "minAppVersion": "1.7.2",
+  "description": "Review notes created or modified on each day, retain daily edit history, and navigate keyword positions.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

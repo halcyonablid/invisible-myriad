@@ -1,0 +1,24 @@
+{
+  "root": {
+    "id": "root",
+    "title": "把想法讲清楚",
+    "children": {
+      "0": "dq-goal-share",
+      "1": "dq-goal-observe"
+    }
+  },
+  "dq-goal-share": {
+    "id": "dq-goal-share",
+    "title": "让朋友能独立完成一次材料到行动的练习",
+    "type": "project",
+    "children": {},
+    "comment": "虚构目标；周五分享是一次练习。"
+  },
+  "dq-goal-observe": {
+    "id": "dq-goal-observe",
+    "title": "保持观察与回顾",
+    "type": "habit",
+    "children": {},
+    "comment": "虚构习惯，每天记录一条观察。"
+  }
+}

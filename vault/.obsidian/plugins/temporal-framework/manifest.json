@@ -1,0 +1,10 @@
+{
+  "id": "temporal-framework",
+  "name": "时间框架",
+  "version": "0.1.0",
+  "minAppVersion": "1.6.0",
+  "description": "以目标和项目主键为对象，自上而下设计未来阶段成果与时间部署。",
+  "author": "h0414",
+  "isDesktopOnly": true
+}
+

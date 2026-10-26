@@ -1,0 +1,357 @@
+{
+  "schemaVersion": "next-action-workbench-store-v1",
+  "revision": 85,
+  "memberships": {
+    "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1": {
+      "id": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1",
+      "primaryRef": {
+        "providerId": "mandala-time-blocks",
+        "domain": "project",
+        "sourceScope": "System/Mandala/Mandala.md",
+        "sourceKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "identityVersion": 1
+      },
+      "primaryAliases": [
+        "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "mandala-time-blocks::effective-project::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "workspace-mount-view|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "item_muvd1tpfsfxk5"
+      ],
+      "lastKnownLabel": "001- 尝试整合成为一个大的插件",
+      "pathLabel": "001- 尝试整合成为一个大的插件",
+      "contextKeys": [],
+      "active": true,
+      "lifecycleState": "active",
+      "ineligibilityReasons": [],
+      "eligibilityRevision": "87d430a968780ba1d802be4188ac5dc8e4982b599e0ea526628940cced4e9f03",
+      "eligibilityObservedAt": "2026-10-12T16:31:02.566Z",
+      "importedAt": "2026-10-05T14:44:47.855Z",
+      "revokedAt": "",
+      "lastObservedAt": "2026-10-12T16:31:02.579Z",
+      "order": 3,
+      "lastSourceObservation": "fresh-complete",
+      "lastSourceCount": 4,
+      "lastSourceTotal": 4
+    },
+    "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvdg5ixilx8j::v1": {
+      "id": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvdg5ixilx8j::v1",
+      "primaryRef": {
+        "providerId": "mandala-time-blocks",
+        "domain": "project",
+        "sourceScope": "System/Mandala/Mandala.md",
+        "sourceKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "identityVersion": 1
+      },
+      "primaryAliases": [
+        "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "mandala-time-blocks::effective-project::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "workspace-mount-view|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "item_muvdg5ixilx8j"
+      ],
+      "lastKnownLabel": "002- 协作测试B",
+      "pathLabel": "协作测试B",
+      "contextKeys": [],
+      "active": true,
+      "lifecycleState": "active",
+      "ineligibilityReasons": [],
+      "eligibilityRevision": "c755fae4b1fca152a5fa8d5a50d69a04ad65dc684ec8a373dd31b04c1f7be132",
+      "eligibilityObservedAt": "2026-10-12T11:38:13.494Z",
+      "importedAt": "2026-10-12T11:35:16.792Z",
+      "revokedAt": "",
+      "lastObservedAt": "2026-10-12T11:38:13.502Z",
+      "order": 1,
+      "lastSourceObservation": "fresh-complete",
+      "lastSourceCount": 1,
+      "lastSourceTotal": 1
+    },
+    "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_mv56h25numnbs::v1": {
+      "id": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_mv56h25numnbs::v1",
+      "primaryRef": {
+        "providerId": "mandala-time-blocks",
+        "domain": "project",
+        "sourceScope": "System/Mandala/Mandala.md",
+        "sourceKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "identityVersion": 1
+      },
+      "primaryAliases": [
+        "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "mandala-time-blocks::effective-project::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "workspace-mount-view|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "item_mv56h25numnbs"
+      ],
+      "lastKnownLabel": "036R- 沈灏的书",
+      "pathLabel": "036R- 沈灏的书",
+      "contextKeys": [],
+      "active": true,
+      "lifecycleState": "active",
+      "ineligibilityReasons": [],
+      "eligibilityRevision": "c755fae4b1fca152a5fa8d5a50d69a04ad65dc684ec8a373dd31b04c1f7be132",
+      "eligibilityObservedAt": "2026-10-12T11:38:13.494Z",
+      "importedAt": "2026-10-12T11:38:13.459Z",
+      "revokedAt": "",
+      "lastObservedAt": "2026-10-12T11:38:13.502Z",
+      "order": 0,
+      "lastSourceObservation": "fresh-complete",
+      "lastSourceCount": 0,
+      "lastSourceTotal": 0
+    }
+  },
+  "sourceCards": {
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7": {
+      "id": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "providerId": "collection-card-view",
+      "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "label": "有一个疑问，数据需要整合吗？什么形式",
+      "pathLabel": "Collection / 001- 尝试整合成为一个大的插件 / 有一个疑问，数据需要整合吗？什么形式",
+      "notePath": "System/Collection/Collection.md",
+      "viewType": "collection-card-view",
+      "carrierId": "tab_muvd1tvl1fp8w",
+      "carrierLabel": "001- 尝试整合成为一个大的插件",
+      "depth": 2,
+      "order": 3,
+      "orderPath": [
+        0,
+        3
+      ],
+      "providerRevision": "2026-10-12T16:31:02.567Z",
+      "firstSeenAt": "2026-10-05T14:45:21.205Z",
+      "lastSeenAt": "2026-10-12T16:31:02.579Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62": {
+      "id": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "providerId": "collection-card-view",
+      "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "label": "真的会提速吗？这个合成一个内核的价值是什么呢",
+      "pathLabel": "Collection / 001- 尝试整合成为一个大的插件 / 真的会提速吗？这个合成一个内核的价值是什么呢",
+      "notePath": "System/Collection/Collection.md",
+      "viewType": "collection-card-view",
+      "carrierId": "tab_muvd1tvl1fp8w",
+      "carrierLabel": "001- 尝试整合成为一个大的插件",
+      "depth": 2,
+      "order": 2,
+      "orderPath": [
+        0,
+        2
+      ],
+      "providerRevision": "2026-10-12T16:31:02.567Z",
+      "firstSeenAt": "2026-10-12T09:20:58.426Z",
+      "lastSeenAt": "2026-10-12T16:31:02.579Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8": {
+      "id": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "providerId": "collection-card-view",
+      "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "label": "感觉不合成一个，反而会比较快",
+      "pathLabel": "Collection / 001- 尝试整合成为一个大的插件 / 感觉不合成一个，反而会比较快",
+      "notePath": "System/Collection/Collection.md",
+      "viewType": "collection-card-view",
+      "carrierId": "tab_muvd1tvl1fp8w",
+      "carrierLabel": "001- 尝试整合成为一个大的插件",
+      "depth": 2,
+      "order": 1,
+      "orderPath": [
+        0,
+        1
+      ],
+      "providerRevision": "2026-10-12T16:31:02.567Z",
+      "firstSeenAt": "2026-10-12T09:21:24.547Z",
+      "lastSeenAt": "2026-10-12T16:31:02.579Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83": {
+      "id": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "providerId": "collection-card-view",
+      "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvd1tvl1fp8w|item_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "label": "为什么呢，是数量吗，是校验吗",
+      "pathLabel": "Collection / 001- 尝试整合成为一个大的插件 / 为什么呢，是数量吗，是校验吗",
+      "notePath": "System/Collection/Collection.md",
+      "viewType": "collection-card-view",
+      "carrierId": "tab_muvd1tvl1fp8w",
+      "carrierLabel": "001- 尝试整合成为一个大的插件",
+      "depth": 2,
+      "order": 0,
+      "orderPath": [
+        0,
+        0
+      ],
+      "providerRevision": "2026-10-12T16:31:02.567Z",
+      "firstSeenAt": "2026-10-12T09:49:49.822Z",
+      "lastSeenAt": "2026-10-12T16:31:02.579Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvdg5qrcx0nx%7Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b": {
+      "id": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvdg5qrcx0nx%7Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+      "providerId": "collection-card-view",
+      "nodeKey": "jump:v1:collection-card-view|System%2FCollection%2FCollection.md|tab|tab_muvdg5qrcx0nx|item_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+      "label": "这个就很快",
+      "pathLabel": "Collection / 协作测试B / 这个就很快",
+      "notePath": "System/Collection/Collection.md",
+      "viewType": "collection-card-view",
+      "carrierId": "tab_muvdg5qrcx0nx",
+      "carrierLabel": "协作测试B",
+      "depth": 2,
+      "order": 0,
+      "orderPath": [
+        0,
+        0
+      ],
+      "providerRevision": "2026-10-12T11:35:25.992Z",
+      "firstSeenAt": "2026-10-12T11:35:25.996Z",
+      "lastSeenAt": "2026-10-12T11:35:25.996Z"
+    }
+  },
+  "membershipSourceLinks": {
+    "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7": {
+      "id": "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "membershipId": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "contextKey": "001- 尝试整合成为一个大的插件",
+      "observationState": "fresh-complete",
+      "firstSeenAt": "2026-10-05T14:45:21.205Z",
+      "lastObservedAt": "2026-10-12T16:31:02.579Z",
+      "sourceMissingAt": "",
+      "completedAt": ""
+    },
+    "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62": {
+      "id": "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "membershipId": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "contextKey": "001- 尝试整合成为一个大的插件",
+      "observationState": "fresh-complete",
+      "firstSeenAt": "2026-10-12T09:20:58.426Z",
+      "lastObservedAt": "2026-10-12T16:31:02.579Z",
+      "sourceMissingAt": "",
+      "completedAt": ""
+    },
+    "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8": {
+      "id": "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "membershipId": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "contextKey": "001- 尝试整合成为一个大的插件",
+      "observationState": "fresh-complete",
+      "firstSeenAt": "2026-10-12T09:21:24.547Z",
+      "lastObservedAt": "2026-10-12T16:31:02.579Z",
+      "sourceMissingAt": "",
+      "completedAt": ""
+    },
+    "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83": {
+      "id": "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "membershipId": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "contextKey": "001- 尝试整合成为一个大的插件",
+      "observationState": "fresh-complete",
+      "firstSeenAt": "2026-10-12T09:49:49.822Z",
+      "lastObservedAt": "2026-10-12T16:31:02.579Z",
+      "sourceMissingAt": "",
+      "completedAt": ""
+    },
+    "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvdg5ixilx8j%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvdg5qrcx0nx%257Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b": {
+      "id": "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvdg5ixilx8j%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvdg5qrcx0nx%257Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+      "membershipId": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvdg5ixilx8j::v1",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvdg5qrcx0nx%7Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+      "contextKey": "002- 协作测试B",
+      "observationState": "fresh-complete",
+      "firstSeenAt": "2026-10-12T11:35:25.996Z",
+      "lastObservedAt": "2026-10-12T11:35:25.996Z",
+      "sourceMissingAt": "",
+      "completedAt": ""
+    }
+  },
+  "sourceAliases": {},
+  "keywords": {},
+  "membershipKeywords": {},
+  "ontologies": {
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7": {
+      "id": "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "revision": 0,
+      "formalOntology": null,
+      "hash": "",
+      "createdAt": "2026-10-05T14:45:21.205Z",
+      "updatedAt": "2026-10-05T14:45:21.205Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62": {
+      "id": "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "revision": 0,
+      "formalOntology": null,
+      "hash": "",
+      "createdAt": "2026-10-12T09:20:58.426Z",
+      "updatedAt": "2026-10-12T09:20:58.426Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8": {
+      "id": "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "revision": 0,
+      "formalOntology": null,
+      "hash": "",
+      "createdAt": "2026-10-12T09:21:24.547Z",
+      "updatedAt": "2026-10-12T09:21:24.547Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83": {
+      "id": "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "revision": 0,
+      "formalOntology": null,
+      "hash": "",
+      "createdAt": "2026-10-12T09:49:49.822Z",
+      "updatedAt": "2026-10-12T09:49:49.822Z"
+    },
+    "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvdg5qrcx0nx%7Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b": {
+      "id": "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvdg5qrcx0nx%257Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+      "sourceCardId": "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvdg5qrcx0nx%7Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b",
+      "revision": 0,
+      "formalOntology": null,
+      "hash": "",
+      "createdAt": "2026-10-12T11:35:25.996Z",
+      "updatedAt": "2026-10-12T11:35:25.996Z"
+    }
+  },
+  "recoveryDrafts": {},
+  "recoveryAuthorities": {},
+  "reservedIds": {
+    "memberships": [
+      "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1",
+      "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvdg5ixilx8j::v1",
+      "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_mv56h25numnbs::v1"
+    ],
+    "sourceCards": [
+      "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvd1tvl1fp8w%7Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "source-card::collection-card-view::jump%3Av1%3Acollection-card-view%7CSystem%252FCollection%252FCollection.md%7Ctab%7Ctab_muvdg5qrcx0nx%7Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b"
+    ],
+    "links": [
+      "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvd1tpfsfxk5%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "link::membership%3A%3Amandala-time-blocks%3A%3Aproject%3A%3ASystem%252FMandala%252FMandala.md%3A%3Ajump%253Av1%253Aworkspace-mount-view%257CSystem%25252FWorkspace%25252FWorkspace.md%257Ctab%257Cdq-workspace-tab%257Citem_muvdg5ixilx8j%3A%3Av1::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvdg5qrcx0nx%257Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b"
+    ],
+    "keywords": [],
+    "ontologies": [
+      "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_306f2a29-c2c4-4177-86a0-e0c87d21f7c7",
+      "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_23448ef4-9863-4ba6-ab34-9ed12e2f1a62",
+      "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_e3d22f39-a7f2-49fb-acc7-3fba6b22bab8",
+      "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvd1tvl1fp8w%257Citem_naw_b7833f28-5fda-41f0-84d0-630660127a83",
+      "ontology::source-card%3A%3Acollection-card-view%3A%3Ajump%253Av1%253Acollection-card-view%257CSystem%25252FCollection%25252FCollection.md%257Ctab%257Ctab_muvdg5qrcx0nx%257Citem_naw_4140fdd3-fcef-4ea6-968f-6d3e3d134f7b"
+    ]
+  },
+  "uiState": {
+    "selectedMembershipId": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_mv56h25numnbs::v1",
+    "selectedDomain": "project",
+    "selectedMembershipIdByDomain": {
+      "goal": "all",
+      "project": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_mv56h25numnbs::v1"
+    },
+    "selectedKeywordIdByDomain": {
+      "goal": "all",
+      "project": "all"
+    },
+    "search": "",
+    "statusFilter": "all",
+    "collapsedMemberships": []
+  },
+  "createdAt": "2026-10-05T14:44:47.855Z",
+  "updatedAt": "2026-10-12T16:33:45.434Z",
+  "newActionDrafts": {}
+}

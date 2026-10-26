@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "defaultMemberKey": "overview",
+  "workspaceSourceNotePath": "System/Workspace/Workspace.md",
+  "collectionSourceNotePath": "System/Collection/Collection.md",
+  "managedIdentities": {
+    "workspace": "System/Workspace/Workspace.md",
+    "collection": "System/Collection/Collection.md",
+    "timeBlocks": "System/Mandala/Mandala.md",
+    "dailyLessons": "System/Mandala/Mandala.md",
+    "weeklyTracking": "System/Mandala/Mandala.md",
+    "nextAction": "System/Collection/Collection.md"
+  }
+}

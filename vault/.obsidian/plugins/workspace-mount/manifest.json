@@ -1,0 +1,9 @@
+{
+  "id": "workspace-mount",
+  "name": "Workspace Mount",
+  "version": "0.1.4",
+  "minAppVersion": "1.7.2",
+  "description": "Large-leaf Workspace Mount host with source-note binding and capsule bridge support.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

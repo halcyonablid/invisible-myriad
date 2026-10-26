@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "assignmentsByKeywordKey": {
+    "001- 尝试整合成为一个大的插件": {
+      "keyword": "001- 尝试整合成为一个大的插件",
+      "keywordKey": "001- 尝试整合成为一个大的插件",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_muvd1tvl1fp8w",
+      "tabNameSnapshot": "001- 尝试整合成为一个大的插件",
+      "createdAt": "2026-10-05T14:44:12.038Z",
+      "updatedAt": "2026-10-05T14:44:12.038Z"
+    },
+    "测试": {
+      "keyword": "测试",
+      "keywordKey": "测试",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_muvdc4imjj4aq",
+      "tabNameSnapshot": "测试",
+      "createdAt": "2026-10-05T14:52:12.389Z",
+      "updatedAt": "2026-10-05T14:52:12.389Z"
+    },
+    "协作测试b": {
+      "keyword": "协作测试B",
+      "keywordKey": "协作测试b",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_muvdg5qrcx0nx",
+      "tabNameSnapshot": "协作测试B",
+      "createdAt": "2026-10-05T14:55:20.601Z",
+      "updatedAt": "2026-10-05T14:55:20.601Z"
+    },
+    "036r- 沈灏的书": {
+      "keyword": "036R- 沈灏的书",
+      "keywordKey": "036r- 沈灏的书",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_mv56h2cidyfop",
+      "tabNameSnapshot": "036R- 沈灏的书",
+      "createdAt": "2026-10-12T11:37:47.310Z",
+      "updatedAt": "2026-10-12T11:37:47.310Z"
+    },
+    "099t- p2e测试项目": {
+      "keyword": "099T- P2E测试项目",
+      "keywordKey": "099t- p2e测试项目",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "tabNameSnapshot": "099T- P2E测试项目",
+      "createdAt": "2026-10-21T02:32:03.943Z",
+      "updatedAt": "2026-10-21T02:32:03.943Z"
+    },
+    "099t001- p2e测试目标": {
+      "keyword": "099T001- P2E测试目标",
+      "keywordKey": "099t001- p2e测试目标",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "tabNameSnapshot": "099T001- P2E测试目标",
+      "createdAt": "2026-10-21T02:33:55.072Z",
+      "updatedAt": "2026-10-21T02:33:55.072Z"
+    }
+  },
+  "contextCreationReceipts": {
+    "create-c68fbfc9-e9c7-44ec-89a9-131988bda64a:carrier": {
+      "planHash": "7c7a26b4398734c13601cea244e836a1e9713b2494bcb0dbd1cf44263d4428d3",
+      "tabId": "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "createdAt": "2026-10-21T02:32:03.943Z"
+    },
+    "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396:carrier": {
+      "planHash": "415bbbc302b346025eda0f59d06545505d2fe2f05414f4c40bfd373d25347924",
+      "tabId": "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "createdAt": "2026-10-21T02:33:55.072Z"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "Examples",
+  "attachmentFolderPath": "Attachments",
+  "promptDelete": false,
+  "showInlineTitle": true,
+  "readableLineLength": false
+}

@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "keywordToNode": {
+    "099t001- p2e测试目标改名": {
+      "keyword": "099T001- P2E测试目标改名",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+    }
+  },
+  "nodeKeywords": {
+    "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396": [
+      "099T001- P2E测试目标改名"
+    ]
+  },
+  "keywordMeta": {},
+  "meta": {
+    "source": "mandala-time-blocks"
+  },
+  "managedContextCreationsV1": {
+    "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "version": 1,
+      "txId": "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "domain": "goal"
+    }
+  },
+  "centerNamingProjectionV1": {
+    "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "version": 1,
+      "namespace": "registry_31570407-5e79-471a-bd2d-481de75569c6",
+      "contextId": "ctx_b6306ac6-c4c8-4017-ad2c-cb29dceead67",
+      "txId": "fee9c413-a580-4c2a-9ddb-4c341373d6a7",
+      "planHash": "eb9ee502d2006c72e4e836ccd3ef42dee69e7390b045dd34b491e30ccc430d3c",
+      "plan": {
+        "version": 2,
+        "ownerId": "mandala-time-blocks",
+        "subject": {
+          "domain": "goal",
+          "ownerId": "mandala-time-blocks",
+          "sourceScope": "System/Mandala/Mandala.md",
+          "primaryNodeKey": "jump:v1:mandala-time-blocks|System%2FMandala%2FMandala.md|node|mandala|node-04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+        },
+        "oldLabel": "099T001- P2E测试目标",
+        "newLabel": "099T001- P2E测试目标改名",
+        "sourcePaths": {
+          "db": "System/Mandala/Mandala_Database.json",
+          "keywords": "System/Mandala/Mandala_Keywords.json",
+          "weeklyGoals": "System/Mandala/Mandala_WeeklyGoals.json"
+        },
+        "before": {
+          "db": "2c831034619af2b15d7f64a8b69d4b4e7d4347c888e53a170c5b3114adca484c",
+          "keywords": "209648a93746ccfc3b336211a4659243c13ba0c437e46a489ae028a2d1a27630",
+          "receiptHash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+        },
+        "preconditionHash": "32e2b69a14ea046ac28e2940cdfc74b1d299c46c151236392d8799eacccf651b",
+        "receiptKey": "3a83a7f0ece74c16620dcc6418abb4d3ff71331533ebe034a3dd0b5fd3fce5ff"
+      }
+    }
+  }
+}

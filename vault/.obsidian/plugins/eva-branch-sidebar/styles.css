@@ -1,0 +1,24 @@
+.eva-branch-sidebar{height:100%;display:flex;flex-direction:column;padding:0 4px!important;min-height:0;box-sizing:border-box;overflow:hidden}
+.eva-branch-sidebar .eb-toolbar{display:flex;align-items:center;gap:3px;flex:none;min-height:24px;overflow-x:auto}
+.eva-branch-sidebar .eb-toolbar button{height:22px;min-height:22px;margin:0;padding:0 5px;flex:none;font-size:12px}
+.eva-branch-sidebar .eb-summary{flex:1 0 auto;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.eva-branch-sidebar .eb-message{font-size:12px;color:var(--text-muted);padding:4px 0;overflow-wrap:anywhere;flex:none}
+.eva-branch-sidebar .eb-scroll{flex:1;min-height:0;overflow:auto;overflow-anchor:none}
+.eva-branch-sidebar .eb-row{display:flex;align-items:center;gap:3px;margin:3px 0;padding:2px 5px;width:max-content;min-width:100%;white-space:nowrap;border:1px solid transparent;border-left:3px solid transparent;border-radius:4px}
+.eva-branch-sidebar .eb-fold{flex:none;width:19px;min-width:19px;height:24px;padding:0;border:0;box-shadow:none;background:transparent;color:var(--text-muted);font-size:12px}
+.eva-branch-sidebar .eb-content{display:flex;align-items:center;gap:5px;flex:0 0 auto;width:max-content;white-space:nowrap}
+.eva-branch-sidebar .eb-link{display:inline;white-space:nowrap;overflow-wrap:normal;flex:none;color:var(--text-normal);font-size:14px;line-height:1.6;text-decoration:none}
+.eva-branch-sidebar .is-mermaid{background:rgba(39,174,96,.13);border-left-color:#279956}
+.eva-branch-sidebar .is-important{outline:1px dashed #ca561b;outline-offset:-3px}
+.eva-branch-sidebar .is-level{background:rgba(238,158,30,.19)}
+.eva-branch-sidebar .eb-mermaid-badge{display:inline-block;margin:0;flex:none;padding:1px 5px;border:1px solid #279956;border-radius:4px;font-size:11px;color:var(--text-normal)}
+.eva-branch-sidebar .eb-row.is-current{border:2px solid var(--interactive-accent);border-left:6px solid var(--interactive-accent);box-shadow:0 0 0 1px var(--background-primary);outline:0}
+.eva-branch-sidebar .is-current .eb-link{font-weight:750}
+.eva-branch-sidebar .eb-current-badge{display:inline-block;flex:none;width:max-content;margin:0;padding:2px 7px;background:var(--interactive-accent);color:var(--text-on-accent);font-size:12px;font-weight:700;border-radius:3px}
+.eva-branch-sidebar .eb-keyword{color:#d7443e;font-weight:700}
+.eva-branch-sidebar .eb-emphasis{color:#9852b2;font-weight:700;text-decoration:underline}
+.eva-branch-sidebar .eb-empty{padding:12px;color:var(--text-muted)}
+
+.eva-branch-sidebar .eb-prefix{flex:none;white-space:pre;font-family:Consolas,monospace;font-size:12px;line-height:22.4px;color:var(--text-muted)}
+
+.eva-branch-sidebar .eb-message:empty{display:none}

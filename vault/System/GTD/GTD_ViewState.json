@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-10-13 08:46:35",
+  "views": {
+    "System/GTD/GTD.md": {
+      "scroll": {
+        "top": 0,
+        "left": 0
+      },
+      "anchorItemId": null,
+      "anchorSectionId": null,
+      "anchorProjectId": null,
+      "expandedItemPath": [],
+      "expandedProjectPath": [],
+      "anchorOffset": 0
+    }
+  },
+  "debug": {},
+  "trace": {
+    "System/GTD/GTD.md": {
+      "script_boot": {
+        "ts": "2026-10-13 08:46:35.625",
+        "details": {
+          "notePath": "System/GTD/GTD.md",
+          "dbPath": "System/GTD/GTD_Database.json",
+          "viewStatePath": "System/GTD/GTD_ViewState.json"
+        }
+      }
+    }
+  }
+}

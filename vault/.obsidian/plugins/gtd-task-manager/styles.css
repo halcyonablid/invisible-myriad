@@ -1,0 +1,58 @@
+.gtd-task-manager-view {
+  height: 100%;
+  overflow: auto;
+  padding: 12px;
+}
+
+.gtd-task-manager-root {
+  min-height: 100%;
+}
+
+.gtd-task-manager-error {
+  border: 1px solid var(--background-modifier-error);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--text-error);
+  background: var(--background-primary);
+  white-space: pre-wrap;
+}
+
+.gtd-action-container {
+  position: relative;
+  overflow: visible;
+}
+
+.gtd-action-container > .gtd-eva-meta-capture-btn {
+  position: absolute;
+  right: -8px;
+  top: -10px;
+  z-index: 30;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  padding: 0;
+  margin-left: 0 !important;
+  border: 1px solid color-mix(in srgb, var(--interactive-accent) 55%, var(--background-modifier-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--interactive-accent) 14%, var(--background-primary));
+  color: var(--text-normal);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.16);
+  font-size: 11px !important;
+  font-weight: 800;
+  line-height: 1;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-2px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+}
+
+body.eva-meta-capture-active .gtd-action-container > .gtd-eva-meta-capture-btn {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}

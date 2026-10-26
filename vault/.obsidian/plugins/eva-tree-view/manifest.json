@@ -1,0 +1,9 @@
+{
+  "id": "eva-tree-view",
+  "name": "EVA Tree View",
+  "version": "0.1.4",
+  "minAppVersion": "1.7.2",
+  "description": "Native plugin host for the EVA_Notes.json hierarchy tree view migrated from the original DataviewJS script.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

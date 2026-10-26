@@ -1,0 +1,9 @@
+{
+  "id": "ontology-meta-hub",
+  "name": "Ontology Meta Hub",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "跨 owner 的 Ontology 元表格、状态总览与来源导航。",
+  "author": "Local",
+  "isDesktopOnly": false
+}

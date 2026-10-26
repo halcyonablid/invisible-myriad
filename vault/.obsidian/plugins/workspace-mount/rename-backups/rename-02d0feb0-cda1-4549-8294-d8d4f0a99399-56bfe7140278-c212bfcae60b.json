@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "assignmentsByKeywordKey": {
+    "001- 尝试整合成为一个大的插件": {
+      "keyword": "001- 尝试整合成为一个大的插件",
+      "keywordKey": "001- 尝试整合成为一个大的插件",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_muvd1tuvu0p44",
+      "tabNameSnapshot": "001- 尝试整合成为一个大的插件",
+      "createdAt": "2026-10-05T14:44:12.022Z",
+      "updatedAt": "2026-10-05T14:44:12.022Z"
+    },
+    "测试": {
+      "keyword": "测试",
+      "keywordKey": "测试",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_muvdc4i0wmnyl",
+      "tabNameSnapshot": "测试",
+      "createdAt": "2026-10-05T14:52:12.376Z",
+      "updatedAt": "2026-10-05T14:52:12.376Z"
+    },
+    "协作测试b": {
+      "keyword": "协作测试B",
+      "keywordKey": "协作测试b",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_muvdg5q99nlyj",
+      "tabNameSnapshot": "协作测试B",
+      "createdAt": "2026-10-05T14:55:20.589Z",
+      "updatedAt": "2026-10-05T14:55:20.589Z"
+    },
+    "036r- 沈灏的书": {
+      "keyword": "036R- 沈灏的书",
+      "keywordKey": "036r- 沈灏的书",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_mv56h2bsbgo50",
+      "tabNameSnapshot": "036R- 沈灏的书",
+      "createdAt": "2026-10-12T11:37:47.288Z",
+      "updatedAt": "2026-10-12T11:37:47.288Z"
+    }
+  }
+}

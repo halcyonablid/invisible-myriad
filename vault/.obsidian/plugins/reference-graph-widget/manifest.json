@@ -1,0 +1,9 @@
+{
+  "id": "reference-graph-widget",
+  "name": "Reference Graph Widget",
+  "version": "0.1.1",
+  "minAppVersion": "1.7.2",
+  "description": "Native plugin engine for the reference graph floating widget formerly triggered by Templater.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

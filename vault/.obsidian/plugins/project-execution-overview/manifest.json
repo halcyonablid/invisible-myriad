@@ -1,0 +1,9 @@
+{
+  "id": "project-execution-overview",
+  "name": "Project Execution Overview",
+  "version": "0.1.7",
+  "minAppVersion": "1.7.2",
+  "description": "Read-only multi-source project execution overview with column layout and EVA relation lines.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

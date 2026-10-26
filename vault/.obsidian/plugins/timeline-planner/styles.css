@@ -1,0 +1,26 @@
+.timeline-planner-view {
+  height: 100%;
+  overflow: auto;
+  padding: 12px;
+}
+
+.timeline-planner-root {
+  min-height: 100%;
+}
+
+.timeline-planner-error {
+  border: 1px solid var(--background-modifier-error);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--text-error);
+  background: var(--background-primary);
+  white-space: pre-wrap;
+}
+
+.eva-meta-capture-btn {
+  display: none !important;
+}
+
+body.eva-meta-capture-active .eva-meta-capture-btn {
+  display: inline-flex !important;
+}

@@ -1,0 +1,30 @@
+{
+  "mandala-time-blocks:open-mandala-time-blocks": [
+    {
+      "modifiers": [
+        "Alt",
+        "Shift"
+      ],
+      "key": "M"
+    }
+  ],
+  "eva-branch-sidebar:open-and-locate": [
+    {
+      "modifiers": [
+        "Alt",
+        "Mod",
+        "Shift"
+      ],
+      "key": "I"
+    }
+  ],
+  "atom-note-sidebar:open-and-reveal-current": [
+    {
+      "modifiers": [
+        "Alt",
+        "Mod"
+      ],
+      "key": "O"
+    }
+  ]
+}

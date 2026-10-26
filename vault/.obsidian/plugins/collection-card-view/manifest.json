@@ -1,0 +1,9 @@
+{
+  "id": "collection-card-view",
+  "name": "Collection Card View",
+  "version": "0.1.1",
+  "minAppVersion": "1.7.2",
+  "description": "Collection card ItemView with source-note binding and State Capsules bridge support.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,9 @@
+{
+  "id": "create-similar-note",
+  "name": "相似笔记 · Similar Note",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "从当前笔记创建带编号的新卡片，继承所属块和行内字段，无需 Templater。",
+  "author": "Community",
+  "isDesktopOnly": false
+}

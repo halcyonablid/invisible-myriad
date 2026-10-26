@@ -1,0 +1,190 @@
+{
+  "tags": {
+    "work-type": {
+      "label": "工作类型",
+      "icon": "📋",
+      "color": "#7f8c8d",
+      "parentId": null,
+      "isCategory": true,
+      "order": 0
+    },
+    "system": {
+      "label": "架构设计",
+      "icon": "🏗️",
+      "color": "#9b59b6",
+      "parentId": "work-type",
+      "isCategory": false,
+      "order": 0
+    },
+    "learning": {
+      "label": "学习钻研",
+      "icon": "📚",
+      "color": "#3498db",
+      "parentId": "work-type",
+      "isCategory": false,
+      "order": 1
+    },
+    "review": {
+      "label": "复盘沉淀",
+      "icon": "💡",
+      "color": "#f1c40f",
+      "parentId": "work-type",
+      "isCategory": false,
+      "order": 2
+    },
+    "urgent": {
+      "label": "紧急救火",
+      "icon": "🔥",
+      "color": "#e74c3c",
+      "parentId": "work-type",
+      "isCategory": false,
+      "order": 3
+    },
+    "waiting": {
+      "label": "外部等待",
+      "icon": "⏳",
+      "color": "#95a5a6",
+      "parentId": "work-type",
+      "isCategory": false,
+      "order": 4
+    },
+    "domain": {
+      "label": "能力域",
+      "icon": "🎯",
+      "color": "#2c3e50",
+      "parentId": null,
+      "isCategory": true,
+      "order": 1
+    },
+    "tech": {
+      "label": "技术能力",
+      "icon": "⚙️",
+      "color": "#1abc9c",
+      "parentId": "domain",
+      "isCategory": false,
+      "order": 0
+    },
+    "mgmt": {
+      "label": "管理能力",
+      "icon": "👔",
+      "color": "#e67e22",
+      "parentId": "domain",
+      "isCategory": false,
+      "order": 1
+    },
+    "personal": {
+      "label": "个人发展",
+      "icon": "🌱",
+      "color": "#27ae60",
+      "parentId": "domain",
+      "isCategory": false,
+      "order": 2
+    },
+    "priority": {
+      "label": "紧急程度",
+      "icon": "⚡",
+      "color": "#8e44ad",
+      "parentId": null,
+      "isCategory": true,
+      "order": 2
+    },
+    "p1-critical": {
+      "label": "P1-紧急",
+      "icon": "🔴",
+      "color": "#c0392b",
+      "parentId": "priority",
+      "isCategory": false,
+      "order": 0
+    },
+    "p2-high": {
+      "label": "P2-重要",
+      "icon": "🟠",
+      "color": "#d35400",
+      "parentId": "priority",
+      "isCategory": false,
+      "order": 1
+    },
+    "p3-normal": {
+      "label": "P3-正常",
+      "icon": "🟡",
+      "color": "#f39c12",
+      "parentId": "priority",
+      "isCategory": false,
+      "order": 2
+    },
+    "p4-low": {
+      "label": "P4-低",
+      "icon": "🟢",
+      "color": "#27ae60",
+      "parentId": "priority",
+      "isCategory": false,
+      "order": 3
+    },
+    "context-001": {
+      "label": "001- 尝试整合成为一个大的插件",
+      "icon": "🏷️",
+      "color": "#3498db",
+      "parentId": null,
+      "isCategory": false,
+      "order": 3
+    },
+    "context-context-1791211932398": {
+      "label": "测试",
+      "icon": "🏷️",
+      "color": "#3498db",
+      "parentId": null,
+      "isCategory": false,
+      "order": 4
+    },
+    "context-b": {
+      "label": "协作测试B",
+      "icon": "🏷️",
+      "color": "#3498db",
+      "parentId": null,
+      "isCategory": false,
+      "order": 5
+    },
+    "context-036r": {
+      "label": "036R- 沈灏的书",
+      "icon": "🏷️",
+      "color": "#3498db",
+      "parentId": null,
+      "isCategory": false,
+      "order": 6
+    },
+    "context-c68fbfc9-e9c7-44ec-89a9-131988bda64a": {
+      "label": "099T- P2E测试项目",
+      "icon": "🏷️",
+      "color": "#3498db",
+      "parentId": null,
+      "isCategory": false,
+      "order": 19,
+      "managedContextCreationV1": {
+        "version": 1,
+        "txId": "create-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+        "sourceNotePath": "System/GTD/GTD.md",
+        "projectId": "project-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+        "tagId": "context-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+        "contextKey": "099T- P2E测试项目"
+      }
+    },
+    "context-04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "label": "099T001- P2E测试目标",
+      "icon": "🏷️",
+      "color": "#3498db",
+      "parentId": null,
+      "isCategory": false,
+      "order": 20,
+      "managedContextCreationV1": {
+        "version": 1,
+        "txId": "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+        "sourceNotePath": "System/GTD/GTD.md",
+        "projectId": "project-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+        "tagId": "context-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+        "contextKey": "099T001- P2E测试目标"
+      }
+    }
+  },
+  "version": "1.0",
+  "lastModified": "2026-10-12 19:37:47"
+}

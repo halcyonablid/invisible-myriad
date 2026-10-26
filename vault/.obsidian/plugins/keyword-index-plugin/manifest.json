@@ -1,0 +1,9 @@
+{
+  "id": "keyword-index-plugin",
+  "name": "Keyword Index Plugin",
+  "version": "0.1.23",
+  "minAppVersion": "1.7.2",
+  "description": "Standalone readonly Keyword Index view migrated from the original DataviewJS note.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,736 @@
+{
+  "main": {
+    "id": "dq-main",
+    "type": "split",
+    "children": [
+      {
+        "id": "dq-tabs",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "dq-eva",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "pinned": true,
+            "state": {
+              "type": "eva-tree-view",
+              "state": {},
+              "pinned": true,
+              "icon": "git-branch",
+              "title": "EVA Tree View"
+            }
+          },
+          {
+            "id": "dq-keyword",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "pinned": true,
+            "state": {
+              "type": "keyword-index-plugin-view",
+              "state": {},
+              "pinned": true,
+              "icon": "tags",
+              "title": "Keyword Index"
+            }
+          },
+          {
+            "id": "dq-concept",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "pinned": true,
+            "state": {
+              "type": "supermemo-concept-display-view",
+              "state": {},
+              "pinned": true,
+              "icon": "network",
+              "title": "SuperMemo Concept Display"
+            }
+          },
+          {
+            "id": "dq-hub",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "pinned": true,
+            "state": {
+              "type": "view-group-hub-view",
+              "state": {},
+              "pinned": true,
+              "icon": "panels-top-left",
+              "title": "视图组"
+            }
+          },
+          {
+            "id": "11c5e754a7480cb8",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "collection-action-view",
+              "state": {
+                "sourceNotePath": "System/Collection/Collection.md",
+                "domain": "project",
+                "selected": "all",
+                "tagSelection": [],
+                "tagMode": "single",
+                "tagGroup": "all"
+              },
+              "icon": "list-checks",
+              "title": "下一步行动台"
+            }
+          },
+          {
+            "id": "5b27e66f89c7be8b",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "workspace-mount-view",
+              "state": {
+                "sourceNotePath": "System/Workspace/Workspace.md",
+                "activeTabId": "tab_ws_mv56h2bsbgo50"
+              },
+              "icon": "layout-dashboard",
+              "title": "Workspace Mount"
+            }
+          },
+          {
+            "id": "c4169d7892389775",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "mandala-weekly-tracking-view",
+              "state": {
+                "sourceNotePath": "System/Mandala/Mandala.md",
+                "weeklyId": "muvd13eklnvob8",
+                "activeTab": "projectPlan",
+                "goalNodeId": "",
+                "workspaceNodeId": "",
+                "summaryWeekId": "2026-W41",
+                "workspaceSummaryWeekId": "2026-W41",
+                "projectPlanWeekId": "2026-W41"
+              },
+              "icon": "calendar-range",
+              "title": "周追踪"
+            }
+          },
+          {
+            "id": "422f19dc10dcdc7f",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "mandala-daily-lessons-view",
+              "state": {
+                "sourceNotePath": "System/Mandala/Mandala.md",
+                "dailyId": "muvd138ivl9nnu",
+                "date": "2026-10-05"
+              },
+              "icon": "calendar-check",
+              "title": "日课"
+            }
+          },
+          {
+            "id": "bd47d1e3a27ed43d",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "mandala-time-blocks-capture-view",
+              "state": {
+                "captureId": "muvd130yt3pgw9",
+                "sourceNotePath": "System/Mandala/Mandala.md"
+              },
+              "icon": "timer",
+              "title": "时间块记录"
+            }
+          },
+          {
+            "id": "e494a7aa918cd91a",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "daily-note-review-view",
+              "state": {},
+              "icon": "calendar-search",
+              "title": "Daily Note Review"
+            }
+          },
+          {
+            "id": "4d1fb0e018d9f3d0",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "ontology-meta-hub-view",
+              "state": {},
+              "icon": "network",
+              "title": "Ontology 元表格"
+            }
+          },
+          {
+            "id": "c05b2051b0f852b3",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "context-key-manager-view",
+              "state": {},
+              "icon": "key-round",
+              "title": "主键管理中心"
+            }
+          },
+          {
+            "id": "f0c6b7618ad4e74b",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "timeline-planner-view",
+              "state": {},
+              "icon": "calendar-clock",
+              "title": "Timeline 时间线"
+            }
+          },
+          {
+            "id": "1b74114a5a2319e2",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "temporal-framework-view",
+              "state": {},
+              "icon": "calendar-range",
+              "title": "时间框架"
+            }
+          },
+          {
+            "id": "f89e07581a8b501b",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "collection-card-view",
+              "state": {
+                "sourceNotePath": "System/Collection/Collection.md"
+              },
+              "icon": "files",
+              "title": "Collection Card View"
+            }
+          },
+          {
+            "id": "839121f3b9407c37",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "gtd-task-manager-view",
+              "state": {},
+              "icon": "list-todo",
+              "title": "GTD 待办事项管理"
+            }
+          },
+          {
+            "id": "233a28fb70ee463d",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "project-execution-overview-view",
+              "state": {},
+              "icon": "network",
+              "title": "项目执行总览"
+            }
+          },
+          {
+            "id": "b010b597e7ef3b5e",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@001.002- 把材料压缩成三张卡"
+            }
+          },
+          {
+            "id": "f0e63d2f387fbd49",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@001.003- 把材料压缩成三张卡"
+            }
+          }
+        ],
+        "currentTab": 11
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "dq-left",
+    "type": "split",
+    "children": [
+      {
+        "id": "dq-files-tabs",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "dq-files",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "pinned": true,
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "pinned": true,
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "607c53d52d03c01a",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "59b1e09b2276cc88",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "file-tree-view",
+              "state": {},
+              "icon": "sheets-in-box",
+              "title": "File Tree"
+            }
+          },
+          {
+            "id": "57ed886668060790",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "eva-branch-sidebar-view",
+              "state": {},
+              "icon": "git-branch",
+              "title": "EVA 分支树"
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "horizontal",
+    "width": 460.16668701171875
+  },
+  "right": {
+    "id": "dq-right",
+    "type": "split",
+    "children": [
+      {
+        "id": "df8b54b95d8a9760",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "85dbd63459f0661e",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "反向链接"
+            }
+          },
+          {
+            "id": "d4a9fd690e851500",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "出链"
+            }
+          },
+          {
+            "id": "1828fa987470c986",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "0716ce02720929b3",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "3b6e44dce299132f",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
+            }
+          },
+          {
+            "id": "b3d4e3e09401502b",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "atom-note-sidebar-view",
+              "state": {},
+              "icon": "list-tree",
+              "title": "ATOM 侧栏导航"
+            }
+          }
+        ],
+        "currentTab": 5
+      }
+    ],
+    "direction": "horizontal",
+    "width": 532.5
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "create-similar-note:创建相似笔记": false,
+      "context-key-manager:主键管理中心": false,
+      "switcher:打开快速切换": false,
+      "canvas:新建白板": false,
+      "modalforms:Edit forms": false,
+      "eva-tree-view:打开 EVA 树状图": false,
+      "antinet-tree-structure:Antinet 树的结构": false,
+      "mermaid-tools:Open Mermaid Toolbar": false,
+      "supermemo-plan:Open SuperMemo Plan": false,
+      "timeline-planner:打开 Timeline 时间线": false,
+      "gtd-task-manager:打开 GTD 待办事项管理": false,
+      "project-execution-overview:项目执行总览": false,
+      "workspace-mount:Open Workspace Mount": false,
+      "temporal-framework:打开时间框架": false,
+      "collection-card-view:Open Collection Card View": false,
+      "eva-branch-sidebar:EVA 分支树": false,
+      "eva-cross-view-relations:EVA Meta Capture": false,
+      "ontology-meta-hub:打开 Ontology 元表格": false,
+      "file-tree-alternative:File Tree Alternative Plugin": false,
+      "view-group-hub:打开视图组": false,
+      "reference-graph-widget:打开关系图谱悬浮窗": false,
+      "mandala-time-blocks:Open Mandala Time Blocks": false,
+      "next-action-workbench:下一步行动台": false,
+      "atom-note-sidebar:ATOM 侧栏导航": false,
+      "supermemo-concept-display:Open SuperMemo Concept Display": false,
+      "keyword-index-plugin:Open Keyword Index": false,
+      "mermaid-floating-widget:Toggle Mermaid floating widget": false,
+      "daily-note-review:每日 Note 回看": false,
+      "periodic-notes:Open today": false
+    }
+  },
+  "active": "b3d4e3e09401502b",
+  "lastOpenFiles": [
+    "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+    "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
+    "Examples/ATOM@001.002- 把材料压缩成三张卡.001- 新的想法23.md",
+    "Examples/outliner-20261027000516.md",
+    "Examples/Untitled.md",
+    "System/Timeline/Timeline.md",
+    "Examples/Untitled 1.md",
+    "Examples/ATOM@1.1-先说清楚听众的问题.md",
+    "Templates/create_similar_note.md",
+    "System/Mandala/Mandala_WeeklyGoals.json",
+    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1792550037418-mvhi0cyy1p3afp",
+    "System/GTD/099T001- P2E测试目标.md",
+    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1792550037418-mvhi0cyy1p3afp",
+    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1792549925532-mvhhxyn0yojt37",
+    "System/GTD/099T- P2E测试项目.md",
+    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1792549925532-mvhhxyn0yojt37",
+    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1791822662510-mv5gy6wefuvny8",
+    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1791822662510-mv5gy6wefuvny8",
+    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1791822606976-mv5gx01s3lstwx",
+    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1791822606976-mv5gx01s3lstwx",
+    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1791822606490-mv5gwzoaht74d9",
+    "System/GTD/036R- 沈灏的书.md",
+    "System/GTD/协作测试B.md",
+    "System/GTD/测试.md",
+    "System/GTD/001- 尝试整合成为一个大的插件.md"
+  ]
+}

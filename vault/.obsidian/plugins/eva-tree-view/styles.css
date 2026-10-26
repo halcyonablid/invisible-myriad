@@ -1,0 +1,254 @@
+.eva-tree-view-root {
+  padding: 0 6px;
+}
+
+.hierarchical-tree-structure {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace !important;
+  white-space: nowrap;
+  overflow-x: auto;
+  padding: 10px 0;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.tree-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 3px 5px;
+  border-radius: 3px;
+  overflow: visible;
+}
+
+.tree-item-link {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.tree-item-link:hover {
+  background-color: var(--background-secondary);
+}
+
+.fold-button,
+.fold-placeholder {
+  display: inline-block;
+  width: 1.5em;
+  text-align: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.fold-button {
+  cursor: pointer;
+  color: var(--text-accent);
+  font-weight: bold;
+}
+
+.fold-button:hover {
+  color: var(--text-accent-hover);
+}
+
+.tree-prefix {
+  color: var(--text-faint);
+  white-space: pre;
+}
+
+.tree-item-highlighted {
+  background-color: rgba(255, 165, 0, 0.3);
+  font-weight: bold;
+}
+
+.tree-item-subhighlighted {
+  background-color: rgba(255, 165, 0, 0.1);
+}
+
+.tree-item-h-highlighted {
+  background-color: rgba(75, 192, 192, 0.3);
+  font-weight: bold;
+  border-left: 3px solid rgba(75, 192, 192, 0.8);
+}
+
+.tree-item-frame-context {
+  opacity: 0.72;
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.tree-item-has-relations {
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.keyword-highlight {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.emphasis-highlight {
+  color: #8e44ad;
+  font-weight: bold;
+  text-decoration: underline;
+  text-decoration-color: #9b59b6;
+  text-decoration-thickness: 1.5px;
+}
+
+.tag-highlight {
+  color: #16a085;
+  font-weight: bold;
+  background-color: rgba(22, 160, 133, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.eva-tree-keyword-badges {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+  min-width: 0;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.eva-tree-keyword-badge {
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  color: var(--text-accent);
+  background: rgba(var(--color-accent-rgb), 0.12);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.24);
+  border-radius: 999px;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.eva-tree-relation-button {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.tree-item:not(.tree-item-has-keywords) .eva-tree-relation-button {
+  margin-left: auto;
+}
+
+.tree-item-has-relations .eva-tree-relation-button {
+  color: var(--text-accent);
+  border-color: var(--color-accent);
+}
+
+.eva-tree-relation-button:hover {
+  color: var(--text-on-accent);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.tree-control-info {
+  margin-bottom: 8px;
+  font-style: italic;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tree-level-info {
+  margin-bottom: 15px;
+  font-weight: bold;
+  color: var(--text-accent);
+  font-size: 14px;
+}
+
+.eva-tree-frame-boundary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 6px 8px;
+  border: 1px dashed var(--background-modifier-border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+}
+
+.eva-tree-frame-boundary button {
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.eva-tree-frame-label {
+  font-size: 12px;
+}
+
+.supermemo-entry {
+  outline: 1.5px dashed #ff4500;
+  outline-offset: -2px;
+}
+
+.eva-tree-view-warning,
+.eva-tree-view-error,
+.eva-tree-view-message {
+  white-space: pre-wrap;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--background-secondary);
+}
+
+.eva-tree-view-error {
+  color: var(--text-error);
+}
+
+@keyframes pulse-highlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(75, 192, 192, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(75, 192, 192, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(75, 192, 192, 0);
+  }
+}
+
+.pulse-animation {
+  animation: pulse-highlight 1.5s ease-out;
+}
+
+.eva-meta-capture-btn {
+  position: absolute;
+  right: -7px;
+  top: -8px;
+  z-index: 35;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  min-width: 21px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--interactive-accent) 55%, var(--background-modifier-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--interactive-accent) 14%, var(--background-primary));
+  color: var(--text-normal);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.16);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px) scale(0.96);
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+}
+
+body.eva-meta-capture-active .eva-meta-capture-btn {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}

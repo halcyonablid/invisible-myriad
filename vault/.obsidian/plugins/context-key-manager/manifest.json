@@ -1,0 +1,9 @@
+{
+  "id": "context-key-manager",
+  "name": "主键管理中心",
+  "version": "0.3.1",
+  "minAppVersion": "1.5.0",
+  "description": "项目与目标的有效操作上下文主键目录与项目管理入口。",
+  "author": "Local System",
+  "isDesktopOnly": true
+}

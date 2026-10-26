@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "source_zip_sha256": "7879e6302341c5bb726ba93f4eb35b0908b2193194add889af0315add47af693",
+  "adapters": [
+    {
+      "plugin": "workspace-mount",
+      "stamp": "dq-kernel-r0-20261005-8009f8fdecec2355",
+      "patch_count": 2,
+      "source_sha256": "c21070e4489edbf92eb9739577a1718e7099f3225cff8ce7a8c2a4ae9f3a1c32",
+      "sha256": "540527e28d6073bb0c23d929f52fe38d03efb60eca19425482af2a1742777db9",
+      "byte_reversible": true
+    },
+    {
+      "plugin": "mandala-time-blocks",
+      "stamp": "dq-kernel-r0-20261005-e7244f864366298d",
+      "patch_count": 10,
+      "source_sha256": "b877b4dbb5a8a95e27f1a41825997057079d7b517ed0b32e40fc974718f01b18",
+      "sha256": "df96c34d70232b8c9b2c26e73f78379129555a5aa0a3a9f97e4d1879c0769022",
+      "byte_reversible": true
+    },
+    {
+      "plugin": "project-execution-overview",
+      "stamp": "dq-kernel-r0-20261005-0d419c3da86610ee",
+      "patch_count": 7,
+      "source_sha256": "dbeb55f92a1cac6d47ddb91b0da4ac5174795b798f518214088c18c0214c9553",
+      "sha256": "4abaee923ab6f9231a1b0a41adf4f86ada5e6f6ca1071b2cf4c84f836fbf2b64",
+      "byte_reversible": true
+    },
+    {
+      "plugin": "next-action-workbench",
+      "stamp": "dq-kernel-r0-20261005-f7442b2e3ed3f53c",
+      "patch_count": 4,
+      "source_sha256": "f2a145952ad0ecdbd4a9d750c7a95a50ad34d8c34fd7f15463f7b92aab0ffc74",
+      "sha256": "32b7837b44e6906a4e3294b5174dfe5daebba8cd3a3a1fec89d4e50612568746",
+      "byte_reversible": true
+    },
+    {
+      "plugin": "gtd-task-manager",
+      "stamp": "dq-kernel-r0-20261005-d0ca3cb3b90a3aba",
+      "patch_count": 1,
+      "source_sha256": "30ef793aae71f55545ce5aea016a1d20c2b29e6d65242ffd6b29d35623f110b2",
+      "sha256": "4b67ca0d400825ba18b2b4d8813bc22bff07d02768887abdccace51606f8b951",
+      "byte_reversible": true
+    },
+    {
+      "plugin": "collection-card-view",
+      "stamp": "dq-kernel-r0-20261005-91dad0a7b850d699",
+      "patch_count": 3,
+      "source_sha256": "2581ac953d36f2e6c00514e261fa13597406835e98036e88adb011f6abdaf7f5",
+      "sha256": "da2c99f5d69b3c8b6df0b2611b28f26e34e7e96af5c8e43150bf98b6f50b3bce",
+      "byte_reversible": true
+    }
+  ],
+  "tests_passed": 24,
+  "native_host": false,
+  "business_migration": false
+}

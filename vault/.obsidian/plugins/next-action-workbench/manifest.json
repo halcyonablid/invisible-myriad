@@ -1,0 +1,9 @@
+{
+  "id": "next-action-workbench",
+  "name": "下一步行动台",
+  "version": "0.1.0",
+  "minAppVersion": "1.7.2",
+  "description": "汇入 active 主键的 Collection Card 下一步待办，并以独立 Ontology 渐进分解行动。",
+  "author": "h0414",
+  "isDesktopOnly": true
+}

@@ -1,0 +1,10 @@
+.reference-graph-widget-root {
+  font-family: var(--font-text);
+}
+
+.reference-graph-widget-error {
+  padding: 16px;
+  color: var(--text-error);
+  white-space: pre-wrap;
+}
+

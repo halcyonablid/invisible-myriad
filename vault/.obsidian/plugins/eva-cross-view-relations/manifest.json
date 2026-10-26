@@ -1,0 +1,9 @@
+{
+  "id": "eva-cross-view-relations",
+  "name": "EVA Cross View Relations",
+  "version": "0.1.1",
+  "minAppVersion": "1.5.0",
+  "description": "Cross-view item relations with adapter registration, relation editing, and jump-to-target support.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

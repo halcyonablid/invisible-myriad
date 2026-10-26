@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "assignmentsByKeywordKey": {
+    "001- 尝试整合成为一个大的插件": {
+      "keyword": "001- 尝试整合成为一个大的插件",
+      "keywordKey": "001- 尝试整合成为一个大的插件",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_muvd1tuvu0p44",
+      "tabNameSnapshot": "001- 尝试整合成为一个大的插件",
+      "createdAt": "2026-10-05T14:44:12.022Z",
+      "updatedAt": "2026-10-05T14:44:12.022Z"
+    },
+    "协作测试b": {
+      "keyword": "协作测试B",
+      "keywordKey": "协作测试b",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_muvdg5q99nlyj",
+      "tabNameSnapshot": "协作测试B",
+      "createdAt": "2026-10-05T14:55:20.589Z",
+      "updatedAt": "2026-10-05T14:55:20.589Z"
+    },
+    "036r- 沈灏的书": {
+      "keyword": "036R- 沈灏的书",
+      "keywordKey": "036r- 沈灏的书",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_mv56h2bsbgo50",
+      "tabNameSnapshot": "036R- 沈灏的书",
+      "createdAt": "2026-10-12T11:37:47.288Z",
+      "updatedAt": "2026-10-12T11:37:47.288Z"
+    },
+    "099t- p2e测试项目改名": {
+      "keyword": "099T- P2E测试项目改名",
+      "keywordKey": "099t- p2e测试项目改名",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "tabNameSnapshot": "099T- P2E测试项目",
+      "createdAt": "2026-10-21T02:32:02.756Z",
+      "updatedAt": "2026-10-21T02:32:02.756Z"
+    },
+    "099t001- p2e测试目标改名": {
+      "keyword": "099T001- P2E测试目标改名",
+      "keywordKey": "099t001- p2e测试目标改名",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "tabNameSnapshot": "099T001- P2E测试目标",
+      "createdAt": "2026-10-21T02:33:53.886Z",
+      "updatedAt": "2026-10-21T02:33:53.886Z"
+    },
+    "001- 测试": {
+      "keyword": "001- 测试",
+      "keywordKey": "001- 测试",
+      "sourceNotePath": "System/Workspace/Workspace.md",
+      "tabId": "tab_ws_muvdc4i0wmnyl",
+      "tabNameSnapshot": "测试",
+      "createdAt": "2026-10-05T14:52:12.376Z",
+      "updatedAt": "2026-10-26T16:02:56.446Z"
+    }
+  },
+  "contextCreationReceipts": {
+    "create-c68fbfc9-e9c7-44ec-89a9-131988bda64a:carrier": {
+      "planHash": "58ba54296fe2bc01b78731963e0a3498c564bdbb8f21be3633194d8325fbe39e",
+      "tabId": "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "createdAt": "2026-10-21T02:32:02.756Z"
+    },
+    "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396:carrier": {
+      "planHash": "10fa3ab29057bbeebd84855befb70ea36f12753e2fa90998c134296825dbe111",
+      "tabId": "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "createdAt": "2026-10-21T02:33:53.886Z"
+    }
+  },
+  "centerNamingProjectionV1": {
+    "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a": {
+      "version": 1,
+      "ownerId": "workspace-mount",
+      "namespace": "registry_31570407-5e79-471a-bd2d-481de75569c6",
+      "contextId": "ctx_cf870858-540d-4351-92b3-48e5b62b75f2",
+      "carrierId": "tab_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "scope": {
+        "sourceNotePath": "System/Workspace/Workspace.md",
+        "dataPath": "System/Workspace/Workspace_Items.json",
+        "keywordPath": "System/Workspace/Workspace_TabCapsuleKeywords.json"
+      },
+      "txId": "df7c5220-510a-4ec8-9b6f-c3dde20beb75",
+      "planHash": "e0a883bf58feb422a495563dd9788c9bb5c0c696cac880738f3166fdf6435ccb",
+      "oldLabel": "099T- P2E测试项目",
+      "newLabel": "099T- P2E测试项目改名"
+    },
+    "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "version": 1,
+      "ownerId": "workspace-mount",
+      "namespace": "registry_31570407-5e79-471a-bd2d-481de75569c6",
+      "contextId": "ctx_b6306ac6-c4c8-4017-ad2c-cb29dceead67",
+      "carrierId": "tab_ck_04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "scope": {
+        "sourceNotePath": "System/Workspace/Workspace.md",
+        "dataPath": "System/Workspace/Workspace_Items.json",
+        "keywordPath": "System/Workspace/Workspace_TabCapsuleKeywords.json"
+      },
+      "txId": "fee9c413-a580-4c2a-9ddb-4c341373d6a7",
+      "planHash": "da28f7fb81920d37c4307f62af30b218d2a56a527f25559fe4fc90f7f2ddb547",
+      "oldLabel": "099T001- P2E测试目标",
+      "newLabel": "099T001- P2E测试目标改名"
+    }
+  }
+}

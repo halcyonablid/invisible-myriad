@@ -1,0 +1,465 @@
+{
+  "version": 3,
+  "rowsByKey": {
+    "System/Mandala/Mandala.md::dq-goal-share::2026-W41": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "dq-goal-share",
+      "displayTitle": "让朋友能独立完成一次材料到行动的练习",
+      "titleProvenance": "observed_in_week",
+      "weekId": "2026-W41",
+      "weekLabel": "2026年第41周",
+      "thisWeekGoal": "周五完成十分钟分享",
+      "status": "doing",
+      "completion": "虚构记录：三张卡已准备",
+      "blockers": "开场容易超时",
+      "nextThree": [
+        "压缩开场",
+        "练习材料跳转",
+        "计时排练"
+      ],
+      "reflection": "用可操作的例子替代功能名堆叠",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    },
+    "System/Mandala/Mandala.md::node-04cc2e1e-05ac-43d3-9af2-c28b1810b396::2026-W43": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "displayTitle": "099T001- P2E测试目标",
+      "titleProvenance": "observed_in_week",
+      "weekId": "2026-W43",
+      "weekLabel": "2026-10-19 ~ 2026-10-25",
+      "thisWeekGoal": "",
+      "status": "doing",
+      "completion": "",
+      "blockers": "",
+      "nextThree": [
+        "",
+        "",
+        ""
+      ],
+      "reflection": "",
+      "updatedAt": ""
+    }
+  },
+  "nodeStatesByKey": {
+    "System/Mandala/Mandala.md::dq-goal-share": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "dq-goal-share",
+      "status": "active",
+      "stoppedAt": "",
+      "resumedAt": "",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    },
+    "System/Mandala/Mandala.md::node-04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "status": "active",
+      "stoppedAt": "",
+      "resumedAt": "",
+      "updatedAt": ""
+    }
+  },
+  "workspaceRowsByKey": {
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5::2026-W41": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+      "displayTitle": "",
+      "titleProvenance": "",
+      "weekId": "2026-W41",
+      "weekLabel": "2026-10-05 ~ 2026-10-11",
+      "thisWeekGoal": "啦啦啦",
+      "status": "doing",
+      "completion": "",
+      "blockers": "",
+      "nextThree": [
+        "",
+        "",
+        ""
+      ],
+      "reflection": "",
+      "updatedAt": "2026-10-12T16:29:30.361Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04::2026-W41": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+      "displayTitle": "",
+      "titleProvenance": "",
+      "weekId": "2026-W41",
+      "weekLabel": "2026-10-05 ~ 2026-10-11",
+      "thisWeekGoal": "",
+      "status": "doing",
+      "completion": "",
+      "blockers": "",
+      "nextThree": [
+        "",
+        "",
+        ""
+      ],
+      "reflection": "",
+      "updatedAt": "2026-10-05T14:52:12.164Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j::2026-W41": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+      "displayTitle": "",
+      "titleProvenance": "",
+      "weekId": "2026-W41",
+      "weekLabel": "2026-10-05 ~ 2026-10-11",
+      "thisWeekGoal": "",
+      "status": "doing",
+      "completion": "",
+      "blockers": "",
+      "nextThree": [
+        "",
+        "",
+        ""
+      ],
+      "reflection": "",
+      "updatedAt": "2026-10-05T14:55:20.361Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs::2026-W42": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+      "displayTitle": "",
+      "titleProvenance": "",
+      "weekId": "2026-W42",
+      "weekLabel": "2026-10-12 ~ 2026-10-18",
+      "thisWeekGoal": "",
+      "status": "doing",
+      "completion": "",
+      "blockers": "",
+      "nextThree": [
+        "",
+        "",
+        ""
+      ],
+      "reflection": "",
+      "updatedAt": "2026-10-12T11:37:47.106Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a::2026-W43": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "displayTitle": "099T- P2E测试项目",
+      "titleProvenance": "observed_in_week",
+      "weekId": "2026-W43",
+      "weekLabel": "2026-10-19 ~ 2026-10-25",
+      "thisWeekGoal": "",
+      "status": "doing",
+      "completion": "",
+      "blockers": "",
+      "nextThree": [
+        "",
+        "",
+        ""
+      ],
+      "reflection": "",
+      "updatedAt": ""
+    }
+  },
+  "workspaceNodeStatesByKey": {
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+      "status": "active",
+      "stoppedAt": "",
+      "resumedAt": "2026-10-12T16:31:02.508Z",
+      "updatedAt": "2026-10-12T16:31:02.508Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+      "status": "active",
+      "stoppedAt": "",
+      "resumedAt": "",
+      "updatedAt": "2026-10-05T14:52:12.164Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+      "status": "active",
+      "stoppedAt": "",
+      "resumedAt": "",
+      "updatedAt": "2026-10-05T14:55:20.361Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+      "status": "active",
+      "stoppedAt": "",
+      "resumedAt": "",
+      "updatedAt": "2026-10-12T11:37:47.107Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "status": "active",
+      "stoppedAt": "",
+      "resumedAt": "",
+      "updatedAt": ""
+    }
+  },
+  "projectPlansByWeek": {},
+  "projectPlanRowsByKey": {
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+      "finalVision": "",
+      "valueDirection": "",
+      "currentReality": "",
+      "nextAction": "",
+      "milestone": "",
+      "displayTitle": "001- 尝试整合成为一个大的插件",
+      "updatedAt": "2026-10-12T16:31:02.508Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+      "finalVision": "",
+      "valueDirection": "",
+      "currentReality": "",
+      "nextAction": "",
+      "milestone": "",
+      "displayTitle": "测试",
+      "updatedAt": "2026-10-05T14:52:12.297Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+      "finalVision": "",
+      "valueDirection": "",
+      "currentReality": "",
+      "nextAction": "",
+      "milestone": "",
+      "displayTitle": "协作测试B",
+      "updatedAt": "2026-10-05T14:55:20.507Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+      "finalVision": "",
+      "valueDirection": "",
+      "currentReality": "",
+      "nextAction": "",
+      "milestone": "",
+      "displayTitle": "036R- 沈灏的书",
+      "updatedAt": "2026-10-12T11:37:47.186Z"
+    },
+    "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "finalVision": "",
+      "valueDirection": "",
+      "currentReality": "",
+      "nextAction": "",
+      "milestone": "",
+      "displayTitle": "099T- P2E测试项目",
+      "updatedAt": ""
+    }
+  },
+  "goalPlanRowsByKey": {
+    "System/Mandala/Mandala.md::node-04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "vision": "",
+      "knowledge": "",
+      "currentSituation": "",
+      "nextPlan": "",
+      "displayTitle": "099T001- P2E测试目标",
+      "updatedAt": ""
+    }
+  },
+  "goalRosterByWeek": {
+    "2026-W41": {
+      "dq-goal-share": {
+        "entityId": "dq-goal-share",
+        "sourceType": "goal",
+        "displayTitle": "让朋友能独立完成一次材料到行动的练习",
+        "weekId": "2026-W41",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-05T09:00:00+08:00",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      }
+    },
+    "2026-W42": {
+      "dq-goal-share": {
+        "entityId": "dq-goal-share",
+        "sourceType": "goal",
+        "displayTitle": "让朋友能独立完成一次材料到行动的练习",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:28:09.262Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      }
+    }
+  },
+  "workspaceRosterByWeek": {
+    "2026-W42": {
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "sourceType": "workspace",
+        "displayTitle": "036R- 沈灏的书",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      },
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "sourceType": "workspace",
+        "displayTitle": "协作测试B",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      },
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+        "sourceType": "workspace",
+        "displayTitle": "测试",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      },
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "sourceType": "workspace",
+        "displayTitle": "001- 尝试整合成为一个大的插件",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "2026-10-12T16:30:06.975Z",
+        "resumedAt": "2026-10-12T16:31:02.508Z",
+        "titleProvenance": "observed_in_week"
+      },
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-1": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-1",
+        "sourceType": "workspace",
+        "displayTitle": "准备十分钟分享",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      },
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-2": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-2",
+        "sourceType": "workspace",
+        "displayTitle": "听众问题卡",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      },
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-3": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-3",
+        "sourceType": "workspace",
+        "displayTitle": "三张材料卡",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      },
+      "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-4": {
+        "entityId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|dq-workspace-4",
+        "sourceType": "workspace",
+        "displayTitle": "城市微花园观察",
+        "weekId": "2026-W42",
+        "statusAtWeek": "active",
+        "capturedAt": "2026-10-12T16:29:22.787Z",
+        "stoppedAt": "",
+        "resumedAt": "",
+        "titleProvenance": "observed_in_week"
+      }
+    }
+  },
+  "rosterCaptureByWeek": {
+    "2026-W41": {
+      "goal": {
+        "complete": true,
+        "capturedAt": "2026-10-05T15:00:39.890Z",
+        "source": "mandala-owner-tree-state",
+        "revision": "",
+        "diagnostic": ""
+      }
+    },
+    "2026-W42": {
+      "goal": {
+        "complete": true,
+        "capturedAt": "2026-10-12T16:28:09.264Z",
+        "source": "mandala-owner-tree-state",
+        "revision": "",
+        "diagnostic": ""
+      },
+      "workspace": {
+        "complete": true,
+        "capturedAt": "2026-10-12T16:29:22.798Z",
+        "source": "workspace-owner-snapshot",
+        "revision": "",
+        "diagnostic": ""
+      }
+    }
+  },
+  "meta": {
+    "source": "mandala-time-blocks",
+    "sourceNotePath": "System/Mandala/Mandala.md"
+  },
+  "managedContextCreationsV1": {
+    "create-c68fbfc9-e9c7-44ec-89a9-131988bda64a": {
+      "version": 1,
+      "txId": "create-c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "nodeId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a",
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "domain": "project",
+      "targets": [
+        {
+          "bucket": "workspaceRowsByKey",
+          "key": "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a::2026-W43"
+        },
+        {
+          "bucket": "workspaceNodeStatesByKey",
+          "key": "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a"
+        },
+        {
+          "bucket": "projectPlanRowsByKey",
+          "key": "System/Mandala/Mandala.md::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_ck_c68fbfc9-e9c7-44ec-89a9-131988bda64a"
+        }
+      ]
+    },
+    "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396": {
+      "version": 1,
+      "txId": "create-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "nodeId": "node-04cc2e1e-05ac-43d3-9af2-c28b1810b396",
+      "sourceNotePath": "System/Mandala/Mandala.md",
+      "domain": "goal",
+      "targets": [
+        {
+          "bucket": "rowsByKey",
+          "key": "System/Mandala/Mandala.md::node-04cc2e1e-05ac-43d3-9af2-c28b1810b396::2026-W43"
+        },
+        {
+          "bucket": "nodeStatesByKey",
+          "key": "System/Mandala/Mandala.md::node-04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+        },
+        {
+          "bucket": "goalPlanRowsByKey",
+          "key": "System/Mandala/Mandala.md::node-04cc2e1e-05ac-43d3-9af2-c28b1810b396"
+        }
+      ]
+    }
+  }
+}

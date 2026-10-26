@@ -1,0 +1,37 @@
+{
+  "version": 5,
+  "itemsById": {
+    "dq-lesson-rehearse": {
+      "id": "dq-lesson-rehearse",
+      "side": "normal",
+      "name": "用三句话复述今天的核心问题",
+      "timeRange": "晚间 5 分钟",
+      "priorExperience": "虚构示例：先说问题，再说材料，最后说行动。",
+      "expectedMinutes": 5,
+      "active": true,
+      "createdAt": "2026-10-05T09:00:00+08:00",
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    }
+  },
+  "itemOrder": [
+    "dq-lesson-rehearse"
+  ],
+  "daysByDate": {
+    "2026-10-05": {
+      "date": "2026-10-05",
+      "plan": "试讲开场并计时",
+      "completion": "虚构记录：第一轮用了九十秒",
+      "adjustment": "删去背景介绍的一段",
+      "tomorrowPlan": "再排练一次六十秒开场",
+      "entriesByItemId": {
+        "dq-lesson-rehearse": {
+          "itemId": "dq-lesson-rehearse",
+          "done": true,
+          "note": "虚构记录：三句话仍有重复，需要进一步压缩。",
+          "updatedAt": "2026-10-05T09:00:00+08:00"
+        }
+      },
+      "updatedAt": "2026-10-05T09:00:00+08:00"
+    }
+  }
+}

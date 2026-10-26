@@ -1,0 +1,9 @@
+{
+  "id": "antinet-tree-structure",
+  "name": "Antinet 树的结构",
+  "version": "0.1.2",
+  "minAppVersion": "1.7.2",
+  "description": "从当前 ATOM 笔记出发绘制 Mermaid 关键词树，使用拆分 SVG 缓存并避免事件自动预热。",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

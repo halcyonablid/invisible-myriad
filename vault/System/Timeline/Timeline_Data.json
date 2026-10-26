@@ -1,0 +1,155 @@
+{
+  "items": [
+    {
+      "id": "dq-timeline-rehearsal",
+      "name": "虚构 · 分享排练",
+      "startDate": "2026-10-05",
+      "endDate": "2026-10-09",
+      "startTime": "09:00",
+      "endTime": "09:20",
+      "kind": "task",
+      "comment": "每天一轮短排练；周五十分钟分享。",
+      "color": "#3b82f6",
+      "tags": [],
+      "daySlots": {},
+      "created": "2026-10-05 09:00:00"
+    },
+    {
+      "id": "ext_8ipfed",
+      "name": "001- 尝试整合成为一个大的插件",
+      "startDate": "2026-10-05",
+      "endDate": "2026-11-13",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "kind": "task",
+      "comment": "001- 尝试整合成为一个大的插件",
+      "color": "hsl(51, 65%, 55%)",
+      "tags": [
+        "effective-operational-context-key",
+        "mandala-project",
+        "project"
+      ],
+      "daySlots": {},
+      "created": "2026-10-05 14:45:45",
+      "externalSource": {
+        "sourcePlugin": "mandala-time-blocks",
+        "sourceType": "project",
+        "sourceId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "sourceKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "externalKey": "mandala-time-blocks::project::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvd1tpfsfxk5",
+        "lifecycle": {
+          "status": "active",
+          "stoppedAt": "",
+          "stopDate": "",
+          "resumedAt": "2026-10-12T16:31:02.508Z"
+        }
+      },
+      "updated": "2026-10-12T16:30:06.671Z"
+    },
+    {
+      "id": "ext_b53uw3",
+      "name": "036R- 沈灏的书",
+      "startDate": "2026-10-05",
+      "endDate": "2026-11-13",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "kind": "task",
+      "comment": "036R- 沈灏的书",
+      "color": "hsl(354, 65%, 55%)",
+      "tags": [
+        "effective-operational-context-key",
+        "mandala-project",
+        "project"
+      ],
+      "daySlots": {},
+      "created": "2026-10-12 11:38:31",
+      "externalSource": {
+        "sourcePlugin": "mandala-time-blocks",
+        "sourceType": "project",
+        "sourceId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "sourceKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "externalKey": "mandala-time-blocks::project::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_mv56h25numnbs",
+        "lifecycle": {
+          "status": "active",
+          "stoppedAt": "",
+          "stopDate": "",
+          "resumedAt": ""
+        }
+      },
+      "updated": "2026-10-12T16:30:04.711Z"
+    },
+    {
+      "id": "ext_3aur0t",
+      "name": "002- 协作测试B",
+      "startDate": "2026-10-05",
+      "endDate": "2026-11-13",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "kind": "task",
+      "comment": "协作测试B",
+      "color": "hsl(315, 65%, 55%)",
+      "tags": [
+        "effective-operational-context-key",
+        "mandala-project",
+        "project"
+      ],
+      "daySlots": {},
+      "created": "2026-10-12 11:38:31",
+      "externalSource": {
+        "sourcePlugin": "mandala-time-blocks",
+        "sourceType": "project",
+        "sourceId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "sourceKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "externalKey": "mandala-time-blocks::project::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdg5ixilx8j",
+        "lifecycle": {
+          "status": "active",
+          "stoppedAt": "",
+          "stopDate": "",
+          "resumedAt": ""
+        }
+      },
+      "updated": "2026-10-12T16:30:04.711Z"
+    },
+    {
+      "id": "ext_7kzlq8",
+      "name": "001- 测试",
+      "startDate": "2026-10-05",
+      "endDate": "2026-11-13",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "kind": "task",
+      "comment": "测试",
+      "color": "hsl(273, 65%, 55%)",
+      "tags": [
+        "effective-operational-context-key",
+        "mandala-project",
+        "project"
+      ],
+      "daySlots": {},
+      "created": "2026-10-12 11:38:31",
+      "externalSource": {
+        "sourcePlugin": "mandala-time-blocks",
+        "sourceType": "project",
+        "sourceId": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+        "sourceKey": "jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+        "externalKey": "mandala-time-blocks::project::jump:v1:workspace-mount-view|System%2FWorkspace%2FWorkspace.md|tab|dq-workspace-tab|item_muvdc4b5jnw04",
+        "lifecycle": {
+          "status": "active",
+          "stoppedAt": "",
+          "stopDate": "",
+          "resumedAt": ""
+        }
+      },
+      "updated": "2026-10-12T16:30:04.711Z"
+    }
+  ],
+  "settings": {
+    "viewRange": {
+      "mode": "custom",
+      "customStart": "2026-10-05",
+      "customEnd": "2026-10-11"
+    },
+    "ganttRangeMode": "view"
+  },
+  "milestones": {}
+}

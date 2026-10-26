@@ -1,0 +1,1 @@
+{"id":"eva-branch-sidebar","name":"EVA 分支树","version":"1.0.3","minAppVersion":"1.7.2","description":"将召唤树状图转换为左侧单行分支树，突出当前对应 Mermaid，支持快捷键定位。","author":"Personal Tools","isDesktopOnly":true}

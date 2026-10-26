@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "assignmentsByKeywordKey": {
+    "001- 尝试整合成为一个大的插件": {
+      "keyword": "001- 尝试整合成为一个大的插件",
+      "keywordKey": "001- 尝试整合成为一个大的插件",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_muvd1tvl1fp8w",
+      "tabNameSnapshot": "001- 尝试整合成为一个大的插件",
+      "createdAt": "2026-10-05T14:44:12.038Z",
+      "updatedAt": "2026-10-05T14:44:12.038Z"
+    },
+    "测试": {
+      "keyword": "测试",
+      "keywordKey": "测试",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_muvdc4imjj4aq",
+      "tabNameSnapshot": "测试",
+      "createdAt": "2026-10-05T14:52:12.389Z",
+      "updatedAt": "2026-10-05T14:52:12.389Z"
+    },
+    "协作测试b": {
+      "keyword": "协作测试B",
+      "keywordKey": "协作测试b",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_muvdg5qrcx0nx",
+      "tabNameSnapshot": "协作测试B",
+      "createdAt": "2026-10-05T14:55:20.601Z",
+      "updatedAt": "2026-10-05T14:55:20.601Z"
+    },
+    "036r- 沈灏的书": {
+      "keyword": "036R- 沈灏的书",
+      "keywordKey": "036r- 沈灏的书",
+      "sourceNotePath": "System/Collection/Collection.md",
+      "tabId": "tab_mv56h2cidyfop",
+      "tabNameSnapshot": "036R- 沈灏的书",
+      "createdAt": "2026-10-12T11:37:47.310Z",
+      "updatedAt": "2026-10-12T11:37:47.310Z"
+    }
+  }
+}

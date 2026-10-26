@@ -1,0 +1,28 @@
+{
+  "recentFiles": [
+    {
+      "basename": "outliner-20261027000516",
+      "path": "Examples/outliner-20261027000516.md"
+    },
+    {
+      "basename": "Untitled",
+      "path": "Examples/Untitled.md"
+    },
+    {
+      "basename": "Timeline",
+      "path": "System/Timeline/Timeline.md"
+    },
+    {
+      "basename": "ATOM@1.1-先说清楚听众的问题",
+      "path": "Examples/ATOM@1.1-先说清楚听众的问题.md"
+    },
+    {
+      "basename": "ATOM@1.2-把材料压缩成三张卡",
+      "path": "Examples/ATOM@1.2-把材料压缩成三张卡.md"
+    }
+  ],
+  "omittedPaths": [],
+  "omittedTags": [],
+  "updateOn": "file-open",
+  "omitBookmarks": false
+}

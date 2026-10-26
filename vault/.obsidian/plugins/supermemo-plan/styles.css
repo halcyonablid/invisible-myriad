@@ -1,0 +1,3 @@
+.supermemo-plan-view-host { overflow: auto; }
+.supermemo-plan-root { padding: 12px; }
+.supermemo-plan-error { color: var(--text-error); white-space: pre-wrap; }

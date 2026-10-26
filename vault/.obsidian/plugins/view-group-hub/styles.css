@@ -1,0 +1,210 @@
+.view-group-hub-owned-stack .workspace-tab-header.view-group-hub-member-header {
+  display: none !important;
+}
+
+.workspace-tab-header.view-group-hub-controller-header {
+  min-width: 92px;
+}
+
+.workspace-tab-header.view-group-hub-controller-header.is-active-proxy {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.workspace-tab-header.view-group-hub-controller-header.is-active-proxy::after {
+  background: var(--interactive-accent);
+  bottom: 0;
+  content: "";
+  height: 2px;
+  left: 8px;
+  position: absolute;
+  right: 8px;
+}
+
+.view-group-hub-menu {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-l);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  box-sizing: border-box;
+  width: min(760px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  min-width: 0;
+  padding: 8px;
+  position: fixed;
+  z-index: var(--layer-menu, 1000);
+}
+
+.view-group-hub-menu-group {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.view-group-hub-menu-group-title {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 10px 2px;
+}
+
+.view-group-hub-menu[hidden] {
+  display: none !important;
+}
+
+.view-group-hub-menu button {
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 10px;
+  text-align: left;
+  white-space: normal;
+}
+
+.view-group-hub-menu button:hover,
+.view-group-hub-menu button:focus-visible {
+  background: var(--background-modifier-hover);
+  outline: none;
+}
+
+.view-group-hub-menu button:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.view-group-hub-menu-repair {
+  border-top: 1px solid var(--background-modifier-border) !important;
+  color: var(--text-muted) !important;
+  margin-top: 4px;
+  grid-column: 1 / -1;
+}
+
+.view-group-hub-controller-view {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  padding: 20px;
+}
+
+.view-group-hub-panel-header {
+  max-width: 760px;
+}
+
+.view-group-hub-panel-header h2 {
+  margin: 0 0 6px;
+}
+
+.view-group-hub-panel-header p,
+.view-group-hub-message {
+  color: var(--text-muted);
+}
+
+.view-group-hub-message {
+  background: var(--background-secondary);
+  border-left: 3px solid var(--interactive-accent);
+  margin: 12px 0;
+  padding: 9px 12px;
+}
+
+.view-group-hub-member-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 18px 0;
+  max-width: 1200px;
+}
+
+.view-group-hub-controller-group {
+  background: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.view-group-hub-controller-group h3 {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+.view-group-hub-controller-group-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.view-group-hub-member-row {
+  align-items: center;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(140px, 1fr) auto;
+  padding: 10px;
+}
+
+.view-group-hub-member-row.is-ready {
+  border-color: color-mix(in srgb, var(--interactive-accent) 36%, var(--background-modifier-border));
+}
+
+.view-group-hub-member-open {
+  font-weight: 600;
+  text-align: left;
+}
+
+.view-group-hub-member-status,
+.view-group-hub-member-reason,
+.view-group-hub-member-row code {
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.view-group-hub-member-row code,
+.view-group-hub-member-reason {
+  grid-column: 1 / -1;
+}
+
+.view-group-hub-panel-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.view-group-hub-confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+@media (max-width: 720px) {
+  .view-group-hub-menu,
+  .view-group-hub-member-list {
+    grid-template-columns: 1fr;
+  }
+  .view-group-hub-menu {
+    min-width: min(280px, calc(100vw - 16px));
+  }
+  .view-group-hub-menu-repair {
+    grid-column: 1;
+  }
+  .view-group-hub-member-row {
+    grid-template-columns: 1fr auto;
+  }
+  .view-group-hub-member-row code,
+  .view-group-hub-member-reason {
+    grid-column: 1 / -1;
+  }
+}

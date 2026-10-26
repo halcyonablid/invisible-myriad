@@ -1,0 +1,34 @@
+/* Native Obsidian tokens; no global selectors or external assets. */
+.ckm-host{max-width:1180px;margin:0 auto;padding:clamp(16px,3vw,36px);color:var(--text-normal)}
+.ckm-host h2,.ckm-console h2{font-size:26px;line-height:1.3;letter-spacing:-.025em;margin:5px 0 8px;font-weight:650}
+.ckm-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:22px}
+.ckm-eyebrow{font-size:var(--font-smallest,12px);color:var(--text-muted);font-weight:600;letter-spacing:.08em}
+.ckm-host .ckm-note,.ckm-console .ckm-note{color:var(--text-muted);font-size:var(--font-small,13px);line-height:1.65;margin:6px 0}
+.ckm-createbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 0;border-block:1px solid var(--background-modifier-border);margin-bottom:22px}
+.ckm-section-label{font-size:12px;color:var(--text-muted);margin-right:8px}
+.ckm-inline-actions,.ckm-filterbar,.ckm-domain-tabs{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.ckm-filterbar{margin:0 0 15px}.ckm-filterbar input{flex:1;min-width:160px}.ckm-domain-tabs{gap:2px;background:var(--background-secondary);padding:3px;border-radius:7px}
+.ckm-domain-tabs button{border:0;box-shadow:none;background:transparent;color:var(--text-muted);padding-inline:14px}
+.ckm-domain-tabs button.is-active{background:var(--background-primary);color:var(--text-normal);box-shadow:0 1px 3px #00000012}
+.ckm-directory-status{display:flex;gap:24px;flex-wrap:wrap;padding:5px 0 17px}.ckm-status-item{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--text-muted)}.ckm-status-item strong{font-size:20px;color:var(--text-normal);font-variant-numeric:tabular-nums}
+.ckm-directory-list{border-top:1px solid var(--background-modifier-border)}
+.ckm-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:17px 3px;border-bottom:1px solid var(--background-modifier-border)}
+.ckm-row-title{display:flex;align-items:baseline;gap:10px;margin-bottom:7px;overflow-wrap:anywhere}.ckm-row-title strong{font-size:15px;line-height:1.5;font-weight:600}.ckm-domain{font-size:11px;line-height:1.5;color:var(--text-accent);font-weight:600;flex-shrink:0;min-width:26px}
+.ckm-row-main{min-width:0}.ckm-row-actions{display:flex;gap:7px;align-items:flex-start;padding-top:1px;flex-wrap:wrap;justify-content:flex-end}
+.ckm-host button,.ckm-console button{font-size:var(--font-small,13px);min-height:32px}.ckm-host button:focus-visible,.ckm-console button:focus-visible,.ckm-console input:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:3px}
+.ckm-badge{display:inline-flex;align-items:center;font-size:11px;line-height:1.5;padding:3px 7px;border-radius:4px;color:var(--text-muted);background:var(--background-secondary);white-space:normal}
+.ckm-badge.is-success{color:var(--text-success,var(--text-accent))}.ckm-badge.is-warning{color:var(--text-warning,var(--text-normal))}
+.ckm-sources{font-size:12px;color:var(--text-muted);margin-top:9px;overflow-wrap:anywhere}.ckm-sources summary{cursor:pointer;width:fit-content}.ckm-sources p{margin:5px 0}.ckm-host code,.ckm-console code{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}
+.ckm-feedback:empty{display:none}.ckm-feedback,.ckm-callout{font-size:13px;line-height:1.6;padding:12px 14px;background:var(--background-secondary);border-left:3px solid var(--interactive-accent);border-radius:0 5px 5px 0;margin:12px 0;overflow-wrap:anywhere}
+.ckm-feedback[data-tone=warning]{border-left-color:var(--text-warning,var(--interactive-accent))}
+.ckm-pagination{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:17px 0 25px;font-size:12px;color:var(--text-muted)}
+.ckm-recent-panel,.ckm-diagnostic-panel{border-top:1px solid var(--background-modifier-border);padding:13px 0;color:var(--text-muted);font-size:12px}.ckm-diagnostic-panel>summary,.ckm-recent-panel>summary{cursor:pointer}.ckm-diagnostics{max-height:220px;overflow:auto}.ckm-diagnostics:empty{display:none}
+.ckm-empty{padding:35px 16px;text-align:center;color:var(--text-muted);line-height:1.7}.ckm-empty h3{color:var(--text-normal);font-size:16px;font-weight:500}
+.ckm-modal-shell{width:min(740px,calc(100vw - 32px));max-height:90vh}.ckm-console{color:var(--text-normal);padding:4px;line-height:1.6}.ckm-modal-heading{padding-bottom:12px}.ckm-console h3{font-size:15px}.ckm-state-strip{display:flex;gap:8px;margin:8px 0 14px}
+.ckm-modal-footer{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--background-modifier-border);padding-top:16px;margin-top:24px}
+.ckm-name-field{margin:22px 0 12px}.ckm-name-field label{display:block;font-size:13px;font-weight:600;margin-bottom:8px}.ckm-name-field input{width:100%;min-height:40px;font-size:15px}
+.ckm-preview{padding:16px;border:1px solid var(--interactive-accent);border-radius:7px;margin-top:17px;background:var(--background-secondary)}.ckm-preview h3{margin-top:0}.ckm-name-change{overflow-wrap:anywhere;font-weight:550}
+.ckm-registry-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--background-modifier-border);padding:12px 0;overflow-wrap:anywhere}.ckm-registry-row>strong{flex:1;min-width:160px}
+.ckm-steps{list-style:none;padding:0;margin:18px 0}.ckm-step{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--background-modifier-border);font-size:13px}.ckm-step strong{font-weight:500}
+.ckm-participants,.ckm-technical{font-size:12px;color:var(--text-muted);margin-top:16px}.ckm-participants summary,.ckm-technical summary{cursor:pointer}.ckm-participant{display:flex;justify-content:space-between;gap:12px;padding:6px 0}.ckm-draft-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px;padding:8px 0;color:var(--text-muted)}
+@media(max-width:700px){.ckm-heading{align-items:flex-start;flex-direction:column;gap:12px}.ckm-row{grid-template-columns:minmax(0,1fr);gap:10px}.ckm-row-actions{justify-content:flex-start;padding-left:36px}.ckm-filterbar input{flex-basis:100%;order:3}.ckm-filterbar select{flex:1;min-width:0}.ckm-pagination{align-items:flex-start}.ckm-console h2{font-size:22px}.ckm-modal-shell{width:calc(100vw - 24px)}}

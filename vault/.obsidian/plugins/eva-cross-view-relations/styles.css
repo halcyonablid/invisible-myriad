@@ -1,0 +1,408 @@
+.modal.eva-rel-modal-root .modal-content,
+.modal.eva-rel-modal-root .modal-content-container {
+  width: min(1180px, 92vw);
+  max-width: 1180px;
+}
+
+.eva-rel-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: min(1120px, 90vw);
+}
+
+.eva-rel-muted {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.eva-rel-layout {
+  display: grid;
+  grid-template-columns: minmax(460px, 1.1fr) minmax(360px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.eva-rel-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.eva-rel-panel,
+.eva-rel-target-preview {
+  padding: 12px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 14px;
+  background: var(--background-secondary);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.eva-rel-source-title,
+.eva-rel-target-title {
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.eva-rel-source-path,
+.eva-rel-target-path {
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.eva-rel-target-preview.is-selected {
+  border-color: rgba(39, 174, 96, 0.38);
+  background: linear-gradient(180deg, rgba(39, 174, 96, 0.10) 0%, rgba(39, 174, 96, 0.03) 100%);
+}
+
+.eva-rel-search-input,
+.eva-rel-type-select,
+.eva-rel-description {
+  width: 100%;
+}
+
+.eva-rel-search-results,
+.eva-rel-existing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.eva-rel-search-results {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.eva-rel-pin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 193, 7, 0.34);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 193, 7, 0.10), rgba(255, 193, 7, 0.03));
+}
+
+.eva-rel-pin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.eva-rel-pin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.eva-rel-pin-item {
+  border: 1px solid rgba(255, 193, 7, 0.24);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--background-primary);
+}
+
+.eva-rel-pin-item.is-active {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 32%, transparent);
+}
+
+.eva-rel-pin-item.is-missing {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.eva-rel-pin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.eva-rel-existing-list {
+  max-height: none;
+  overflow: visible;
+}
+
+.eva-rel-search-item,
+.eva-rel-existing-item {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--background-primary);
+}
+
+.eva-rel-search-item.is-active,
+.eva-rel-existing-item.is-active {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 30%, transparent);
+}
+
+.eva-rel-search-item button,
+.eva-rel-pin-actions button,
+.eva-rel-existing-actions button,
+.eva-rel-form-actions button {
+  margin-right: 8px;
+}
+
+.eva-rel-item-title {
+  font-weight: 600;
+}
+
+.eva-rel-item-path {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.eva-rel-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.eva-rel-detail-row {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.eva-rel-detail-label {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+}
+
+.eva-rel-detail-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text-normal);
+  word-break: break-word;
+}
+
+.eva-rel-item-description {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.eva-rel-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eva-rel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  font-size: 12px;
+}
+
+.eva-rel-chip.is-outgoing {
+  color: #146b5c;
+  border-color: rgba(20, 107, 92, 0.22);
+  background: rgba(26, 188, 156, 0.12);
+}
+
+.eva-rel-chip.is-incoming {
+  color: #9a5a00;
+  border-color: rgba(154, 90, 0, 0.22);
+  background: rgba(243, 156, 18, 0.12);
+}
+
+.eva-rel-chip.is-view {
+  color: #3f5873;
+  border-color: rgba(63, 88, 115, 0.18);
+  background: rgba(63, 88, 115, 0.08);
+}
+
+.eva-rel-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eva-rel-form-actions,
+.eva-rel-existing-actions,
+.eva-rel-search-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.eva-rel-empty {
+  color: var(--text-faint);
+  font-style: italic;
+  padding: 6px 0;
+}
+
+@media (max-width: 980px) {
+  .modal.eva-rel-modal-root .modal-content,
+  .modal.eva-rel-modal-root .modal-content-container {
+    width: min(94vw, 94vw);
+    max-width: 94vw;
+  }
+
+  .eva-rel-modal {
+    min-width: 0;
+  }
+
+  .eva-rel-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal.eva-rel-confirm-modal .modal-content,
+.modal.eva-rel-confirm-modal .modal-content-container {
+  width: min(560px, 88vw);
+  max-width: 560px;
+}
+
+.eva-rel-confirm-shell {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 10px 14px;
+  align-items: start;
+  padding: 6px 2px 2px;
+}
+
+.eva-rel-confirm-icon {
+  grid-row: 1 / span 3;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #8a2800;
+  border: 1px solid rgba(230, 126, 34, 0.35);
+  background: linear-gradient(180deg, rgba(255, 214, 170, 0.65), rgba(255, 236, 210, 0.25));
+}
+
+.eva-rel-confirm-title {
+  margin: 0;
+  color: var(--text-normal);
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.eva-rel-confirm-message {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.eva-rel-confirm-detail {
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.eva-rel-confirm-actions {
+  grid-column: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.eva-rel-confirm-delete {
+  color: #fff;
+  background: #d35400;
+  border-color: #d35400;
+}
+
+.eva-rel-confirm-delete:hover {
+  background: #b94600;
+  border-color: #b94600;
+}
+
+.eva-rel-confirm-primary {
+  color: #fff;
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+.eva-meta-capture-btn {
+  display: none !important;
+}
+
+body.eva-meta-capture-active .eva-meta-capture-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 22px;
+  border: 1px solid rgba(212, 175, 55, 0.72);
+  background: linear-gradient(180deg, rgba(255, 236, 179, 0.24), rgba(212, 175, 55, 0.12));
+  color: #8a6400;
+  box-shadow: 0 0 0 1px rgba(255, 236, 179, 0.18), 0 0 10px rgba(212, 175, 55, 0.18);
+  font-weight: 800;
+}
+
+body.eva-meta-capture-active .eva-meta-capture-btn:hover {
+  border-color: rgba(255, 214, 102, 0.95);
+  background: rgba(255, 214, 102, 0.2);
+}
+
+.eva-meta-capture-overlay {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(640px, calc(100vw - 36px));
+  padding: 10px 12px;
+  border: 1px solid rgba(212, 175, 55, 0.58);
+  border-radius: 8px;
+  background: var(--background-primary);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 236, 179, 0.12);
+}
+
+.eva-meta-capture-status {
+  max-width: 460px;
+  overflow: hidden;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eva-meta-capture-overlay button {
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+}

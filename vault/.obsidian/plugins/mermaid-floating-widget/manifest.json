@@ -1,0 +1,9 @@
+{
+  "id": "mermaid-floating-widget",
+  "name": "Mermaid Floating Widget",
+  "version": "0.1.32",
+  "minAppVersion": "1.7.2",
+  "description": "Native Mermaid floating widget plugin with fold/reference indexes and no runtime Templater script loading.",
+  "author": "OpenAI Codex",
+  "isDesktopOnly": false
+}

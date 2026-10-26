@@ -1,0 +1,73 @@
+{
+  "id": "dq-phase-share",
+  "created": "2026-10-05T09:00:00+08:00",
+  "startTime": "2026-10-05T09:00:00+08:00",
+  "scheduledStartTime": "2026-10-05T09:00:00+08:00",
+  "actualStartTime": null,
+  "futureMode": true,
+  "plannedDuration": 10,
+  "resumePlan": null,
+  "completedAnchorTime": null,
+  "activities": [
+    {
+      "id": "dq-plan-0",
+      "parentId": null,
+      "project": "从 EVA 找到分享问题",
+      "expectedDuration": 2,
+      "allocatedDuration": 2,
+      "status": "pending",
+      "isStartTimeFixed": false,
+      "expectedStart": "2026-10-05T09:00:00+08:00",
+      "expectedEnd": "2026-10-05T09:02:00+08:00",
+      "actualStart": null,
+      "actualEnd": null,
+      "experience": "",
+      "rating": 0
+    },
+    {
+      "id": "dq-plan-1",
+      "parentId": null,
+      "project": "从 Keyword 打开材料",
+      "expectedDuration": 2,
+      "allocatedDuration": 2,
+      "status": "pending",
+      "isStartTimeFixed": false,
+      "expectedStart": "2026-10-05T09:02:00+08:00",
+      "expectedEnd": "2026-10-05T09:04:00+08:00",
+      "actualStart": null,
+      "actualEnd": null,
+      "experience": "",
+      "rating": 0
+    },
+    {
+      "id": "dq-plan-2",
+      "parentId": null,
+      "project": "展示视图组的材料与行动",
+      "expectedDuration": 4,
+      "allocatedDuration": 4,
+      "status": "pending",
+      "isStartTimeFixed": false,
+      "expectedStart": "2026-10-05T09:04:00+08:00",
+      "expectedEnd": "2026-10-05T09:08:00+08:00",
+      "actualStart": null,
+      "actualEnd": null,
+      "experience": "",
+      "rating": 0
+    },
+    {
+      "id": "dq-plan-3",
+      "parentId": null,
+      "project": "写下一条回顾",
+      "expectedDuration": 2,
+      "allocatedDuration": 2,
+      "status": "pending",
+      "isStartTimeFixed": false,
+      "expectedStart": "2026-10-05T09:08:00+08:00",
+      "expectedEnd": "2026-10-05T09:10:00+08:00",
+      "actualStart": null,
+      "actualEnd": null,
+      "experience": "",
+      "rating": 0
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "folder": "Journal",
+  "template": "Templates/每日回顾.md",
+  "format": "YYYY-MM-DD"
+}
