@@ -4,6 +4,31 @@
 
 最新更新：[PEO 自治使用说明](ai-context/PEO_AUTONOMY.md)，减少普通内容编辑引发的全面核验，结构变化仍保留检查。
 
+## 首次打开：先整理界面，再使用两侧导航
+
+在 Obsidian 中打开本仓库的 `vault/` 文件夹后，先按下面两步确认界面。图片中的红圈标出了要点击的入口；截图里的笔记名称和条目数量仅作示例。
+
+### 1. 先点顶部「视图组」Tab
+
+先点击顶部的 **「视图组」** Tab，让界面规整，再开始浏览各功能视图。入口在下图红圈处。
+
+![先点击顶部红圈标出的视图组 Tab，整理主界面](docs/images/view-group-entry.png)
+
+[查看视图组原图](docs/images/view-group-entry.png)
+
+### 2. 左边 EVA 分支树，右边 ATOM 侧栏导航
+
+两侧边栏都提供笔记列表视图。展开左右边栏后，点击下图红圈中的对应图标：
+
+- **左侧：EVA 分支树**，查看树状笔记列表。
+- **右侧：ATOM 侧栏导航**，查看 ATOM 笔记列表。
+
+确认后的布局是：**左侧 EVA 分支树 — 中间主工作区 — 右侧 ATOM 侧栏导航**。
+
+![界面示例：左侧 EVA 分支树，中间主工作区，右侧 ATOM 侧栏导航；红圈标出两侧入口](docs/images/eva-atom-sidebars.png)
+
+[查看双侧边栏原图](docs/images/eva-atom-sidebars.png)
+
 ## 让你的 AI 理解这个系统
 
 先让 AI 阅读 [资料包入口](ai-context/README.md) 和 [当前共享版本](ai-context/CURRENT_BASELINE.md)，再根据问题查 Atlas、Framework 与开发 Skill。资料包包含完整 Atlas/Framework 快照、开发 Skill 及全部 references、术语与协议入口、本次插件文件核对结果和未提供历史来源的明确标记。
