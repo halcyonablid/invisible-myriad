@@ -490,6 +490,21 @@ function syncHosts(plugin, path, data) {
 function assertAlive(plugin) {
   if (plugin.actionEntryClosed) fail("Collection Card \u6B63\u5728\u5378\u8F7D\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u540E\u91CD\u8BD5");
 }
+function readDirectoryContextKeys(plugin) {
+  try {
+    const api = plugin.getProjectOverviewApi();
+    const read = api?.getContextTrackingVisibilitySnapshotV1;
+    if (typeof read !== "function") return null;
+    const s = read.call(api);
+    const now = Date.now();
+    if (!s || typeof s.then === "function" || s.contractVersion !== 1 || s.status !== "ready" || s.keyListVersion !== 1
+      || s.keyDirectoryCoverage?.contractVersion !== 1 || s.keyDirectoryCoverage?.kind !== "observed-navigation-union-configured-eligible"
+      || s.keyDirectoryCoverage?.complete !== true || !Array.isArray(s.contextKeys) || !(now >= s.createdAt && now < s.expiresAt)) return null;
+    return s.contextKeys;
+  } catch (_) {
+    return null;
+  }
+}
 async function readTarget(plugin, options) {
   assertAlive(plugin);
   const domain = options.domain;
@@ -516,7 +531,10 @@ async function readTarget(plugin, options) {
   if (data.schemaVersion !== "1.0" || !plain(data.tabsById) || !plain(data.itemsById) || !plain(data.childrenByParentByTab) || !plain(keywords.assignmentsByKeywordKey)) fail("Collection Card \u6570\u636E\u7ED3\u6784\u4E0D\u5B8C\u6574\uFF0C\u672A\u5199\u5165");
   const context = target.contextKey;
   const normalize = (value) => String(value || "").trim().replace(/\s+/g, " ").toLocaleLowerCase();
-  const keys = await bounded(() => plugin.getProjectOverviewApi()?.getContextCapsuleKeys(), "context-binding");
+  // L1: prefer the context-key directory of PEO's ready visibility snapshot (kept warm by the observer). The full
+  // getContextCapsuleKeys build can take tens of seconds on a large vault; it stays the fallback when no ready,
+  // complete, unexpired directory is published.
+  const keys = readDirectoryContextKeys(plugin) || await bounded(() => plugin.getProjectOverviewApi()?.getContextCapsuleKeys(), "context-binding");
   if (!Array.isArray(keys)) fail("\u64CD\u4F5C\u4E0A\u4E0B\u6587\u5B9A\u4E49\u5C1A\u672A\u5C31\u7EEA");
   const descriptors = keys.filter((k) => (k.contextKeyId || k.id) === context.contextKeyId);
   if (descriptors.length !== 1 || normalize(descriptors[0].displayLabel) !== normalize(context.displayLabel)) fail("\u64CD\u4F5C\u4E0A\u4E0B\u6587\u5B9A\u4E49\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00");
@@ -4811,6 +4829,9 @@ module.exports = class CollectionCardViewPlugin extends Plugin {
     return this.resolveNoteFile(configured)?.path || fallbackPath;
   }
   dispatchContextCarrierChanged(reason = "collection-card-data-changed", detail = {}) {
+    // r41: Collection items and Tab bindings are not inputs of PEO's directory or Mandala qualification; a debounce window
+    // made only of these saves is announced as changeKind 'content'. Any other reason in the window keeps it hard.
+    if (!["collection-data-saved", "collection-tab-capsule-keywords-saved"].includes(text(reason))) this.carrierPendingHard = true;
     if (this.contextCarrierChangedTimer) window.clearTimeout?.(this.contextCarrierChangedTimer);
     const payload = Object.assign({}, detail, {
       providerId: "collection-card-view",
@@ -4818,13 +4839,16 @@ module.exports = class CollectionCardViewPlugin extends Plugin {
       reason: text(reason, "collection-card-data-changed"),
       timestamp: Date.now()
     });
+    const mark = () => { if (!this.carrierPendingHard) payload.changeKind = "content"; else delete payload.changeKind; this.carrierPendingHard = false; };
     if (detail?.immediate === true) {
       this.contextCarrierChangedTimer = null;
+      mark();
       window.dispatchEvent?.(new CustomEvent("context-capsule-carrier:changed", { detail: payload }));
       return;
     }
     this.contextCarrierChangedTimer = window.setTimeout?.(() => {
       this.contextCarrierChangedTimer = null;
+      mark();
       window.dispatchEvent?.(new CustomEvent("context-capsule-carrier:changed", { detail: payload }));
     }, 180);
   }

@@ -19,8 +19,8 @@
     },
     {
       "path": "CURRENT_BASELINE.md",
-      "bytes": 5077,
-      "sha256": "830f972b7d30a94e71e5c75b767ecad32986713ef2492236e17cdb6eb8a87526",
+      "bytes": 5396,
+      "sha256": "10068b9b4cabcbda1696aaea69c6ae30f79a434a79adfc5f336ee25edcd68ab2",
       "source_kind": "release-entry-and-evidence"
     },
     {
@@ -511,8 +511,8 @@
     },
     {
       "path": "plugin-compatibility.json",
-      "bytes": 34280,
-      "sha256": "9e067ef3b5c5b0e0396aa81bc63a3f39af966055f427e430e55e574c24e734c4",
+      "bytes": 34373,
+      "sha256": "96da1d937517fc288ab1f8a1a3195a5ad505b1f2f2340b314aeb0be74794698d",
       "source_kind": "release-entry-and-evidence"
     },
     {
@@ -549,8 +549,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4101,
-      "sha256": "fbdefa945d44a617a3c7ab7677b83a92cdf3a9d446a029078004aa74df284fcb",
+      "bytes": 4188,
+      "sha256": "e158f024ca62aa6732fbf4ab482f9ee4b23101e698e09bbcaa6b566189c50587",
       "source_kind": "release-entry-and-evidence"
     },
     {
@@ -710,6 +710,14 @@
       "source_sha256": "a71a2340d05da0c7fd4c02c0dcb53c358e9434a4abff33cdc434dc135cb40683",
       "source_kind": "global-dev-skill",
       "adaptations": "UTF-8 portable links; unavailable references labeled; Skill environment binding adapted"
+    },
+    {
+      "path": "PEO_AUTONOMY.md",
+      "source_kind": "release-usage-summary",
+      "bytes": 2540,
+      "sha256": "7c228a96e8dd332e0570c79f464e3c5df032adf553729c68d673313f6873e65f"
     }
-  ]
+  ],
+  "updated_at": "2026-10-27T19:18:59.505491+08:00",
+  "release_note": "PEO_AUTONOMY.md"
 }

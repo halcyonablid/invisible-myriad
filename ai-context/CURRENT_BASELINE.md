@@ -4,7 +4,9 @@
 
 本次核对了共享库中 57 个插件的 main.js，全部与当时 NEWERA 对应文件的 SHA-256 一致。manifest.json、styles.css 的逐项比较见 [机器可读清单](plugin-compatibility.json)。这是发布时点的文件比对，不证明业务数据、用户配置或运行行为完全相同。
 
-本次相较上一公开提交更新 GTD 的 main.js 和 gtd-engine.js；完整共享库仍包含 4,292 个文件。
+本次相较上一公开提交更新 Collection、PEO、Workspace 的 main.js 及 GTD 的 gtd-engine.js，共 4 个程序文件；完整共享库仍包含 4,292 个文件。使用变化与已知限制见 [PEO 自治更新](PEO_AUTONOMY.md)。
+
+本次发布依据当前源库的一致快照；最新使用说明优先读 PEO_AUTONOMY.md。其余 Atlas/Framework 仍为已有知识快照，不应把旧状态直接当成本版行为。
 
 ## 给 AI 的判定规则
 

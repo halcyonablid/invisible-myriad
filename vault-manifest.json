@@ -1,8 +1,8 @@
 {
   "format": "obsidian-vault-backup-v1",
-  "captured_at": "2026-10-26T19:32:41.958979+01:00",
+  "captured_at": "2026-10-27T19:18:59.505491+08:00",
   "count": 4292,
-  "bytes": 207474562,
+  "bytes": 207486148,
   "directories": [
     ".",
     ".obsidian",
@@ -816,8 +816,8 @@
     },
     {
       "path": ".obsidian/plugins/collection-card-view/main.js",
-      "bytes": 285607,
-      "sha256": "e3cb8ef3c09d2fc60e5e45ff058bf6bf63597d671038e93d9885a0d006a0af1b"
+      "bytes": 287212,
+      "sha256": "991c9c1b647465fe65ae1a3535549563ce71d4961b162f50d7d1e845cb847b08"
     },
     {
       "path": ".obsidian/plugins/collection-card-view/manifest.json",
@@ -1256,8 +1256,8 @@
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/gtd-engine.js",
-      "bytes": 458036,
-      "sha256": "46580384b1932867e321a5bf9d1772077c2528b742b59196acd477f635cbb490"
+      "bytes": 459852,
+      "sha256": "464383202f67bfbd66f07f0f6b24181b1dce7f76d281ef6d9709157b25f6abca"
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/main.js",
@@ -21081,8 +21081,8 @@
     },
     {
       "path": ".obsidian/plugins/project-execution-overview/main.js",
-      "bytes": 692243,
-      "sha256": "2a40717546ec20f5ac8470f1bf2d6f355ac6f9afc3a851e9054fea487eb8982a"
+      "bytes": 698627,
+      "sha256": "30fd7e12eed7399babc29088da34659b35d1d143c0e04128876d536b53d20006"
     },
     {
       "path": ".obsidian/plugins/project-execution-overview/manifest.json",
@@ -21656,8 +21656,8 @@
     },
     {
       "path": ".obsidian/plugins/workspace-mount/main.js",
-      "bytes": 1373740,
-      "sha256": "d72a34ddcb5f71509247d8306b1d987034f55622c0fe772e2f51cce0ad4220b5"
+      "bytes": 1375521,
+      "sha256": "2665db749157dad4c93503a0c58281b46f2f9fa265bc646d7aba3f9f278311e9"
     },
     {
       "path": ".obsidian/plugins/workspace-mount/manifest.json",

@@ -755,7 +755,22 @@ return (async () => {
             `kwUpdated:${String(TAG_KEYWORD_STORE?.updatedAt || "")}`
         ].join("|");
     };
+    // r41: the only GTD data that feeds PEO's directory / Mandala qualification (top-level project carrier batch):
+    // keyword -> tag map, tag definition ids, and active top-level projects (id, name, tags). A list save that leaves
+    // this projection unchanged is announced as changeKind 'content'; anything else (or any other reason) stays hard.
+    const gtdTrackingProjection = () => {
+        try {
+            const keywords = Object.values(TAG_KEYWORD_STORE?.keywords || {}).map((e) => [String(e?.keyword || ""), String(e?.tagId || "")]).sort((a, b) => (a[0] + "\u0001" + a[1]).localeCompare(b[0] + "\u0001" + b[1], "en"));
+            const tags = Object.keys(TAG_DEFINITIONS || {}).sort();
+            const projects = (Array.isArray(gtdList) ? gtdList : []).filter((i) => i && i.type === "project" && i.status === "active" && !String(i.parentId || "").trim())
+                .map((i) => [String(i.id || ""), String(i.project || ""), Array.from(new Set((Array.isArray(i.tags) ? i.tags : []).map((t) => String(t || "").trim()).filter(Boolean))).sort()])
+                .sort((a, b) => a[0].localeCompare(b[0], "en"));
+            return JSON.stringify([keywords, tags, projects]);
+        } catch (_) { return null; }
+    };
+    let carrierTrackingProjection = null, carrierPendingHard = false;
     const dispatchContextCarrierChanged = (reason = "gtd-data-changed", detail = {}) => {
+        if (String(reason || "") !== "gtd-list-saved") carrierPendingHard = true;
         if (contextCarrierChangedTimer) window.clearTimeout?.(contextCarrierChangedTimer);
         const payload = Object.assign({}, detail, {
             providerId: "gtd-task-manager",
@@ -765,6 +780,11 @@ return (async () => {
         });
         contextCarrierChangedTimer = window.setTimeout?.(() => {
             contextCarrierChangedTimer = null;
+            const projection = gtdTrackingProjection();
+            if (!carrierPendingHard && projection !== null && carrierTrackingProjection !== null && projection === carrierTrackingProjection) payload.changeKind = "content";
+            else delete payload.changeKind;
+            carrierTrackingProjection = projection;
+            carrierPendingHard = false;
             window.dispatchEvent?.(new CustomEvent("context-capsule-carrier:changed", { detail: payload }));
         }, 180);
     };
@@ -3343,6 +3363,7 @@ async function verifyPersistedRelationMembershipV1(request, options) {
     };
     const historyBoot = pluginDiag?.historyBoot && typeof pluginDiag.historyBoot === "object" ? pluginDiag.historyBoot : null;
     gtdList = await loadData({ persistRepairs: !historyBoot, onRepaired: () => { if (historyBoot) deferredRepairWrite = true; } });
+    carrierTrackingProjection = gtdTrackingProjection();
     invalidateCarrierInput();
     assertHostCurrent();
     let renderViewFn = null;

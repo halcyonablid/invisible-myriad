@@ -2,6 +2,8 @@
 
 大千目前用于分享从 NEWERA 同步的插件。历史“一统内核”方案已经废弃；这不表示当前分享库或插件停止维护。
 
+最新更新：[PEO 自治使用说明](ai-context/PEO_AUTONOMY.md)，减少普通内容编辑引发的全面核验，结构变化仍保留检查。
+
 ## 让你的 AI 理解这个系统
 
 先让 AI 阅读 [资料包入口](ai-context/README.md) 和 [当前共享版本](ai-context/CURRENT_BASELINE.md)，再根据问题查 Atlas、Framework 与开发 Skill。资料包包含完整 Atlas/Framework 快照、开发 Skill 及全部 references、术语与协议入口、本次插件文件核对结果和未提供历史来源的明确标记。

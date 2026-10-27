@@ -35,6 +35,9 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
  let quietUntil=0,pendingSince=0,lastInvalidationAt=-Infinity,writeDemand=false,staleRetrying=false;
  // r34: write-derived demand window, separate from the refresh window so a consumer refresh cannot shorten it.
  let postWriteUntil=0;
+ // r41: content-only changes (verified by the host) keep the published directory and rebuild navigation in a side flight
+ // that never blocks renewals; failures self-heal slowly within bounds instead of parking in error.
+ let soft=null,softFlight=null,softAgain=false,failRound=null,healTimer=false;const SOFT_MAX_MS=90000,SLOW_RETRY_MS=10000,FAIL_HEAL_MS=180000;
  // r31: refresh-requested background navigation rebuild (renewal semantics: never publishes stale).
  let navRefreshWanted=false,forceNavNext=false;
  const sourceTag=s=>{const v=String(s||'');return /^[A-Za-z0-9:_.-]{1,80}$/.test(v)?v:(v?'other':'');};
@@ -82,8 +85,42 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
  function quietDelay(){const t=time();if(!pendingSince||!(t<quietUntil))return 0;return Math.max(0,Math.min(quietUntil,pendingSince+QUIET_MAX_MS)-t);}
  function queue(delay=0){if(!active()||writes||flight||timer!==null||!dirty)return;timer=schedule(()=>{timer=null;start();},Math.max(delay,quietDelay()));}
  function invalidate(kind='navigation',source=''){
-  if(closed)return;note('invalidate',{scope:String(kind),source:sourceTag(source)});const qt=time();if(qt-lastInvalidationAt<QUIET_MS){quietUntil=qt+QUIET_MS;if(!pendingSince)pendingSince=qt;}else pendingSince=0;lastInvalidationAt=qt;
+  if(closed)return;soft=null;softFlight=null;softAgain=false;failRound=null;if(healTimer&&timer!==null){cancel(timer);timer=null;}healTimer=false;note('invalidate',{scope:String(kind),source:sourceTag(source)});const qt=time();if(qt-lastInvalidationAt<QUIET_MS){quietUntil=qt+QUIET_MS;if(!pendingSince)pendingSince=qt;}else pendingSince=0;lastInvalidationAt=qt;
   epoch++;retries=0;dirty=true;if(kind!=='tracking'){navEpoch++;nav=null;}publish('stale');queue();
+ }
+ // r41: soft = delay, not skip. The ready object stays published (renewals keep running on the current navigation);
+ // one background navigation rebuild always follows and a normal build then publishes. Bounded by SOFT_MAX_MS from the
+ // first unpublished soft event; past it, or without a valid ready object, the change is handled as a hard invalidation.
+ function softInvalidate(source=''){
+  if(closed)return;const t=time(),s=snapshot,valid=s.status==='ready'&&t>=s.createdAt&&t<s.expiresAt;
+  if(!valid||soft&&!(t-soft.since<SOFT_MAX_MS)){invalidate('navigation',valid?'soft-expired':'soft-unready');return;}
+  if(!soft)soft={since:t};note('soft-invalidate',{source:sourceTag(source)});
+  demandUntil=Math.max(demandUntil,t+60000);
+  if(softFlight){softAgain=true;return;}
+  startSoftNav(0);
+ }
+ function startSoftNav(delay){
+  if(closed||!soft)return;
+  const token={since:soft.since};softFlight=token;
+  schedule(()=>{
+   if(closed||softFlight!==token)return;
+   if(writes){softFlight=null;return;}
+   const live=()=>!closed&&!writes&&softFlight===token;note('soft-nav-start');
+   Promise.resolve().then(async()=>{
+    const d0=deps(),guard=captureReadGuard(time()),started=time();
+    const value=await loadNavigation(Object.freeze({isCurrent:live,mark:()=>{}}));
+    if(!live())return;
+    if(!equal(d0,deps())||!guard.navigationCurrent())throw Object.assign(Error('soft-nav-source'),{code:'SOFT_NAV_SOURCE'});
+    const createdAt=time();nav={value,epoch:navEpoch,deps:d0,guard,createdAt,expiresAt:createdAt+navAge};note('soft-nav-done',{ms:createdAt-started});
+    softFlight=null;if(softAgain){softAgain=false;startSoftNav(0);return;}
+    dirty=true;queue();
+   }).catch(error=>{
+    if(softFlight!==token)return;softFlight=null;
+    const t=time();note('soft-nav-error',{code:codeOf(error)});
+    if(soft&&t-soft.since<SOFT_MAX_MS){softAgain=false;demandUntil=Math.max(demandUntil,t+SLOW_RETRY_MS+5000);startSoftNav(SLOW_RETRY_MS);}
+    else invalidate('navigation','soft-expired');
+   });
+  },Math.max(0,delay|0));
  }
  function current(token){
   if(closed||writes||epoch!==token.epoch||!activeFor(token)||!(time()>=token.started))return false;
@@ -102,7 +139,7 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
  function start(){
   if(!active()||writes||flight||!dirty)return;
   {const qd=quietDelay();if(qd>0){if(timer===null)timer=schedule(()=>{timer=null;start();},qd);return;}}pendingSince=0;
-  dirty=false;const token={epoch,deps:null,started:time(),demandUntil:time()+300000,phase:'navigation',forceNav:forceNavNext,renewal:renewNext,renewBase:renewNext&&renewFor?renewFor.expiresAt:null};renewNext=false;forceNavNext=false;flight=token;let retryDelay=0;
+  dirty=false;const token={epoch,deps:null,started:time(),demandUntil:time()+300000,phase:'navigation',forceNav:forceNavNext,renewal:renewNext,renewBase:renewNext&&renewFor?renewFor.expiresAt:null};renewNext=false;forceNavNext=false;flight=token;let retryDelay=0,retryHeal=false;healTimer=false;
   const drop=stage=>{note('drop',{stage,renewal:token.renewal});};
   note('build-start',{renewal:token.renewal});
   Promise.resolve().then(async()=>{
@@ -140,7 +177,7 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
    // A renewal must move the deadline forward; otherwise stop and let the published object expire normally.
    // Changed content is still published (deadline not extended); unchanged content just stops renewing.
    if(token.renewal&&!(end>token.renewBase+1000)){const same=JSON.stringify(snapshot.stoppedLabels)===JSON.stringify([...new Set(plainLabels)].sort())&&(!keyDirectory||JSON.stringify(snapshot.contextKeys)===JSON.stringify(contextKeys));note('renew-skip',{reason:'no-progress',contentChanged:!same});if(same)return;}
-   retries=0;publish('ready',captured,end,token.guard);
+   retries=0;failRound=null;if(!softFlight&&!softAgain)soft=null;publish('ready',captured,end,token.guard);
    note('ready',{ms:time()-token.started,remainingMs:end-time(),renewal:token.renewal,forceNav:token.forceNav});
    // r31 M4: a refresh was served from a reused (>30s) navigation; rebuild it in the background as a renewal.
    if(navRefreshWanted&&!token.forceNav&&nav&&time()-nav.createdAt>30000&&renewFor===snapshot){navRefreshWanted=false;renewNext=true;forceNavNext=true;dirty=true;note('nav-background');}
@@ -152,6 +189,7 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
    // r33 P5: a still-valid published directory is never overwritten by an error; it stays bounded by its own deadline/guard.
    if(validReady){note('error',{code,sub,renewal:token.renewal,kept:true});
     if(token.renewal&&renewFor===snapshot)renewRetry(snapshot,snapshot.expiresAt);else if(retries<3){retryDelay=[500,2000,5000][retries++];dirty=true;}
+    else{const ft=time();if(!failRound)failRound={since:ft};if(ft-failRound.since<FAIL_HEAL_MS){retryDelay=SLOW_RETRY_MS;retryHeal=true;dirty=true;demandUntil=Math.max(demandUntil,ft+SLOW_RETRY_MS+5000);note('heal-retry',{kept:true});}}
     return;}
    const errCode=/^DIRECTORY_[A-Z0-9_]+$/.test(error?.code||'')?error.code:'DIRECTORY_BUILD_UNAVAILABLE';
    // r35 H2: a transient upstream ok:false (torn read / API not yet available / read failed) uses the health retry table.
@@ -161,7 +199,8 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
    if((snapshot.status==='ready'||snapshot.status==='stale'&&staleRetrying)&&retries<3&&active()){note('error',{code,sub,renewal:token.renewal,kept:false,expired:true});staleRetrying=true;if(snapshot.status==='ready')publish('stale');staleRetrying=true;retryDelay=(healthRetry?[250,1000,3000]:[500,2000,5000])[retries++];dirty=true;return;}
    staleRetrying=false;note('error',{code,sub,renewal:token.renewal,kept:false});publish('error',null,null,null,errCode);
    if(healthRetry&&retries<3&&active()){retryDelay=[250,1000,3000][retries++];dirty=true;}
-  }).finally(()=>{if(flight===token)flight=null;queue(retryDelay);});
+   else{const ft=time();if(!failRound)failRound={since:ft};if(ft-failRound.since<FAIL_HEAL_MS){retryDelay=SLOW_RETRY_MS;retryHeal=true;dirty=true;demandUntil=Math.max(demandUntil,ft+SLOW_RETRY_MS+5000);note('heal-retry');}}
+  }).finally(()=>{if(flight===token)flight=null;queue(retryDelay);if(retryHeal&&timer!==null)healTimer=true;});
  }
  return Object.freeze({
   read(){
@@ -178,7 +217,7 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
   },
   requestRefresh(){
    if(closed||!Number.isFinite(time()))return false;
-   demandUntil=time()+60000;retries=0;lastRefreshAt=time();note('refresh');
+   demandUntil=time()+60000;retries=0;failRound=null;if(healTimer&&timer!==null){cancel(timer);timer=null;}healTimer=false;lastRefreshAt=time();note('refresh');
    // r31 M4: serve the refresh from the current navigation; an old one is rebuilt in the background after ready.
    if(nav&&!(time()-nav.createdAt<=30000))navRefreshWanted=true;
    let sourceCurrent=true;try{sourceCurrent=!nav?.guard||nav.guard.navigationCurrent();}catch{sourceCurrent=false;}
@@ -189,6 +228,7 @@ function createPublisher({capture,captureReadGuard=()=>null,loadNavigation,loadE
    if(!flight)dirty=true;queue();return true;
   },
   invalidate,
+  softInvalidate,
   beginWrite(){if(closed)return ()=>{};
    // r33 P3: demand observed when the write starts (or a refresh during it) survives the write; nested writes OR it.
    // r34: it lasts 5 minutes after the outermost release (postWriteUntil); a release is an invalidation-like event for burst quiet.
@@ -421,6 +461,12 @@ const TRACKING_EVENTS=Object.freeze(['mandala-time-blocks:tracking-lifecycle-cha
 const READ_METHODS=Object.freeze(['searchNodes','getAllNodeRecords','getNodeRecord','getNodeRelationSnapshot','getOutgoingRelationBatchSnapshot','getContextCapsuleCarrierSnapshot','getPlanningMilestoneSnapshot','getKeywordNotesForNode','getBoundNoteForNode','getContextTrackingScopeV1','listContextTrackingStatesV1','getContextTrackingRevisionV1','requestContextTrackingRevisionRefreshV1','listProjectPlanWorkspaceRows','listWorkspaceWeeklyGoalRows','listWeeklyGoalRows','getWeeklyProjectPlan']);
 function createHost(owner,{createPublisher,loadEvidence,normalize,buildAliases,events,emit,unavailable}){
  let closed=false,apiEpoch=0,lastHealthStamp=null;
+ // r41: an EVA health-stamp change that leaves the directory inputs unchanged (only the gtd adapter moved, or the primary
+ // node fingerprint is identical) is aliased to the stamp the current build was captured with. Comparisons use the
+ // effective stamp; an unverified change still breaks them (missed-event backstop kept). Only the latest alias is kept
+ // (stamps only move forward), so the set cannot grow.
+ const stampAlias=new Map();let base=null;
+ const eff=raw=>stampAlias.get(raw)||raw;
  let publisher;
  const configuredDirectory=__PeoConfiguredDirectory.create(owner,()=>publisher?.invalidate('navigation'));
  const healthRequest=Object.freeze({viewTypes:Object.freeze(['workspace-mount-view','mandala-time-blocks','gtd'])});
@@ -430,9 +476,48 @@ function createHost(owner,{createPublisher,loadEvidence,normalize,buildAliases,e
   if(value?.contractVersion!==1||typeof value.then==='function'||value.coverage!=='observed-adapter-refreshes'||(requireReady&&value.status!=='ready')||typeof value.providerGeneration!=='string'||!value.providerGeneration||typeof value.revision!=='string'||!value.revision){const e=Error('navigation-index-not-ready');e.code='NAVIGATION_HEALTH_NOT_READY';throw e;}
   return {api,read,stamp:JSON.stringify([value.providerGeneration,value.revision])};
  }
+ function fingerprint(eva){
+  // Directory inputs owned by EVA: primary nodes per grouping mode (key + label), relation edges among them, their
+  // declaration comments, and the start configuration. Read-only and bounded by the primary sets.
+  if(!eva)throw Error('fingerprint-eva');
+  const out=[owner.settings?.startQuery||'',owner.settings?.startNodeKey||'',owner.getCanonicalWorkspaceSourceNotePath?.()||''];
+  const quiet=console.info;console.info=()=>{};
+  try{
+   const relations=Object.values(owner.app?.plugins?.plugins?.['eva-cross-view-relations']?.state?.relationsById||{});
+   for(const mode of ['workspace','mandala']){
+    const recs=owner.resolveStartRecords(eva,mode)||[],set=new Set(recs.map(r=>String(r?.nodeKey||'')));
+    const rows=recs.map(r=>{const k=String(r?.nodeKey||'');return [k,String(r?.title||r?.label||''),String(owner.getComment?.(k)||'')];});
+    const edges=[];for(const x of relations){const a=String(x?.sourceNodeKey||''),b=String(x?.targetNodeKey||'');if(set.has(a)&&set.has(b))edges.push([a,b,String(x?.relationType||x?.type||'')]);}
+    out.push(mode,rows,edges.map(e=>JSON.stringify(e)).sort());
+   }
+  }finally{console.info=quiet;}
+  return JSON.stringify(out);
+ }
+ function parseStamp(s){try{const a=JSON.parse(s),b=JSON.parse(a[1]);return {gen:a[0],closed:b[0],map:new Map(b[1])};}catch{return null;}}
+ function acceptStamp(){
+  // true when the current EVA stamp is (now) equivalent to the stamp of the last captured build
+  const first=health(false);const raw=first.stamp;
+  if(!base)return false;if(eff(raw)===base.eff)return true;
+  const a=parseStamp(base.raw),b=parseStamp(raw);if(!a||!b||a.gen!==b.gen||a.closed!==b.closed)return false;
+  const types=new Set([...a.map.keys(),...b.map.keys()]),changed=[...types].filter(t=>a.map.get(t)!==b.map.get(t));
+  if(changed.some(t=>t!=='gtd')){
+   const fp=fingerprint(first.api);
+   if(health(false).stamp!==raw||fp!==base.fp)return false;
+  }
+  stampAlias.clear();stampAlias.set(raw,base.eff);return true;
+ }
+ function hard(kind,source){if(kind!=='tracking'){stampAlias.clear();base=null;}publisher.invalidate(kind,source);}
+ function softOrHard(source){let ok=false;try{ok=acceptStamp();}catch{ok=false;}if(ok)publisher.softInvalidate(source);else hard('navigation',source);}
+ function classify(name,event){
+  const d=event?.detail;
+  if(name==='context-capsule-carrier:changed')return d?.changeKind==='content';
+  if(name==='eva-cross-view-relations:changed')return d?.reason==='index';
+  return false;
+ }
  function capture(){
   const validity=health();lastHealthStamp=validity.stamp;
-  const refs=[validity.api,validity.read,validity.stamp,owner.operationalContextSnapshotProviderGeneration,owner.globalKeywordNavGeneration,owner.getGlobalKeywordNavScope(),owner.contextCarrierUnloading,owner.activeCapsuleInfo];
+  const es=eff(validity.stamp);if(!base||base.eff!==es){let fp=null;try{fp=fingerprint(validity.api);}catch{fp=null;}base={eff:es,raw:validity.stamp,fp};}
+  const refs=[validity.api,validity.read,es,owner.operationalContextSnapshotProviderGeneration,owner.globalKeywordNavGeneration,owner.getGlobalKeywordNavScope(),owner.contextCarrierUnloading,owner.activeCapsuleInfo];
   for(const name of ['getEva','getWorkspaceMountApi','getGtdTaskManagerApi','getCollectionCardApi','getTimelinePlannerApi','getKeywordIndexApi','getMandalaTimeBlocksApi']){
    const api=owner[name]();refs.push(owner[name],api);
    if(api)for(const key of [...new Set([...Object.keys(api),...READ_METHODS])].sort()){const value=api[key];if(typeof value==='function'||key==='operationalLifecyclePolicyV1')refs.push(key,value);}
@@ -467,7 +552,7 @@ function createHost(owner,{createPublisher,loadEvidence,normalize,buildAliases,e
   // refresh ('pending', same revision) is not a source change. New builds still require ready via capture().
   const source=readScope.call(api),validity=health(false,fixed.eva);
   if(source?.ok!==true||typeof source.then==='function'||source.contractVersion!==1||typeof source.sourceScope!=='string'||!source.sourceScope||typeof source.providerGeneration!=='string'||!source.providerGeneration)throw Error('directory-source-invalid');
-  const navigation=[scope,validity.stamp,source.sourceScope,source.providerGeneration];
+  const navigation=[scope,eff(validity.stamp),source.sourceScope,source.providerGeneration];
   return {fixed,navigation,api,readRevision};
  }
  function captureReadGuard(){
@@ -548,14 +633,14 @@ function createHost(owner,{createPublisher,loadEvidence,normalize,buildAliases,e
  },notify:s=>emit(s)});
  const listeners=[];
  const healthEvent='eva-cross-view-relations:index-health-changed-v1';
- const healthChanged=()=>{try{const h=health(false);if(h.stamp===lastHealthStamp)return;lastHealthStamp=h.stamp;}catch{}try{publisher.invalidate('navigation','health');}catch{publisher.close();}};
+ const healthChanged=()=>{try{const h=health(false);if(h.stamp===lastHealthStamp)return;lastHealthStamp=h.stamp;}catch{}try{softOrHard('health');}catch{publisher.close();}};
  try{events.addEventListener(healthEvent,healthChanged);listeners.push([healthEvent,healthChanged]);for(const [names,kind]of [[NAV_EVENTS,'navigation'],[TRACKING_EVENTS,'tracking']])for(const name of names){
-  const fn=()=>{try{publisher.invalidate(kind,name);}catch{publisher.close();}};
+  const fn=event=>{try{if(kind==='navigation'&&classify(name,event))softOrHard(name);else hard(kind,name);}catch{publisher.close();}};
   events.addEventListener(name,fn);listeners.push([name,fn]);
  }}catch(error){for(const [name,fn]of listeners)events.removeEventListener(name,fn);publisher.close();configuredDirectory.close();throw error;}
  return Object.freeze({
   api(){const lease=++apiEpoch;if(!closed)publisher.invalidate('navigation','api');return Object.freeze({read:()=>{if(closed||lease!==apiEpoch)return unavailable;try{const s=publisher.read();return closed||lease!==apiEpoch?unavailable:s;}catch{return unavailable;}},refresh:()=>!closed&&lease===apiEpoch?publisher.requestRefresh():false});},
-  invalidate(){if(!closed)publisher.invalidate('navigation','host');},
+  invalidate(){if(!closed)hard('navigation','host');},
   diagnostics(){try{return publisher.diagnostics();}catch{return null;}},
   beginWrite(){try{const end=publisher.beginWrite();return()=>{try{end();}catch{publisher.close();}};}catch{publisher.close();return()=>{};}},
   close(){if(closed)return;closed=true;apiEpoch++;for(const [name,fn]of listeners)events.removeEventListener(name,fn);publisher.close();configuredDirectory.close();}

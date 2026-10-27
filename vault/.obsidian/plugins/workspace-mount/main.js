@@ -14491,7 +14491,7 @@ class WorkspaceMountView extends ItemView {
           if (!object(item) || !id(k) || item.id !== k || !["tab","paradigm"].includes(item.sourceType)) throw Error("WORKSPACE_MEMBERSHIP_ITEM");
           if (item.sourceType === "paradigm") continue;
           if (!id(item.tabId) || !Object.hasOwn(data.tabsById,item.tabId)) throw Error("WORKSPACE_MEMBERSHIP_TAB_REF");
-          if (item.parentId != null && item.parentId !== "" && (!id(item.parentId) || !Object.hasOwn(data.itemsById,item.parentId) || data.itemsById[item.parentId].tabId !== item.tabId || data.itemsById[item.parentId].sourceType !== "tab")) throw Error("WORKSPACE_MEMBERSHIP_PARENT");
+          if (item.parentId != null && item.parentId !== "" && (!id(item.parentId) || !Object.hasOwn(data.itemsById,item.parentId) || data.itemsById[item.parentId].tabId !== item.tabId || !["tab", "paradigm"].includes(data.itemsById[item.parentId].sourceType))) throw Error("WORKSPACE_MEMBERSHIP_PARENT");
           keys.push(buildWorkspaceJumpNodeKey(notePath,item.tabId,k));
         }
         for (const values of Object.values(data.childrenByParentByTab)) {
@@ -25965,7 +25965,9 @@ async function persistWorkspaceDataForPlugin(plugin, dataPath, safe, sourceData,
       creationProgress.assertCurrent();
       creationProgress.completion.stages.primary = "unknown";
     }
+    var previousProjectEntryProjection = null;
     await plugin.getCenterNamingConsumerV1().publish(dataPath, payload, sourceData?.sourceNotePath || "", raw => {
+      try { previousProjectEntryProjection = typeof raw === "string" ? workspaceProjectEntryProjectionV1(JSON.parse(raw)) : null; } catch (_) { previousProjectEntryProjection = null; }
       if (creationProgress) { creationProgress.assertCurrent(); if (creationProgress.preserveRaw === true) creationProgress.assertRaw(raw); }
       return true;
     });
@@ -25977,12 +25979,28 @@ async function persistWorkspaceDataForPlugin(plugin, dataPath, safe, sourceData,
     creationProgress.assertCurrent();
     creationProgress.completion.stages.carrierEvent = "pending";
   }
+  const nextProjectEntryProjection = workspaceProjectEntryProjectionV1(safe);
+  const contentOnly = !creationProgress && previousProjectEntryProjection !== null && nextProjectEntryProjection !== null && previousProjectEntryProjection === nextProjectEntryProjection;
   plugin.dispatchContextCarrierChanged("workspace-data-saved", {
     revision: safe.lastModified,
     sourceNotePath: sanitizeText(sourceData?.sourceNotePath || "", ""),
+    ...(contentOnly ? { changeKind: "content" } : {}),
   });
   if (creationProgress) creationProgress.completion.stages.carrierEvent = "dispatch-requested";
   return safe;
+}
+
+// r41: the project-list Tab (PEO/Mandala primary nodes) projection: (itemId, title) in order. null = unknown.
+function workspaceProjectEntryProjectionV1(data) {
+  try {
+    const workspaceData = normalizeWorkspaceData(data || {});
+    const tabs = Object.values(workspaceData.tabsById || {}), query = PROJECT_OVERVIEW_WORKSPACE_TAB_NAME;
+    const tab = tabs.find((entry) => sanitizeText(entry?.name, "") === query) || tabs.find((entry) => sanitizeText(entry?.name, "").includes(query)) || null;
+    const tabId = sanitizeText(tab?.id, "");
+    if (!tabId) return JSON.stringify(["no-tab"]);
+    const ids = workspaceData.childrenByParentByTab?.[tabParentKey(tabId, null)] || [];
+    return JSON.stringify([tabId, ids.map((id) => { const item = workspaceData.itemsById?.[id]; return [String(id), sanitizeText(item?.title || item?.content || item?.name, String(id)), item?.tabId === tabId]; })]);
+  } catch (_) { return null; }
 }
 
 const { WorkspacePrimaryCreation } = (() => { const module = { exports: {} };
@@ -27185,6 +27203,8 @@ module.exports = class WorkspaceMountPlugin extends Plugin {
   }
 
   dispatchContextCarrierChanged(reason = "workspace-data-changed", detail = {}) {
+    // r41: a debounce window keeps changeKind 'content' only if every event in it was content-only.
+    if (detail?.changeKind !== "content") this.carrierPendingHard = true;
     if (this.contextCarrierChangedTimer) {
       window.clearTimeout?.(this.contextCarrierChangedTimer);
       this.contextCarrierChangedPerfTask?.end();
@@ -27200,6 +27220,8 @@ module.exports = class WorkspaceMountPlugin extends Plugin {
     this.contextCarrierChangedPerfTask = task;
     this.contextCarrierChangedTimer = window.setTimeout?.(() => {
       this.contextCarrierChangedTimer = null;
+      if (this.carrierPendingHard) delete payload.changeKind;
+      this.carrierPendingHard = false;
       window.dispatchEvent?.(new CustomEvent("context-capsule-carrier:changed", { detail: payload }));
       task?.end();
       this.contextCarrierChangedPerfTask = null;

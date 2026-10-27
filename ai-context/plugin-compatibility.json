@@ -1,7 +1,7 @@
 {
   "role": "NEWERA plugin sharing vault; not the abandoned unified-core development route",
   "confirmed_by_user": "2026-10-27",
-  "captured_at": "2026-10-26T19:32:41.958979+01:00",
+  "captured_at": "2026-10-27T19:18:59.505491+08:00",
   "plugins": [
     {
       "directory": "advanced-canvas",
@@ -128,7 +128,7 @@
       "enabled": true,
       "files_sha256": {
         "manifest.json": "1418b2d4659b58373fbbfb6280e662c2da6982b5282da042dee4bd659f0cf20c",
-        "main.js": "e3cb8ef3c09d2fc60e5e45ff058bf6bf63597d671038e93d9885a0d006a0af1b",
+        "main.js": "991c9c1b647465fe65ae1a3535549563ce71d4961b162f50d7d1e845cb847b08",
         "styles.css": "5c0071b00b160523043cc1d629d3664d77719c95e8229522b069f763ae76e03f"
       },
       "newera_comparison": {
@@ -766,7 +766,7 @@
       "enabled": true,
       "files_sha256": {
         "manifest.json": "e25ae3b0c5950f5855c4064116a66583e99dc0ab80f3f8d02c3e0af09dfb2f4c",
-        "main.js": "2a40717546ec20f5ac8470f1bf2d6f355ac6f9afc3a851e9054fea487eb8982a",
+        "main.js": "30fd7e12eed7399babc29088da34659b35d1d143c0e04128876d536b53d20006",
         "styles.css": "2b61552e5cbd4a7667b7eafb03e103d9b1467fbe2529cadaec080386262bf7e2"
       },
       "newera_comparison": {
@@ -951,7 +951,7 @@
       "enabled": true,
       "files_sha256": {
         "manifest.json": "66ab4ed71506d4156e37143899586048124ecede55a722ed05db53da8bf681db",
-        "main.js": "d72a34ddcb5f71509247d8306b1d987034f55622c0fe772e2f51cce0ad4220b5",
+        "main.js": "2665db749157dad4c93503a0c58281b46f2f9fa265bc646d7aba3f9f278311e9",
         "styles.css": "6ad493fd80217ad72ad76d0e55fbebc180d8f149c59d6e60d9446548d2d3cbfe"
       },
       "newera_comparison": {
@@ -961,5 +961,6 @@
       }
     }
   ],
-  "comparison_scope": "manifest.json, main.js, styles.css only; does not compare notes, data.json or runtime behavior"
+  "comparison_scope": "manifest.json, main.js, styles.css only; does not compare notes, data.json or runtime behavior",
+  "release_note": "PEO autonomy/content-edit exemption; Workspace membership proof update"
 }
