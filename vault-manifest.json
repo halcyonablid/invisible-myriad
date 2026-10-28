@@ -1,8 +1,8 @@
 {
   "format": "obsidian-vault-backup-v1",
-  "captured_at": "2026-10-27T19:18:59.505491+08:00",
-  "count": 4292,
-  "bytes": 207486148,
+  "captured_at": "2026-10-28T22:19:19.298318+08:00",
+  "count": 4312,
+  "bytes": 210678676,
   "directories": [
     ".",
     ".obsidian",
@@ -489,6 +489,7 @@
     ".obsidian/plugins/workspace-mount",
     ".obsidian/plugins/workspace-mount/center-rename-backups",
     ".obsidian/plugins/workspace-mount/rename-backups",
+    "Attachments",
     "data",
     "Examples",
     "Journal",
@@ -516,23 +517,23 @@
     },
     {
       "path": "EVA_Indexer_State.json",
-      "bytes": 16718,
-      "sha256": "0418b03ff57811314a3b410e46cf303e6fc00c639e03199542e77349b929975a"
+      "bytes": 35989,
+      "sha256": "33741df61fdb7a2eee2055008b4257f412dea4afcd3c0af88c9bf62a3992e4aa"
     },
     {
       "path": "EVA_Indexes.json",
-      "bytes": 1133,
-      "sha256": "8825928f62659a40224215ced7066655eeb68b67593f8915679e48f248b6eee1"
+      "bytes": 1819,
+      "sha256": "acddc876cf5f132dfd3097d5d039334823ff3263007a579bb89ba65af18a359e"
     },
     {
       "path": "EVA_Links.json",
-      "bytes": 4426,
-      "sha256": "9fe7177e9097a36cf25f0b2240b36577fd90269154d952e7331fdd9c3bae74bd"
+      "bytes": 11938,
+      "sha256": "78cb6358b0d4c99b993d67e527d591ceeb704ade036db558c71f8527d7e03520"
     },
     {
       "path": "EVA_Notes.json",
-      "bytes": 9676,
-      "sha256": "7437981ecfe8a99f16f35124ae9d383e13e519945abb171eff9384de9708235c"
+      "bytes": 17674,
+      "sha256": "ba3b682501ee258623d1216a3bc48f33e6c8910f470986553cc65f2c5c1cc32f"
     },
     {
       "path": "plugin-inventory.json",
@@ -641,8 +642,8 @@
     },
     {
       "path": ".obsidian/workspace.json",
-      "bytes": 21325,
-      "sha256": "c10396c942d6bc1989bb2b9525ade1410ac0f096e53a0104de6d221ec8d75d25"
+      "bytes": 30230,
+      "sha256": "3042163c8612647b45e4a7296ff1c3fb684e3c7c978bb27f6299623bae3b1660"
     },
     {
       "path": ".obsidian/plugins/advanced-canvas/main.js",
@@ -1061,8 +1062,8 @@
     },
     {
       "path": ".obsidian/plugins/daily-note-review/activity-history.jsonl",
-      "bytes": 1558,
-      "sha256": "e8e94e417fc8000fdbb8bac0d90659eb19997cdca5ee87cba034b63a1e0ce27d"
+      "bytes": 2158,
+      "sha256": "574649d28e7fb36f9a63f0d5b8e6bae10ba6f23c30df12448b1ee8ed37f9c226"
     },
     {
       "path": ".obsidian/plugins/daily-note-review/main.js",
@@ -1116,8 +1117,8 @@
     },
     {
       "path": ".obsidian/plugins/eva-cross-view-relations/data.json",
-      "bytes": 118192,
-      "sha256": "0ffe439a4e70b21c5c65262f257950e1a10070808dfb98cf3abd681984bf26c4"
+      "bytes": 114046,
+      "sha256": "c37588134a166a7a3b32e95df5d63a54fab30c58b2bfd74b6c23a602b8c86130"
     },
     {
       "path": ".obsidian/plugins/eva-cross-view-relations/main.js",
@@ -1396,13 +1397,13 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/main.js",
-      "bytes": 1585162,
-      "sha256": "9dacf45f2c1e3be4688a0092580b0fd0d84b0c156c5a362125190e99b5a797fc"
+      "bytes": 1601125,
+      "sha256": "a986ffaba80708e87b5d6aabb7b986edb757bd689ad345858ca339fc6fd73ede"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/manifest.json",
-      "bytes": 310,
-      "sha256": "8ff08fc8700e6dde988a983e5d7313f621d6f3fffd169df178042648d64e2a74"
+      "bytes": 290,
+      "sha256": "6ee3d1cd4d3b8f0a2f4fcd15130b2fc99f6054011172ecf2d0e57a649e4c6bb3"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/participant-snapshot.cjs",
@@ -1416,8 +1417,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/styles.css",
-      "bytes": 92486,
-      "sha256": "6937cef7c15881bc2fc3ce06d6aa00993c3ed2be3409212d8d3f80ba932500e6"
+      "bytes": 99250,
+      "sha256": "43ef1bea329ad96d347c1602ab00f8a09f8055366b1b7f5245c7cd3ea113d4f4"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/tracking-state-reader.cjs",
@@ -1441,18 +1442,18 @@
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/mermaid-fold-index.json",
-      "bytes": 2880,
-      "sha256": "781f2bc9ff9303a4e3a25dd30eb372377e2a417248bcc443f26c0630fcd77896"
+      "bytes": 5586,
+      "sha256": "8d24b2b11951084f88599ffe9f431bfee6e53092d546bcaa001216838f7cac80"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/mermaid-node-index.json",
-      "bytes": 5024,
-      "sha256": "b3f13afd7b9f02419f748ce167a2225450ec6f76fe1cf7d1e0ad311259995e77"
+      "bytes": 9388,
+      "sha256": "f013dada7698c20cb6c862649dc59350cdbd35899435029aaf2770e12c09f20c"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/mermaid-reference-index.json",
-      "bytes": 3013,
-      "sha256": "cdaa759d1d23d8fb14bd55cb73f06f2a330ef5a43ea11fbce4a19c1d7809e289"
+      "bytes": 6143,
+      "sha256": "4e873a14595550e05022bc24a29b70ce33a15e02be7041fb387ade2f01fc3f52"
     },
     {
       "path": ".obsidian/plugins/mermaid-tools/main.js",
@@ -21436,13 +21437,13 @@
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/main.js",
-      "bytes": 13105,
-      "sha256": "b2077cb6e8b250af9736678ee8cd712822e65bd2a7a76ea606f38eea0a5dd758"
+      "bytes": 13881,
+      "sha256": "d5afb4282551598be1070041dd21707f38318ece83034bb4bc70bba10094b5b8"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/manifest.json",
-      "bytes": 295,
-      "sha256": "8fb4b2a74abc7d4aaf4d161159abbadd81b8daf5a122afbf94852711ebaabe68"
+      "bytes": 294,
+      "sha256": "9d589b7344be246cc432e4b908c1a407e5dd740effe69e35eda243c9c04b5853"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/showcase-concept-initialized.json",
@@ -21488,6 +21489,26 @@
       "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-storage.test.js",
       "bytes": 42555,
       "sha256": "6dc708e10fedc2a946dbab97c22f8e039ae63109436f30d7fd0bba198c9fe459"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-data.json",
+      "bytes": 71099,
+      "sha256": "6053bc94803d4a8760e824aecac1439286779c0b4a985a44b0958566d5f06959"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-drafts.json",
+      "bytes": 61,
+      "sha256": "8e7ca1db7daf38f9f9fc196f72ae6bc38efbfa7835b7e58ed48218ff013c1592"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-storage.cjs",
+      "bytes": 6362,
+      "sha256": "f809cd1e167530ce67ccaf6efb50c985a058e1494496474b074a78f8cf46a4af"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-ui.json",
+      "bytes": 627,
+      "sha256": "9753981e77f8edde9cc9bbae4426244335be5d4e74144a70143fddf899cd23a0"
     },
     {
       "path": ".obsidian/plugins/supermemo-plan/data.json",
@@ -21705,6 +21726,56 @@
       "sha256": "c212bfcae60bf45c50df4aa92100d195110f7004ba1f7c0950dd75bbd79cc57f"
     },
     {
+      "path": "Attachments/1e051508f30f21cbc11f322831756eb7.png",
+      "bytes": 439488,
+      "sha256": "513a08f5284e17c96ffc89e00c24f5bbcf234c2681aeaf8b4214b6825775c479"
+    },
+    {
+      "path": "Attachments/ABC-004-主键管理中心.png",
+      "bytes": 103582,
+      "sha256": "6f13843e30b11ea72773ad74d5758482857db0ac6c036c14bd0f604561072ce4"
+    },
+    {
+      "path": "Attachments/ABC-004-复杂项目总览.png",
+      "bytes": 468634,
+      "sha256": "a6b023002038c6650d5cc8de398ac6480329042537f69e0b922fe0dcc44e5f65"
+    },
+    {
+      "path": "Attachments/ABC-004-行动台标签筛选.png",
+      "bytes": 309524,
+      "sha256": "a1e27e2658c2e910b493fdfe7f3686b457578dd5000ea52f739e287a4e4f1731"
+    },
+    {
+      "path": "Attachments/ABC-004-行动台项目待办.png",
+      "bytes": 383494,
+      "sha256": "dd4076b5465c04725f5b806a93be04831a213efca75247c2624b19b339c0662e"
+    },
+    {
+      "path": "Attachments/Pasted image 20261028155422.png",
+      "bytes": 386366,
+      "sha256": "791f017902ef22708c6205c10dc08ad48bf36dda3c2e410283614c8447efce52"
+    },
+    {
+      "path": "Attachments/Pasted image 20261028213510.png",
+      "bytes": 249115,
+      "sha256": "f54fda73587e9afad43263633aee568e91c475f6ad1eb9fac7a2b74f6262c481"
+    },
+    {
+      "path": "Attachments/Pasted image 20261028213945.png",
+      "bytes": 305068,
+      "sha256": "7ff936a2e0d10d3ffef15628d91e08d12b38e5a21e1be0dfab44093e7b7e2f66"
+    },
+    {
+      "path": "Attachments/Pasted image 20261028214909.png",
+      "bytes": 57617,
+      "sha256": "c777e7847804d784239585e777a5815e62d93db79591200aaa94521a1fd7ff6b"
+    },
+    {
+      "path": "Attachments/Pasted image 20261028215716.png",
+      "bytes": 269965,
+      "sha256": "bd6077af957fbf0a8d5f8ee9cee96516a2bc9a4419a7931e79e0f25b367699ac"
+    },
+    {
       "path": "data/keyword_index.json",
       "bytes": 3066,
       "sha256": "c71dcbd2b499b7f3e0198b9f9c2a24a055935409e41c3a070351cf3be63b32e4"
@@ -21718,6 +21789,41 @@
       "path": "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
       "bytes": 105,
       "sha256": "aacd29ca55aa1f03e54497ce69e09d376572e7471685048126a9a661a888e851"
+    },
+    {
+      "path": "Examples/ATOM@002- 分类：组件使用的说明.md",
+      "bytes": 95,
+      "sha256": "3cebd574afa411c24ece425a87e25306ad0a5aeb0608cbfcdb92b87d77ae15bd"
+    },
+    {
+      "path": "Examples/ATOM@002.001- 分类：形式的使用理念.md",
+      "bytes": 175,
+      "sha256": "a43a871ab3c47b6cbe1ac3333e78d4dbcefb8d1074be9dcc6d70e10cb23ca024"
+    },
+    {
+      "path": "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+      "bytes": 175,
+      "sha256": "7fce15324a66fbe048d16116b12c4caf35cdb1440c50b3da3d83215de048f943"
+    },
+    {
+      "path": "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+      "bytes": 11342,
+      "sha256": "9e396f62c97d3e0f7d2a34ff9a6592c4382b70cce3adbf74a67081a7effdfa56"
+    },
+    {
+      "path": "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+      "bytes": 9610,
+      "sha256": "4bd125047963dda34a124b871eb94901c10feef8001e9faa09745a52195fa80a"
+    },
+    {
+      "path": "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+      "bytes": 10697,
+      "sha256": "d9a114708424a853d5bf19d5f1e12002b8a1a8026b626699d52ddddba11fb01e"
+    },
+    {
+      "path": "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+      "bytes": 19336,
+      "sha256": "35f565167cf5f3e512838759f786ed6def521f6eb09b4b4da852fbd149d70821"
     },
     {
       "path": "Examples/ATOM@1-准备十分钟分享.md",
@@ -21743,11 +21849,6 @@
       "path": "Examples/ATOM@1.5-演示路线与完成标准.md",
       "bytes": 290,
       "sha256": "e6756587066210364dc6c0b3d4d9b6f5d40eb5f3c4f0cc89539017fe339ffc30"
-    },
-    {
-      "path": "Examples/ATOM@2-城市微花园观察.md",
-      "bytes": 334,
-      "sha256": "84134d488c9c6069300887e6367eb945709880222dc9a1aeb78c24218885deb8"
     },
     {
       "path": "Examples/ATOM@2.1-观察先于解释.md",
@@ -21886,8 +21987,8 @@
     },
     {
       "path": "System/Mandala/Mandala_DailyLessons.json",
-      "bytes": 1162,
-      "sha256": "d2daa6f23c7b11f2dd3a573239656c562637005ed1ade317e583126e0598526f"
+      "bytes": 17081,
+      "sha256": "52eeb8060765c3f1924b256aa291aa4c2f1c13000aa0e8217f565d60aff9b746"
     },
     {
       "path": "System/Mandala/Mandala_Database.json",
@@ -21906,8 +22007,8 @@
     },
     {
       "path": "System/Mermaid/ATOM-List.md",
-      "bytes": 421,
-      "sha256": "9e79089b2b1231b7bf9e9eacda5abafedde3087fd8c75c7be30bc2f4eeb0c2b5"
+      "bytes": 424,
+      "sha256": "d66a47090b4a89db5c1fec8e667c588f823713820d019b04a27f77fad79729d6"
     },
     {
       "path": "System/SuperMemo/Plan.md",

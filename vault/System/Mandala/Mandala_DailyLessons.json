@@ -9,6 +9,8 @@
       "priorExperience": "虚构示例：先说问题，再说材料，最后说行动。",
       "expectedMinutes": 5,
       "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
       "createdAt": "2026-10-05T09:00:00+08:00",
       "updatedAt": "2026-10-05T09:00:00+08:00"
     }
@@ -16,6 +18,427 @@
   "itemOrder": [
     "dq-lesson-rehearse"
   ],
+  "stressItemsById": {
+    "stress_sleep_rest": {
+      "id": "stress_sleep_rest",
+      "side": "stress",
+      "name": "睡眠 / 休息保护",
+      "timeRange": "优先保住恢复窗口",
+      "priorExperience": "低余度时先守住睡眠、闭眼休息或安静躺平，避免系统继续透支。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:01.506Z",
+      "updatedAt": "2026-10-28T06:22:01.506Z"
+    },
+    "stress_minimum_maintenance": {
+      "id": "stress_minimum_maintenance",
+      "side": "stress",
+      "name": "最低维护动作",
+      "timeRange": "只做不断线版本",
+      "priorExperience": "把日课降级成最小可承接动作，目标是不断线，不追求高推进。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:01.506Z",
+      "updatedAt": "2026-10-28T06:22:01.506Z"
+    },
+    "stress_pressure_unload": {
+      "id": "stress_pressure_unload",
+      "side": "stress",
+      "name": "压力卸载记录",
+      "timeRange": "压力峰值后",
+      "priorExperience": "把冲击、担忧和下一步外部化，先降低脑内负荷。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:01.506Z",
+      "updatedAt": "2026-10-28T06:22:01.506Z"
+    },
+    "stress_tomorrow_handoff": {
+      "id": "stress_tomorrow_handoff",
+      "side": "stress",
+      "name": "明日承接准备",
+      "timeRange": "收束前",
+      "priorExperience": "只留下明天能接住的一步，保护复利链条不被吸收壁吞掉。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:01.506Z",
+      "updatedAt": "2026-10-28T06:22:01.506Z"
+    }
+  },
+  "stressItemOrder": [
+    "stress_sleep_rest",
+    "stress_minimum_maintenance",
+    "stress_pressure_unload",
+    "stress_tomorrow_handoff"
+  ],
+  "kaiokenItemsById": {},
+  "kaiokenItemOrder": [],
+  "adjustItemsById": {
+    "adjust_strategy_realign": {
+      "id": "adjust_strategy_realign",
+      "side": "adjust",
+      "name": "战略 / 框架 / 现实对齐",
+      "timeRange": "事件发生后",
+      "priorExperience": "把新事件、新证据和旧判断放在一起校准，确认战略、框架和现实环境是否需要调整。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:38.949Z",
+      "updatedAt": "2026-10-28T06:21:38.949Z"
+    },
+    "adjust_boundary_close": {
+      "id": "adjust_boundary_close",
+      "side": "adjust",
+      "name": "调整边界收束",
+      "timeRange": "调整结束前",
+      "priorExperience": "明确本轮只调整到哪里，写出可以直接面对的具体执行事项，避免开放空间无限扩散。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:38.949Z",
+      "updatedAt": "2026-10-28T06:21:38.949Z"
+    },
+    "adjust_habit_experiment": {
+      "id": "adjust_habit_experiment",
+      "side": "adjust",
+      "name": "习惯与试验计划",
+      "timeRange": "想尝试新模式时",
+      "priorExperience": "把早起、健康、训练或新习惯写成小试验：触发条件、最低动作、失败保护和观察周期。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:38.949Z",
+      "updatedAt": "2026-10-28T06:21:38.949Z"
+    },
+    "adjust_tracking_design": {
+      "id": "adjust_tracking_design",
+      "side": "adjust",
+      "name": "追踪方案建设",
+      "timeRange": "试验启动前",
+      "priorExperience": "设计后续怎么追踪效果、何时复盘、用什么指标判断继续、修改或停止。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:38.949Z",
+      "updatedAt": "2026-10-28T06:21:38.949Z"
+    }
+  },
+  "adjustItemOrder": [
+    "adjust_strategy_realign",
+    "adjust_boundary_close",
+    "adjust_habit_experiment",
+    "adjust_tracking_design"
+  ],
+  "healthItemsById": {},
+  "healthItemOrder": [],
+  "recuperationItemsById": {
+    "recuperation_stop_overdraw": {
+      "id": "recuperation_stop_overdraw",
+      "side": "recuperation",
+      "name": "停止透支与外部降载",
+      "timeRange": "进入状态时",
+      "priorExperience": "暂停非必要推进，减少输入、承诺和环境刺激，把恢复空间先腾出来。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:43.339Z",
+      "updatedAt": "2026-10-28T06:21:43.339Z"
+    },
+    "recuperation_sleep_quiet_rest": {
+      "id": "recuperation_sleep_quiet_rest",
+      "side": "recuperation",
+      "name": "睡眠与安静疗养",
+      "timeRange": "按身体需要",
+      "priorExperience": "优先睡眠、闭眼休息或安静躺卧，不用产出来证明今天仍然有效。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:43.339Z",
+      "updatedAt": "2026-10-28T06:21:43.339Z"
+    },
+    "recuperation_basic_care": {
+      "id": "recuperation_basic_care",
+      "side": "recuperation",
+      "name": "补水进食与基础照料",
+      "timeRange": "分散到全天",
+      "priorExperience": "按实际需要照顾补水、进食、清洁和既定照护安排，只做身体当前承受得住的版本。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:43.339Z",
+      "updatedAt": "2026-10-28T06:21:43.339Z"
+    },
+    "recuperation_baseline_gate": {
+      "id": "recuperation_baseline_gate",
+      "side": "recuperation",
+      "name": "基准回正检查与条件式复工",
+      "timeRange": "准备退出前",
+      "priorExperience": "只有睡眠、精神和身体承受度接近个人基准时才逐步复工；尚未回正就继续休养，不把退出当作完成压力。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:43.339Z",
+      "updatedAt": "2026-10-28T06:21:43.339Z"
+    }
+  },
+  "recuperationItemOrder": [
+    "recuperation_stop_overdraw",
+    "recuperation_sleep_quiet_rest",
+    "recuperation_basic_care",
+    "recuperation_baseline_gate"
+  ],
+  "newHomeItemsById": {},
+  "newHomeItemOrder": [],
+  "freeEnergyItemsById": {
+    "free_energy_scan_forecast": {
+      "id": "free_energy_scan_forecast",
+      "side": "free_energy",
+      "name": "自由能扫描与环境预测",
+      "timeRange": "开始前或环境变化时",
+      "priorExperience": "辨认预期与现实的落差、即将出现的不确定性，以及最可能带来惊讶的环境变化。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:13.101Z",
+      "updatedAt": "2026-10-28T06:22:13.101Z"
+    },
+    "free_energy_necessary_discomfort": {
+      "id": "free_energy_necessary_discomfort",
+      "side": "free_energy",
+      "name": "捕捉非做不可的不适事项",
+      "timeRange": "察觉回避或不舒服时",
+      "priorExperience": "把让我不舒服、却又非做不可的事项明确写出来；先命名，不急着一次展开全部。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:13.101Z",
+      "updatedAt": "2026-10-28T06:22:13.101Z"
+    },
+    "free_energy_inference_choice": {
+      "id": "free_energy_inference_choice",
+      "side": "free_energy",
+      "name": "选择知觉推断或主动推断",
+      "timeRange": "看清落差之后",
+      "priorExperience": "判断这次应更新自己的模型、改变外部环境，还是先主动探测并收集证据。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:13.101Z",
+      "updatedAt": "2026-10-28T06:22:13.101Z"
+    },
+    "free_energy_controlled_surprise": {
+      "id": "free_energy_controlled_surprise",
+      "side": "free_energy",
+      "name": "制造可控的小惊讶",
+      "timeRange": "进入学习区时",
+      "priorExperience": "设计一个风险有界的小测试或小暴露，主动发现模型漏洞，不把自己直接扔进无法承接的大惊讶。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:13.101Z",
+      "updatedAt": "2026-10-28T06:22:13.101Z"
+    },
+    "free_energy_micro_prediction": {
+      "id": "free_energy_micro_prediction",
+      "side": "free_energy",
+      "name": "拆成可成功的小预测",
+      "timeRange": "任务显得过大时",
+      "priorExperience": "把下一步缩小到短时间内可以验证的动作，用连续的小预测成功积累动能并降低拖延。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:13.101Z",
+      "updatedAt": "2026-10-28T06:22:13.101Z"
+    },
+    "free_energy_model_update": {
+      "id": "free_energy_model_update",
+      "side": "free_energy",
+      "name": "结果回收与模型更新",
+      "timeRange": "一次行动或测试之后",
+      "priorExperience": "记录实际发生了什么、与预期差在哪里，并据此更新下一步行动和环境预测。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:22:13.101Z",
+      "updatedAt": "2026-10-28T06:22:13.101Z"
+    }
+  },
+  "freeEnergyItemOrder": [
+    "free_energy_scan_forecast",
+    "free_energy_necessary_discomfort",
+    "free_energy_inference_choice",
+    "free_energy_controlled_surprise",
+    "free_energy_micro_prediction",
+    "free_energy_model_update"
+  ],
+  "socialConductItemsById": {
+    "social_conduct_avoid_burden": {
+      "id": "social_conduct_avoid_burden",
+      "side": "social_conduct",
+      "name": "不添麻烦检查",
+      "timeRange": "行动、请求或交接之前",
+      "priorExperience": "先检查信息、准备、时间和后续责任是否完整，尽量消除本可由自己提前处理的麻烦。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:48.480Z",
+      "updatedAt": "2026-10-28T06:21:48.480Z"
+    },
+    "social_conduct_align_expectations": {
+      "id": "social_conduct_align_expectations",
+      "side": "social_conduct",
+      "name": "合作预期与边界对齐",
+      "timeRange": "合作开始或条件变化时",
+      "priorExperience": "把目标、分工、时间、交付标准和不能承诺的边界说清楚，避免让对方靠猜。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:48.480Z",
+      "updatedAt": "2026-10-28T06:21:48.480Z"
+    },
+    "social_conduct_clear_response": {
+      "id": "social_conduct_clear_response",
+      "side": "social_conduct",
+      "name": "清晰表达与及时回应",
+      "timeRange": "收到信息或需要协同时",
+      "priorExperience": "及时确认收到，表达事实、判断和请求；暂时无法处理时，也明确何时能够回复。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:48.480Z",
+      "updatedAt": "2026-10-28T06:21:48.480Z"
+    },
+    "social_conduct_keep_commitment": {
+      "id": "social_conduct_keep_commitment",
+      "side": "social_conduct",
+      "name": "守约交付与提前预警",
+      "timeRange": "承诺执行与交付过程中",
+      "priorExperience": "按约定推进；发现风险时尽早说明影响、原因和补救方案，不把最后一刻的意外留给别人。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:48.480Z",
+      "updatedAt": "2026-10-28T06:21:48.480Z"
+    },
+    "social_conduct_proportion_closeout": {
+      "id": "social_conduct_proportion_closeout",
+      "side": "social_conduct",
+      "name": "分寸体谅与收尾闭环",
+      "timeRange": "互动过程中与结束前",
+      "priorExperience": "留意场合、关系和对方负担，尊重差异；结束时确认结果、遗留项、下一步和必要的感谢。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:48.480Z",
+      "updatedAt": "2026-10-28T06:21:48.480Z"
+    }
+  },
+  "socialConductItemOrder": [
+    "social_conduct_avoid_burden",
+    "social_conduct_align_expectations",
+    "social_conduct_clear_response",
+    "social_conduct_keep_commitment",
+    "social_conduct_proportion_closeout"
+  ],
+  "selfRestraintItemsById": {
+    "self_restraint_outing_timebox": {
+      "id": "self_restraint_outing_timebox",
+      "side": "self_restraint",
+      "name": "非必要外出闲逛限额",
+      "timeRange": "每周预设的有限时段",
+      "priorExperience": "外出闲逛会消耗较多时间，只放进预先留出的有限窗口；窗口之外先记录想去的念头，不临时展开。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:52.320Z",
+      "updatedAt": "2026-10-28T06:21:52.320Z"
+    },
+    "self_restraint_meal_timing": {
+      "id": "self_restraint_meal_timing",
+      "side": "self_restraint",
+      "name": "按时用餐边界",
+      "timeRange": "每日计划用餐窗口",
+      "priorExperience": "尽量在计划窗口内吃饭；确需推迟时记录触发原因和补救安排，不让吃饭晚逐渐变成默认。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:52.320Z",
+      "updatedAt": "2026-10-28T06:21:52.320Z"
+    }
+  },
+  "selfRestraintItemOrder": [
+    "self_restraint_outing_timebox",
+    "self_restraint_meal_timing"
+  ],
+  "checklistItemsById": {
+    "checklist_external_communication_closeout": {
+      "id": "checklist_external_communication_closeout",
+      "side": "checklist",
+      "name": "外部沟通闭环巡检",
+      "timeRange": "工作日开始与结束前",
+      "priorExperience": "检查待我回复、待对方回复和到期应追问的沟通线程；监控状态、期限和证据留在核查表，具体行动仍归对应项目或 Collection Card。",
+      "expectedMinutes": 0,
+      "active": true,
+      "stoppedAt": "",
+      "resumedAt": "",
+      "createdAt": "2026-10-28T06:21:56.871Z",
+      "updatedAt": "2026-10-28T06:21:56.871Z"
+    }
+  },
+  "checklistItemOrder": [
+    "checklist_external_communication_closeout"
+  ],
+  "referencesBySide": {
+    "normal": [],
+    "stress": [],
+    "kaioken": [],
+    "adjust": [],
+    "health": [],
+    "recuperation": [],
+    "new_home": [],
+    "free_energy": [],
+    "social_conduct": [],
+    "self_restraint": [],
+    "checklist": []
+  },
+  "stressDaysByDate": {
+    "2026-10-05": {
+      "date": "2026-10-05",
+      "mode": "self_restraint",
+      "flipped": true,
+      "flippedAt": "2026-10-28T06:21:38.949Z",
+      "restoredAt": "",
+      "updatedAt": "2026-10-28T06:22:20.718Z"
+    }
+  },
   "daysByDate": {
     "2026-10-05": {
       "date": "2026-10-05",
@@ -23,6 +446,7 @@
       "completion": "虚构记录：第一轮用了九十秒",
       "adjustment": "删去背景介绍的一段",
       "tomorrowPlan": "再排练一次六十秒开场",
+      "summary": "",
       "entriesByItemId": {
         "dq-lesson-rehearse": {
           "itemId": "dq-lesson-rehearse",
@@ -33,5 +457,10 @@
       },
       "updatedAt": "2026-10-05T09:00:00+08:00"
     }
+  },
+  "weeksById": {},
+  "meta": {
+    "source": "mandala-time-blocks",
+    "sourceNotePath": "System/Mandala/Mandala.md"
   }
 }

@@ -1,9 +1,9 @@
 {
   "id": "mandala-time-blocks",
   "name": "Mandala Time Blocks",
-  "version": "0.1.14",
+  "version": "0.2.2",
   "minAppVersion": "1.7.2",
-  "description": "Primary-context time-block capture in a native tab, with retained legacy records and Mandala planning tools.",
+  "description": "Independent time frames, custom categories and persistent frame colors; Mandala planning retained.",
   "author": "OpenAI Codex",
   "isDesktopOnly": false
 }

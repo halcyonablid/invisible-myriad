@@ -1,16 +1,22 @@
 {
   "schema_version": "2.0",
-  "updated": "2026-10-26T16:10:46.809Z",
+  "updated": "2026-10-28T14:14:27.555Z",
   "byPath": {
     "Examples/ATOM@2.1-观察先于解释.md": "ATOM@2.1",
-    "Examples/ATOM@2-城市微花园观察.md": "ATOM@2",
     "Examples/ATOM@1.5-演示路线与完成标准.md": "ATOM@1.5",
     "Examples/ATOM@1.4-回顾不是重新列计划.md": "ATOM@1.4",
     "Examples/ATOM@1.3-一次排练只改一个问题.md": "ATOM@1.3",
-    "Examples/ATOM@1-准备十分钟分享.md": "ATOM@1",
     "Examples/ATOM@1.1-先说清楚听众的问题.md": "ATOM@1.1",
+    "Examples/ATOM@1-准备十分钟分享.md": "ATOM@1",
+    "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md": "ATOM@002.002.001",
+    "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md": "ATOM@002.002",
+    "Examples/ATOM@002.001- 分类：形式的使用理念.md": "ATOM@002.001",
     "Examples/ATOM@001.003- 把材料压缩成三张卡.md": "ATOM@001.003",
-    "Examples/ATOM@001.002- 把材料压缩成三张卡.md": "ATOM@001.002"
+    "Examples/ATOM@002- 分类：组件使用的说明.md": "ATOM@002",
+    "Examples/ATOM@001.002- 把材料压缩成三张卡.md": "ATOM@001.002",
+    "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md": "ATOM@002.002.002",
+    "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md": "ATOM@002.002.003",
+    "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md": "ATOM@002.002.004"
   },
   "byNoteId": {
     "ATOM@2.1": {
@@ -53,62 +59,6 @@
       "refs": {
         "keywords": [
           "材料"
-        ],
-        "parent": null,
-        "antinetType": "unknown",
-        "treeStructure": false,
-        "mermaidStart": false
-      }
-    },
-    "ATOM@2": {
-      "noteId": "ATOM@2",
-      "path": "Examples/ATOM@2-城市微花园观察.md",
-      "file_path": "Examples/ATOM@2-城市微花园观察.md",
-      "fileName": "ATOM@2-城市微花园观察.md",
-      "file_name": "ATOM@2-城市微花园观察.md",
-      "mtime": 1791185086000,
-      "size": 334,
-      "hash": "84134d488c9c6069300887e6367eb945709880222dc9a1aeb78c24218885deb8",
-      "note": {
-        "id": "ATOM@2",
-        "title": "城市微花园观察",
-        "file_path": "Examples/ATOM@2-城市微花园观察.md",
-        "file_name": "ATOM@2-城市微花园观察.md",
-        "created": "2026-10-05T14:42:53.977Z",
-        "modified": "2026-10-05T07:24:46.000Z",
-        "yaml": {
-          "title": "城市微花园观察",
-          "关键词管理": [
-            "观察"
-          ],
-          "tags": [
-            "大千演示",
-            "虚构"
-          ]
-        },
-        "computed": {
-          "index_keywords": [
-            "观察"
-          ],
-          "tree_position": {},
-          "word_count": 14,
-          "has_content": true
-        },
-        "_ext": {}
-      },
-      "links": [
-        {
-          "source": "ATOM@2",
-          "target": "ATOM@2.1",
-          "type": "wikilink",
-          "context": "题：设计一次十分钟阳台植物观察。它展示同一套结构可以承载不同内容，不与分享项目合并。\r \r 下一站：[[Examples/ATOM@2.1-观察先于解释]]。",
-          "created": "2026-10-05T14:43:18.906Z",
-          "_ext": {}
-        }
-      ],
-      "refs": {
-        "keywords": [
-          "观察"
         ],
         "parent": null,
         "antinetType": "unknown",
@@ -275,62 +225,6 @@
         "mermaidStart": false
       }
     },
-    "ATOM@1": {
-      "noteId": "ATOM@1",
-      "path": "Examples/ATOM@1-准备十分钟分享.md",
-      "file_path": "Examples/ATOM@1-准备十分钟分享.md",
-      "fileName": "ATOM@1-准备十分钟分享.md",
-      "file_name": "ATOM@1-准备十分钟分享.md",
-      "mtime": 1791185086000,
-      "size": 352,
-      "hash": "baa450c600410cf454bc62768acc07c177f9fa783d5c72eae5e58cddb6432956",
-      "note": {
-        "id": "ATOM@1",
-        "title": "准备十分钟分享",
-        "file_path": "Examples/ATOM@1-准备十分钟分享.md",
-        "file_name": "ATOM@1-准备十分钟分享.md",
-        "created": "2026-10-05T14:42:53.971Z",
-        "modified": "2026-10-05T07:24:46.000Z",
-        "yaml": {
-          "title": "准备十分钟分享",
-          "关键词管理": [
-            "分享"
-          ],
-          "tags": [
-            "大千演示",
-            "虚构"
-          ]
-        },
-        "computed": {
-          "index_keywords": [
-            "分享"
-          ],
-          "tree_position": {},
-          "word_count": 14,
-          "has_content": true
-        },
-        "_ext": {}
-      },
-      "links": [
-        {
-          "source": "ATOM@1",
-          "target": "ATOM@1.1",
-          "type": "wikilink",
-          "context": "在周五向三位朋友介绍大千。成功标准：朋友能独立找到一份材料、创建一个行动、写下回顾。\r \r 下一站：[[Examples/ATOM@1.1-先说清楚听众的问题]]。",
-          "created": "2026-10-05T14:43:18.907Z",
-          "_ext": {}
-        }
-      ],
-      "refs": {
-        "keywords": [
-          "分享"
-        ],
-        "parent": null,
-        "antinetType": "unknown",
-        "treeStructure": false,
-        "mermaidStart": false
-      }
-    },
     "ATOM@1.1": {
       "noteId": "ATOM@1.1",
       "path": "Examples/ATOM@1.1-先说清楚听众的问题.md",
@@ -390,6 +284,274 @@
         "mermaidStart": false
       }
     },
+    "ATOM@1": {
+      "noteId": "ATOM@1",
+      "path": "Examples/ATOM@1-准备十分钟分享.md",
+      "file_path": "Examples/ATOM@1-准备十分钟分享.md",
+      "fileName": "ATOM@1-准备十分钟分享.md",
+      "file_name": "ATOM@1-准备十分钟分享.md",
+      "mtime": 1791185086000,
+      "size": 352,
+      "hash": "baa450c600410cf454bc62768acc07c177f9fa783d5c72eae5e58cddb6432956",
+      "note": {
+        "id": "ATOM@1",
+        "title": "准备十分钟分享",
+        "file_path": "Examples/ATOM@1-准备十分钟分享.md",
+        "file_name": "ATOM@1-准备十分钟分享.md",
+        "created": "2026-10-05T14:42:53.971Z",
+        "modified": "2026-10-05T07:24:46.000Z",
+        "yaml": {
+          "title": "准备十分钟分享",
+          "关键词管理": [
+            "分享"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "分享"
+          ],
+          "tree_position": {},
+          "word_count": 14,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@1",
+          "target": "ATOM@1.1",
+          "type": "wikilink",
+          "context": "在周五向三位朋友介绍大千。成功标准：朋友能独立找到一份材料、创建一个行动、写下回顾。\r \r 下一站：[[Examples/ATOM@1.1-先说清楚听众的问题]]。",
+          "created": "2026-10-05T14:43:18.907Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [
+          "分享"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@002.002.001": {
+      "noteId": "ATOM@002.002.001",
+      "path": "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+      "file_path": "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+      "fileName": "ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+      "file_name": "ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+      "mtime": 1793194107056,
+      "size": 11342,
+      "hash": "9e396f62c97d3e0f7d2a34ff9a6592c4382b70cce3adbf74a67081a7effdfa56",
+      "note": {
+        "id": "ATOM@002.002.001",
+        "title": "首先是mermaid图的使用方法",
+        "file_path": "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+        "file_name": "ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+        "created": "2026-10-28T07:52:18.492Z",
+        "modified": "2026-10-28T13:28:27.056Z",
+        "yaml": {
+          "qishiriqidate": "2026-10-28",
+          "qishiriqitime": "15:52:18",
+          "atomle": true,
+          "antinet": "atom",
+          "树的结构": true,
+          "上级条目": "[[Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子]]"
+        },
+        "computed": {
+          "index_keywords": [],
+          "tree_position": {},
+          "word_count": 437,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900",
+          "type": "wikilink",
+          "context": "中尚未使用，再在笔记属性里设置：  ```yaml mermaid图之起始: true 所属块: \"[[ATOM@900- 一次分享]]\" ```  起点的“所属块”可以指向自己。它下面的记录，例如 `ATOM@900.001- 明确听",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@002.002",
+          "type": "wikilink",
+          "context": "时，先在社区插件中确认 Mermaid Floating Widget 已启用。  ---  返回：[[Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子|组件使用说明目录]]。  还可以结合 [[System/Mermaid/ATOM-List|ATOM 演示入口]] 查找",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001",
+          "type": "atom_ref",
+          "context": "[ATOM@900- 一次分享]]\" ```  起点的“所属块”可以指向自己。它下面的记录，例如 `ATOM@900.001- 明确听众.md`，也把“所属块”指向这篇起点笔记。已有属性保留，只添加或修改需要的字段；用源码编",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001+001.002",
+          "type": "atom_ref",
+          "context": "嵌套框？  ### 1．先把“地址”和“标题”分开  一个规范的文件名可以写成：  ```text ATOM@900.001+001.002- 补充听众反馈.md └────── 地址 ──────┘  └── 标题 ──┘ ```  `A",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001",
+          "type": "atom_ref",
+          "context": "`，继续增加以下笔记：  ```text ATOM@900             一次分享 ├─ ATOM@900.001      明确听众 │  └─ ATOM@900.001.001  整理听众的三个问题 └─ AT",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001.001",
+          "type": "atom_ref",
+          "context": "一次分享 ├─ ATOM@900.001      明确听众 │  └─ ATOM@900.001.001  整理听众的三个问题 └─ ATOM@900.002      收集材料 ```  - `900.",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.002",
+          "type": "atom_ref",
+          "context": "01      明确听众 │  └─ ATOM@900.001.001  整理听众的三个问题 └─ ATOM@900.002      收集材料 ```  - `900.001` 与 `900.002` 都是在 `900`",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001",
+          "type": "atom_ref",
+          "context": "从一个节点发展到新的状态  如果“明确听众”之后，你有了新的方案，可以这样记录：  ```text ATOM@900.001                 明确听众     → ATOM@900.001+001",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001+001",
+          "type": "atom_ref",
+          "context": "```text ATOM@900.001                 明确听众     → ATOM@900.001+001       形成第一版讲法         → ATOM@900.001+001+001  根据试",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001+001+001",
+          "type": "atom_ref",
+          "context": "听众     → ATOM@900.001+001       形成第一版讲法         → ATOM@900.001+001+001  根据试讲修订讲法 ```  每次在现有地址后追加一个 `+编号`，表达从这个节点继续发展，形成新",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.001",
+          "target": "ATOM@900.001+001.002+001",
+          "type": "atom_ref",
+          "context": "展  读长地址时，不要只数点号或加号。**从左往右，每次看“在已有地址后追加了什么”。**  以 `ATOM@900.001+001.002+001` 为例：  | 读到这里 | 怎样理解 | | --- | --- | | `900` | 一次分",
+          "created": "2026-10-28T13:28:28.567Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [],
+        "parent": "ATOM@002.002",
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@002.002": {
+      "noteId": "ATOM@002.002",
+      "path": "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+      "file_path": "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+      "fileName": "ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+      "file_name": "ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+      "mtime": 1793173897631,
+      "size": 175,
+      "hash": "7fce15324a66fbe048d16116b12c4caf35cdb1440c50b3da3d83215de048f943",
+      "note": {
+        "id": "ATOM@002.002",
+        "title": "分类：具体库当中的插件的应用、说明和例子",
+        "file_path": "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+        "file_name": "ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+        "created": "2026-10-28T07:51:37.631Z",
+        "modified": "2026-10-28T07:51:37.631Z",
+        "yaml": {
+          "qishiriqidate": "2026-10-28",
+          "qishiriqitime": "15:51:37",
+          "atomle": true,
+          "antinet": "atom",
+          "树的结构": true,
+          "上级条目": "[[Examples/ATOM@002- 分类：组件使用的说明]]"
+        },
+        "computed": {
+          "index_keywords": [],
+          "tree_position": {},
+          "word_count": 15,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [],
+      "refs": {
+        "keywords": [],
+        "parent": "ATOM@002",
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@002.001": {
+      "noteId": "ATOM@002.001",
+      "path": "Examples/ATOM@002.001- 分类：形式的使用理念.md",
+      "file_path": "Examples/ATOM@002.001- 分类：形式的使用理念.md",
+      "fileName": "ATOM@002.001- 分类：形式的使用理念.md",
+      "file_name": "ATOM@002.001- 分类：形式的使用理念.md",
+      "mtime": 1793173863003,
+      "size": 175,
+      "hash": "a43a871ab3c47b6cbe1ac3333e78d4dbcefb8d1074be9dcc6d70e10cb23ca024",
+      "note": {
+        "id": "ATOM@002.001",
+        "title": "分类：形式的使用理念",
+        "file_path": "Examples/ATOM@002.001- 分类：形式的使用理念.md",
+        "file_name": "ATOM@002.001- 分类：形式的使用理念.md",
+        "created": "2026-10-28T07:51:03.002Z",
+        "modified": "2026-10-28T07:51:03.003Z",
+        "yaml": {
+          "qishiriqidate": "2026-10-28",
+          "qishiriqitime": "15:51:03",
+          "atomle": true,
+          "antinet": "atom",
+          "树的结构": true,
+          "上级条目": "[[Examples/ATOM@002- 分类：组件使用的说明]]"
+        },
+        "computed": {
+          "index_keywords": [],
+          "tree_position": {},
+          "word_count": 15,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [],
+      "refs": {
+        "keywords": [],
+        "parent": "ATOM@002",
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
     "ATOM@001.003": {
       "noteId": "ATOM@001.003",
       "path": "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
@@ -427,6 +589,53 @@
         "parent": null,
         "antinetType": "atom",
         "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@002": {
+      "noteId": "ATOM@002",
+      "path": "Examples/ATOM@002- 分类：组件使用的说明.md",
+      "file_path": "Examples/ATOM@002- 分类：组件使用的说明.md",
+      "fileName": "ATOM@002- 分类：组件使用的说明.md",
+      "file_name": "ATOM@002- 分类：组件使用的说明.md",
+      "mtime": 1793173840341,
+      "size": 95,
+      "hash": "3cebd574afa411c24ece425a87e25306ad0a5aeb0608cbfcdb92b87d77ae15bd",
+      "note": {
+        "id": "ATOM@002",
+        "title": "分类：组件使用的说明",
+        "file_path": "Examples/ATOM@002- 分类：组件使用的说明.md",
+        "file_name": "ATOM@002- 分类：组件使用的说明.md",
+        "created": "2026-10-05T14:42:53.977Z",
+        "modified": "2026-10-28T07:50:40.341Z",
+        "yaml": {
+          "title": "城市微花园观察",
+          "关键词管理": [
+            "观察"
+          ],
+          "tags": [
+            "大千演示",
+            "虚构"
+          ]
+        },
+        "computed": {
+          "index_keywords": [
+            "观察"
+          ],
+          "tree_position": {},
+          "word_count": 10,
+          "has_content": false
+        },
+        "_ext": {}
+      },
+      "links": [],
+      "refs": {
+        "keywords": [
+          "观察"
+        ],
+        "parent": null,
+        "antinetType": "unknown",
+        "treeStructure": false,
         "mermaidStart": false
       }
     },
@@ -485,6 +694,180 @@
         "treeStructure": false,
         "mermaidStart": false
       }
+    },
+    "ATOM@002.002.002": {
+      "noteId": "ATOM@002.002.002",
+      "path": "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+      "file_path": "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+      "fileName": "ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+      "file_name": "ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+      "mtime": 1793195560684,
+      "size": 9610,
+      "hash": "4bd125047963dda34a124b871eb94901c10feef8001e9faa09745a52195fa80a",
+      "note": {
+        "id": "ATOM@002.002.002",
+        "title": "其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图",
+        "file_path": "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+        "file_name": "ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+        "created": "2026-10-28T13:34:54.534Z",
+        "modified": "2026-10-28T13:52:40.684Z",
+        "yaml": {
+          "qishiriqidate": "2026-10-28",
+          "qishiriqitime": "21:34:54",
+          "atomle": true,
+          "antinet": "atom",
+          "树的结构": true,
+          "上级条目": "[[Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子]]"
+        },
+        "computed": {
+          "index_keywords": [],
+          "tree_position": {},
+          "word_count": 355,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@002.002.002",
+          "target": "ATOM@002.002.001",
+          "type": "wikilink",
+          "context": "。至于应该在哪片领域生长、怎样避免每次都另起一个重复入口，就交给下一篇的“树与关键词”。  上一篇：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：",
+          "created": "2026-10-28T13:52:41.520Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.002",
+          "target": "ATOM@002.002.003",
+          "type": "wikilink",
+          "context": "2.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：怎样掌握整个库]]。",
+          "created": "2026-10-28T13:52:41.520Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [],
+        "parent": "ATOM@002.002",
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@002.002.003": {
+      "noteId": "ATOM@002.002.003",
+      "path": "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+      "file_path": "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+      "fileName": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+      "file_name": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+      "mtime": 1793195560697,
+      "size": 10697,
+      "hash": "d9a114708424a853d5bf19d5f1e12002b8a1a8026b626699d52ddddba11fb01e",
+      "note": {
+        "id": "ATOM@002.002.003",
+        "title": "树和关键词的结合，库整体结构设计",
+        "file_path": "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+        "file_name": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+        "created": "2026-10-28T13:39:01.940Z",
+        "modified": "2026-10-28T13:52:40.697Z",
+        "yaml": {
+          "qishiriqidate": "2026-10-28",
+          "qishiriqitime": "21:39:01",
+          "atomle": true,
+          "antinet": "atom",
+          "树的结构": true,
+          "上级条目": "[[Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子]]"
+        },
+        "computed": {
+          "index_keywords": [],
+          "tree_position": {},
+          "word_count": 319,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@002.002.003",
+          "target": "ATOM@002.002.002",
+          "type": "wikilink",
+          "context": "新想法时，能否更快找到合适的上下文；过一段时间回来时，能否理解当初为什么把内容放在这里。  上一篇：[[ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图|新增笔记、地址规则与两侧视图]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid",
+          "created": "2026-10-28T13:52:41.520Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.003",
+          "target": "ATOM@002.002.001",
+          "type": "wikilink",
+          "context": "新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图|新增笔记、地址规则与两侧视图]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：记录局部的发展过程]]。",
+          "created": "2026-10-28T13:52:41.520Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [],
+        "parent": "ATOM@002.002",
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
+    },
+    "ATOM@002.002.004": {
+      "noteId": "ATOM@002.002.004",
+      "path": "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+      "file_path": "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+      "fileName": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+      "file_name": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+      "mtime": 1793196866659,
+      "size": 19336,
+      "hash": "35f565167cf5f3e512838759f786ed6def521f6eb09b4b4da852fbd149d70821",
+      "note": {
+        "id": "ATOM@002.002.004",
+        "title": "分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标",
+        "file_path": "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+        "file_name": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+        "created": "2026-10-28T13:48:43.367Z",
+        "modified": "2026-10-28T14:14:26.659Z",
+        "yaml": {
+          "qishiriqidate": "2026-10-28",
+          "qishiriqitime": "21:48:43",
+          "atomle": true,
+          "antinet": "atom",
+          "树的结构": true,
+          "上级条目": "[[Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子]]"
+        },
+        "computed": {
+          "index_keywords": [],
+          "tree_position": {},
+          "word_count": 531,
+          "has_content": true
+        },
+        "_ext": {}
+      },
+      "links": [
+        {
+          "source": "ATOM@002.002.004",
+          "target": "ATOM@002.002.003",
+          "type": "wikilink",
+          "context": "速找到下一步。工作不再只是一张孤立的待办清单，也不至于只有丰富材料、却不知道从哪里开始。  上一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid",
+          "created": "2026-10-28T14:14:27.555Z",
+          "_ext": {}
+        },
+        {
+          "source": "ATOM@002.002.004",
+          "target": "ATOM@002.002.001",
+          "type": "wikilink",
+          "context": "2.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：怎样记录一个过程的发展]]。",
+          "created": "2026-10-28T14:14:27.555Z",
+          "_ext": {}
+        }
+      ],
+      "refs": {
+        "keywords": [],
+        "parent": "ATOM@002.002",
+        "antinetType": "atom",
+        "treeStructure": true,
+        "mermaidStart": false
+      }
     }
   },
   "indexes": {
@@ -492,9 +875,6 @@
       "材料": [
         "ATOM@2.1",
         "ATOM@001.002"
-      ],
-      "观察": [
-        "ATOM@2"
       ],
       "分享": [
         "ATOM@1.5",
@@ -508,34 +888,60 @@
       ],
       "问题": [
         "ATOM@1.1"
+      ],
+      "观察": [
+        "ATOM@002"
       ]
     },
     "by_tree_structure": [
       "ATOM@1.1",
-      "ATOM@001.003"
+      "ATOM@002.002.001",
+      "ATOM@002.002",
+      "ATOM@002.001",
+      "ATOM@001.003",
+      "ATOM@002.002.002",
+      "ATOM@002.002.003",
+      "ATOM@002.002.004"
     ],
     "by_tree_visible": [],
     "by_mermaid_start": [],
-    "by_parent": {},
+    "by_parent": {
+      "ATOM@002.002": [
+        "ATOM@002.002.001",
+        "ATOM@002.002.002",
+        "ATOM@002.002.003",
+        "ATOM@002.002.004"
+      ],
+      "ATOM@002": [
+        "ATOM@002.002",
+        "ATOM@002.001"
+      ]
+    },
     "by_antinet_type": {
       "unknown": [
         "ATOM@2.1",
-        "ATOM@2",
         "ATOM@1.5",
         "ATOM@1.4",
         "ATOM@1.3",
         "ATOM@1",
+        "ATOM@002",
         "ATOM@001.002"
       ],
       "atom": [
         "ATOM@1.1",
-        "ATOM@001.003"
+        "ATOM@002.002.001",
+        "ATOM@002.002",
+        "ATOM@002.001",
+        "ATOM@001.003",
+        "ATOM@002.002.002",
+        "ATOM@002.002.003",
+        "ATOM@002.002.004"
       ]
     }
   },
   "stats": {
-    "total_notes": 9,
-    "total_links": 6,
-    "last_reason": "startup"
+    "total_notes": 15,
+    "total_links": 22,
+    "last_reason": "debounced"
   }
 }

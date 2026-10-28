@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "updated": "2026-10-26T16:10:46.812Z",
+  "updated": "2026-10-28T14:14:27.563Z",
   "vault_name": "大千-协作实验版",
   "link_types": [
     "wikilink",
@@ -9,14 +9,6 @@
     "backlink"
   ],
   "links": [
-    {
-      "source": "ATOM@2",
-      "target": "ATOM@2.1",
-      "type": "wikilink",
-      "context": "题：设计一次十分钟阳台植物观察。它展示同一套结构可以承载不同内容，不与分享项目合并。\r \r 下一站：[[Examples/ATOM@2.1-观察先于解释]]。",
-      "created": "2026-10-05T14:43:18.906Z",
-      "_ext": {}
-    },
     {
       "source": "ATOM@1.4",
       "target": "ATOM@1.5",
@@ -34,6 +26,14 @@
       "_ext": {}
     },
     {
+      "source": "ATOM@1.1",
+      "target": "ATOM@001.002",
+      "type": "wikilink",
+      "context": "个人知识系统。他们想知道：资料放哪里？今天做什么？做完如何回看？每个问题只演示一次操作。  下一站：[[ATOM@001.002- 把材料压缩成三张卡]]。",
+      "created": "2026-10-26T16:08:44.953Z",
+      "_ext": {}
+    },
+    {
       "source": "ATOM@1",
       "target": "ATOM@1.1",
       "type": "wikilink",
@@ -42,11 +42,75 @@
       "_ext": {}
     },
     {
-      "source": "ATOM@1.1",
-      "target": "ATOM@001.002",
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900",
       "type": "wikilink",
-      "context": "个人知识系统。他们想知道：资料放哪里？今天做什么？做完如何回看？每个问题只演示一次操作。  下一站：[[ATOM@001.002- 把材料压缩成三张卡]]。",
-      "created": "2026-10-26T16:08:44.953Z",
+      "context": "中尚未使用，再在笔记属性里设置：  ```yaml mermaid图之起始: true 所属块: \"[[ATOM@900- 一次分享]]\" ```  起点的“所属块”可以指向自己。它下面的记录，例如 `ATOM@900.001- 明确听",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@002.002",
+      "type": "wikilink",
+      "context": "时，先在社区插件中确认 Mermaid Floating Widget 已启用。  ---  返回：[[Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子|组件使用说明目录]]。  还可以结合 [[System/Mermaid/ATOM-List|ATOM 演示入口]] 查找",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900.001",
+      "type": "atom_ref",
+      "context": "[ATOM@900- 一次分享]]\" ```  起点的“所属块”可以指向自己。它下面的记录，例如 `ATOM@900.001- 明确听众.md`，也把“所属块”指向这篇起点笔记。已有属性保留，只添加或修改需要的字段；用源码编",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900.001+001.002",
+      "type": "atom_ref",
+      "context": "嵌套框？  ### 1．先把“地址”和“标题”分开  一个规范的文件名可以写成：  ```text ATOM@900.001+001.002- 补充听众反馈.md └────── 地址 ──────┘  └── 标题 ──┘ ```  `A",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900.001.001",
+      "type": "atom_ref",
+      "context": "一次分享 ├─ ATOM@900.001      明确听众 │  └─ ATOM@900.001.001  整理听众的三个问题 └─ ATOM@900.002      收集材料 ```  - `900.",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900.002",
+      "type": "atom_ref",
+      "context": "01      明确听众 │  └─ ATOM@900.001.001  整理听众的三个问题 └─ ATOM@900.002      收集材料 ```  - `900.001` 与 `900.002` 都是在 `900`",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900.001+001",
+      "type": "atom_ref",
+      "context": "```text ATOM@900.001                 明确听众     → ATOM@900.001+001       形成第一版讲法         → ATOM@900.001+001+001  根据试",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900.001+001+001",
+      "type": "atom_ref",
+      "context": "听众     → ATOM@900.001+001       形成第一版讲法         → ATOM@900.001+001+001  根据试讲修订讲法 ```  每次在现有地址后追加一个 `+编号`，表达从这个节点继续发展，形成新",
+      "created": "2026-10-28T13:28:28.567Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.001",
+      "target": "ATOM@900.001+001.002+001",
+      "type": "atom_ref",
+      "context": "展  读长地址时，不要只数点号或加号。**从左往右，每次看“在已有地址后追加了什么”。**  以 `ATOM@900.001+001.002+001` 为例：  | 读到这里 | 怎样理解 | | --- | --- | | `900` | 一次分",
+      "created": "2026-10-28T13:28:28.567Z",
       "_ext": {}
     },
     {
@@ -56,25 +120,57 @@
       "context": "卡一讲问题，卡二讲行动，卡三讲回顾。删去工具名堆叠，每张卡保留一个可以试做的例子。\r \r 下一站：[[Examples/ATOM@1.3-一次排练只改一个问题]]。",
       "created": "2026-10-26T16:08:44.953Z",
       "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.002",
+      "target": "ATOM@002.002.001",
+      "type": "wikilink",
+      "context": "。至于应该在哪片领域生长、怎样避免每次都另起一个重复入口，就交给下一篇的“树与关键词”。  上一篇：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：",
+      "created": "2026-10-28T13:52:41.520Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.002",
+      "target": "ATOM@002.002.003",
+      "type": "wikilink",
+      "context": "2.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：怎样掌握整个库]]。",
+      "created": "2026-10-28T13:52:41.520Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.003",
+      "target": "ATOM@002.002.002",
+      "type": "wikilink",
+      "context": "新想法时，能否更快找到合适的上下文；过一段时间回来时，能否理解当初为什么把内容放在这里。  上一篇：[[ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图|新增笔记、地址规则与两侧视图]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid",
+      "created": "2026-10-28T13:52:41.520Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.003",
+      "target": "ATOM@002.002.001",
+      "type": "wikilink",
+      "context": "新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图|新增笔记、地址规则与两侧视图]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：记录局部的发展过程]]。",
+      "created": "2026-10-28T13:52:41.520Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.004",
+      "target": "ATOM@002.002.003",
+      "type": "wikilink",
+      "context": "速找到下一步。工作不再只是一张孤立的待办清单，也不至于只有丰富材料、却不知道从哪里开始。  上一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid",
+      "created": "2026-10-28T14:14:27.555Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.004",
+      "target": "ATOM@002.002.001",
+      "type": "wikilink",
+      "context": "2.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：怎样记录一个过程的发展]]。",
+      "created": "2026-10-28T14:14:27.555Z",
+      "_ext": {}
     }
   ],
   "adjacency": {
-    "ATOM@2": {
-      "outgoing": [
-        "ATOM@2.1"
-      ],
-      "incoming": [],
-      "outgoing_count": 1,
-      "incoming_count": 0
-    },
-    "ATOM@2.1": {
-      "outgoing": [],
-      "incoming": [
-        "ATOM@2"
-      ],
-      "outgoing_count": 0,
-      "incoming_count": 1
-    },
     "ATOM@1.4": {
       "outgoing": [
         "ATOM@1.5"
@@ -103,14 +199,6 @@
       "outgoing_count": 1,
       "incoming_count": 1
     },
-    "ATOM@1": {
-      "outgoing": [
-        "ATOM@1.1"
-      ],
-      "incoming": [],
-      "outgoing_count": 1,
-      "incoming_count": 0
-    },
     "ATOM@1.1": {
       "outgoing": [
         "ATOM@001.002"
@@ -130,16 +218,103 @@
       ],
       "outgoing_count": 1,
       "incoming_count": 1
+    },
+    "ATOM@1": {
+      "outgoing": [
+        "ATOM@1.1"
+      ],
+      "incoming": [],
+      "outgoing_count": 1,
+      "incoming_count": 0
+    },
+    "ATOM@002.002.001": {
+      "outgoing": [
+        "ATOM@002.002",
+        "ATOM@900",
+        "ATOM@900.001",
+        "ATOM@900.001.001",
+        "ATOM@900.001+001",
+        "ATOM@900.001+001.002",
+        "ATOM@900.001+001.002+001",
+        "ATOM@900.001+001+001",
+        "ATOM@900.002"
+      ],
+      "incoming": [
+        "ATOM@002.002.002",
+        "ATOM@002.002.003",
+        "ATOM@002.002.004"
+      ],
+      "outgoing_count": 9,
+      "incoming_count": 3
+    },
+    "ATOM@002.002": {
+      "outgoing": [],
+      "incoming": [
+        "ATOM@002.002.001"
+      ],
+      "outgoing_count": 0,
+      "incoming_count": 1
+    },
+    "ATOM@002.002.002": {
+      "outgoing": [
+        "ATOM@002.002.001",
+        "ATOM@002.002.003"
+      ],
+      "incoming": [
+        "ATOM@002.002.003"
+      ],
+      "outgoing_count": 2,
+      "incoming_count": 1
+    },
+    "ATOM@002.002.003": {
+      "outgoing": [
+        "ATOM@002.002.001",
+        "ATOM@002.002.002"
+      ],
+      "incoming": [
+        "ATOM@002.002.002",
+        "ATOM@002.002.004"
+      ],
+      "outgoing_count": 2,
+      "incoming_count": 2
+    },
+    "ATOM@002.002.004": {
+      "outgoing": [
+        "ATOM@002.002.001",
+        "ATOM@002.002.003"
+      ],
+      "incoming": [],
+      "outgoing_count": 2,
+      "incoming_count": 0
     }
   },
   "stats": {
-    "total_links": 6,
+    "total_links": 20,
     "orphan_notes": [
-      "ATOM@001.003"
+      "ATOM@001.003",
+      "ATOM@002",
+      "ATOM@002.001",
+      "ATOM@2.1"
     ],
     "hub_notes": [
       {
+        "id": "ATOM@002.002.001",
+        "degree": 12
+      },
+      {
+        "id": "ATOM@002.002.003",
+        "degree": 4
+      },
+      {
+        "id": "ATOM@002.002.002",
+        "degree": 3
+      },
+      {
         "id": "ATOM@001.002",
+        "degree": 2
+      },
+      {
+        "id": "ATOM@002.002.004",
         "degree": 2
       },
       {
@@ -155,24 +330,21 @@
         "degree": 2
       },
       {
+        "id": "ATOM@002.002",
+        "degree": 1
+      },
+      {
         "id": "ATOM@1",
         "degree": 1
       },
       {
         "id": "ATOM@1.5",
         "degree": 1
-      },
-      {
-        "id": "ATOM@2",
-        "degree": 1
-      },
-      {
-        "id": "ATOM@2.1",
-        "degree": 1
       }
     ],
     "by_type": {
-      "wikilink": 6
+      "wikilink": 13,
+      "atom_ref": 7
     }
   }
 }

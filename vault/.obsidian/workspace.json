@@ -411,9 +411,194 @@
               "icon": "lucide-file",
               "title": "ATOM@001.003- 把材料压缩成三张卡"
             }
+          },
+          {
+            "id": "01d1736cecf3e255",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@002- 分类：组件使用的说明.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@002- 分类：组件使用的说明"
+            }
+          },
+          {
+            "id": "f6e801843fb978f1",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@002.001- 分类：形式的使用理念.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@002.001- 分类：形式的使用理念"
+            }
+          },
+          {
+            "id": "4261ed4217926ac3",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子"
+            }
+          },
+          {
+            "id": "bbdd295fc8d466d1",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 1,
+              "stack": [
+                {
+                  "title": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计",
+                  "icon": "lucide-file",
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.003- 树和关键词的结合，库整体结构设计\"}",
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}}}"
+                },
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@002.002.001- 首先是mermaid图的使用方法"
+            }
+          },
+          {
+            "id": "f644b2d577c06212",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 1,
+              "stack": [
+                {
+                  "title": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计",
+                  "icon": "lucide-file",
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.003- 树和关键词的结合，库整体结构设计\"}",
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}},\"scroll\":0}"
+                },
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图"
+            }
+          },
+          {
+            "id": "c0dcb66f4daa19c4",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 1,
+              "stack": [
+                {
+                  "title": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标",
+                  "icon": "lucide-file",
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标\"}",
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}},\"scroll\":0}"
+                },
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计"
+            }
+          },
+          {
+            "id": "634403ed8ec70f80",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 1,
+              "stack": [
+                {
+                  "title": "ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图",
+                  "icon": "lucide-file",
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图\"}",
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}},\"scroll\":0}"
+                },
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标"
+            }
           }
         ],
-        "currentTab": 11
+        "currentTab": 16
       }
     ],
     "direction": "vertical"
@@ -517,11 +702,12 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 460.16668701171875
+    "width": 460.16668701171875,
+    "collapsed": true
   },
   "right": {
     "id": "dq-right",
@@ -670,15 +856,14 @@
       }
     ],
     "direction": "horizontal",
-    "width": 532.5
+    "width": 532.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
       "create-similar-note:创建相似笔记": false,
       "context-key-manager:主键管理中心": false,
       "switcher:打开快速切换": false,
-      "canvas:新建白板": false,
-      "modalforms:Edit forms": false,
       "eva-tree-view:打开 EVA 树状图": false,
       "antinet-tree-structure:Antinet 树的结构": false,
       "mermaid-tools:Open Mermaid Toolbar": false,
@@ -705,10 +890,37 @@
       "periodic-notes:Open today": false
     }
   },
-  "active": "b3d4e3e09401502b",
+  "active": "233a28fb70ee463d",
   "lastOpenFiles": [
-    "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+    "Attachments/ABC-004-行动台项目待办.png",
+    "Attachments/ABC-004-行动台标签筛选.png",
+    "Attachments/ABC-004-主键管理中心.png",
+    "Attachments/ABC-004-复杂项目总览.png",
+    "Attachments/Pasted image 20261028215716.png",
+    "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+    "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+    "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+    "Attachments/Pasted image 20261028214909.png",
+    "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+    "Attachments/Pasted image 20261028213945.png",
+    "Attachments/Pasted image 20261028213510.png",
+    "Examples/ATOM@002.001- 分类：形式的使用理念.md",
+    "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+    "Examples/ATOM@002- 分类：组件使用的说明.md",
     "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
+    "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
+    "Attachments/1e051508f30f21cbc11f322831756eb7.png",
+    "Attachments/Pasted image 20261028155422.png",
+    "Attachments",
+    "System/Mandala/Mandala_DailyLessons.json",
+    "System/Mandala/Mandala_DailyLessons.json.tmp-1793168540718-mvrq9166p95dne",
+    "System/Mandala/Mandala_DailyLessons.json.rollback-1793168540718-mvrq9166p95dne",
+    "System/Mandala/Mandala_DailyLessons.json.tmp-1793168533102-mvrq8vamjh81mo",
+    "System/Mandala/Mandala_DailyLessons.json.rollback-1793168533102-mvrq8vamjh81mo",
+    "System/Mandala/Mandala_DailyLessons.json.tmp-1793168531196-mvrq8ttohh7mer",
+    "System/Mandala/Mandala_DailyLessons.json.rollback-1793168531196-mvrq8ttohh7mer",
+    "System/Mandala/Mandala_DailyLessons.json.tmp-1793168527136-mvrq8qowb0dth1",
+    "System/Mandala/Mandala_DailyLessons.json.rollback-1793168527136-mvrq8qowb0dth1",
     "Examples/ATOM@001.002- 把材料压缩成三张卡.001- 新的想法23.md",
     "Examples/outliner-20261027000516.md",
     "Examples/Untitled.md",
@@ -716,18 +928,8 @@
     "Examples/Untitled 1.md",
     "Examples/ATOM@1.1-先说清楚听众的问题.md",
     "Templates/create_similar_note.md",
-    "System/Mandala/Mandala_WeeklyGoals.json",
-    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1792550037418-mvhi0cyy1p3afp",
     "System/GTD/099T001- P2E测试目标.md",
-    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1792550037418-mvhi0cyy1p3afp",
-    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1792549925532-mvhhxyn0yojt37",
     "System/GTD/099T- P2E测试项目.md",
-    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1792549925532-mvhhxyn0yojt37",
-    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1791822662510-mv5gy6wefuvny8",
-    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1791822662510-mv5gy6wefuvny8",
-    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1791822606976-mv5gx01s3lstwx",
-    "System/Mandala/Mandala_WeeklyGoals.json.rollback-1791822606976-mv5gx01s3lstwx",
-    "System/Mandala/Mandala_WeeklyGoals.json.tmp-1791822606490-mv5gwzoaht74d9",
     "System/GTD/036R- 沈灏的书.md",
     "System/GTD/协作测试B.md",
     "System/GTD/测试.md",

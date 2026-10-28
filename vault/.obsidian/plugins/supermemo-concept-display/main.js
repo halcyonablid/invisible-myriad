@@ -62,7 +62,7 @@ class SuperMemoConceptDisplaySettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "SuperMemo Concept Display" });
-    containerEl.createEl("p", { text: "Whole-moved plugin version of the original DataviewJS concept display." });
+    containerEl.createEl("p", { text: "概念、框架和草稿独立保存在当前库；不会读取其他库或旧公共存储。" });
     new Setting(containerEl)
       .setName("Auto open on load")
       .setDesc("Off by default to avoid stealing focus during Obsidian startup.")
@@ -246,7 +246,9 @@ module.exports = class SuperMemoConceptDisplayPlugin extends Plugin {
   async loadRuntimeModules() {
     const conceptTreeModel = await this.loadConceptTreeModel();
     this.antinetTreeModel = await this.loadAntinetTreeModel();
-    const runEngine = await this.loadEngineRunner();
+    const storageModule = await this.loadVaultStorageModule();
+    const storage = storageModule.createStorage({basePath:this.app.vault.adapter.getBasePath(), pluginDir:this.getPluginDataDir()});
+    const runEngine = await this.loadEngineRunner(storage);
     return { conceptTreeModel, antinetTreeModel: this.antinetTreeModel, runEngine };
   }
 
@@ -291,7 +293,16 @@ module.exports = class SuperMemoConceptDisplayPlugin extends Plugin {
     });
   }
 
-  async loadEngineRunner() {
+  async loadVaultStorageModule() {
+    const code = await this.app.vault.adapter.read(`${this.getPluginDataDir()}/vault-concept-storage.cjs`);
+    const module = {exports:{}};
+    new Function("module", "exports", "require", code)(module, module.exports, require);
+    if (typeof module.exports.createStorage !== "function") throw new Error("独立存储模块不可用");
+    return module.exports;
+  }
+
+  async loadEngineRunner(storage) {
+    if (!storage || typeof storage.getItem !== "function") throw new Error("当前库独立存储尚未就绪");
     const candidatePaths = [
       `${this.getPluginDataDir()}/supermemo-concept-display-engine.js`,
       `.obsidian/plugins/${this.manifest.id}/supermemo-concept-display-engine.js`,
@@ -310,8 +321,8 @@ module.exports = class SuperMemoConceptDisplayPlugin extends Plugin {
     }
     if (!code) throw new Error(`Cannot load supermemo-concept-display-engine.js from: ${candidatePaths.join(", ")}`);
     const module = { exports: {} };
-    const factory = new Function("module", "exports", "require", `${code}\n;return module.exports;`);
-    const runner = factory(module, module.exports, require);
+    const factory = new Function("module", "exports", "require", "localStorage", `${code}\n;return module.exports;`);
+    const runner = factory(module, module.exports, require, storage);
     if (typeof runner !== "function") throw new Error(`supermemo-concept-display-engine.js did not export a runner: ${loadedPath}`);
     console.info("[SuperMemo Concept Display][engine-load]", { status: "OK", path: loadedPath, chars: code.length });
     return runner;

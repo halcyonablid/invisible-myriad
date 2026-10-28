@@ -445,6 +445,179 @@ return module.exports;})();
 const { ItemView, Modal: C2BaseModal, Notice, Plugin, PluginSettingTab, Setting, TFile, setIcon } = require("obsidian");
 const Modal=C2InputRecovery.protectModal(C2BaseModal,'mandala-time-blocks');
 const { createHash } = require("crypto");
+/* TIMEFRAMES_FACTORY_START */
+const TimeFrames = (() => { const module = { exports: {} };
+'use strict';
+const { randomUUID } = require('crypto');
+const copy = x => JSON.parse(JSON.stringify(x));
+const own = (o,k) => Object.prototype.hasOwnProperty.call(o,k);
+const fail = message => { throw new Error(message); };
+const empty = () => ({ version: 2, records: {}, timeFrames: { version: 1, revision: 0, categories: {}, frames: {}, reservedIds: [] } });
+const hex = s => typeof s === 'string' && /^#[0-9a-f]{6}$/i.test(s);
+const day = s => {
+  const v=String(s||'').slice(0,10); if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return '';
+  const d=new Date(v+'T12:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===v?v:'';
+};
+const obj = x => x && typeof x==='object' && !Array.isArray(x);
+function validate(data) {
+  if(!obj(data)||data.version!==2||!obj(data.records))fail('时间帧文件版本或结构无效，未覆盖数据');
+  const t=data.timeFrames;
+  if(!obj(t)||t.version!==1||!Number.isSafeInteger(t.revision)||t.revision<0||!obj(t.categories)||!obj(t.frames)||!Array.isArray(t.reservedIds)||new Set(t.reservedIds).size!==t.reservedIds.length)fail('时间帧配置损坏或版本不受支持');
+  for(const [id,c] of Object.entries(t.categories))if(!obj(c)||c.id!==id||!t.reservedIds.includes(id)||typeof c.name!=='string'||!c.name.trim())fail('类别身份无效');
+  const frames=Object.values(t.frames);
+  for(const f of frames){
+    if(!obj(f)||t.frames[f.id]!==f||!t.reservedIds.includes(f.id)||!day(f.start)||!day(f.end)||f.start>f.end||!obj(f.members)||!f.name)fail('时间帧边界或身份无效');
+    const used=new Set();
+    for(const [id,m] of Object.entries(f.members)){
+      if(!own(t.categories,id)||!obj(m)||!hex(m.color)||typeof m.active!=='boolean'||used.has(m.color.toLowerCase()))fail('分类配色无效或重复');
+      used.add(m.color.toLowerCase());
+    }
+  }
+  for(let i=0;i<frames.length;i++)for(let j=i+1;j<frames.length;j++)if(frames[i].start<=frames[j].end&&frames[j].start<=frames[i].end)fail('时间帧日期不能重叠');
+  for(const [id,r] of Object.entries(data.records)){
+    if(!obj(r)||r.id!==id)fail('时间块身份无效');
+    if(r.timeCategory){const b=r.timeCategory,f=t.frames[b.frameId];if(!validBinding(b)||!f||!own(f.members,b.categoryId)||f.members[b.categoryId].color!==b.color||day(r.normalizedTimestamp)<f.start||day(r.normalizedTimestamp)>f.end)fail('时间块与时间帧归属不一致');}
+  }
+  return data;
+}
+function id(t){let v;do{v=randomUUID();}while(t.reservedIds.includes(v));t.reservedIds.push(v);return v;}
+const name = s => {const v=String(s||'').trim();if(!v||v.length>60)fail('名称须为1—60个字符');return v;};
+const rgb = c => [1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255);
+const linear = x => x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4;
+function lab(c){const [r,g,b]=rgb(c).map(linear),l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b);return [.2104542553*l+.793617785*m-.0040720468*s,1.9779984951*l-2.428592205*m+.4505937099*s,.0259040371*l+.7827717662*m-.808675766*s];}
+function hsl(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l);return '#'+[0,8,4].map(n=>{const k=(n+h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))).toString(16).padStart(2,'0');}).join('');}
+let candidateCache;
+function candidates(){
+  if(candidateCache)return candidateCache;
+  const colors=new Map();
+  for(let h=0;h<360;h+=3)for(const l of [38,48,58,68,78])for(const s of [48,64,80]){
+    const color=hsl(h,s,l),value=lab(color),chroma=Math.hypot(value[1],value[2]);
+    // Avoid near-black/white and near-neutral candidates; foreground is chosen separately.
+    if(value[0]>=.42&&value[0]<=.86&&chroma>=.09)colors.set(color,{color,value});
+  }
+  return candidateCache=[...colors.values()];
+}
+function nextColor(members){
+  const used=Object.values(members).map(m=>m.color.toLowerCase());
+  if(!used.length)return '#c95a52';
+  const labs=used.map(lab);let best='',score=-1;
+  for(const {color:c,value:v} of candidates()){if(used.includes(c))continue;const d=Math.min(...labs.map(w=>v.reduce((n,x,i)=>n+(x-w[i])**2,0)));if(d>score){best=c;score=d;}}
+  if(!best)fail('可用自动颜色已用完，请创建下一时间帧');return best;
+}
+function contrast(c){const [r,g,b]=rgb(c).map(linear),l=.2126*r+.7152*g+.0722*b;return (l+.05)/(linear(21/255)+.05)>=1.05/(l+.05)?'#151515':'#ffffff';}
+function change(data, action, expectedRevision){
+  validate(data);if(data.timeFrames.revision!==expectedRevision)fail('配置已被另一窗口修改，请重新打开管理器');
+  const out=copy(data),t=out.timeFrames,f=t.frames[action.frameId];
+  if(action.type==='frame'){
+    const start=day(action.start),end=day(action.end);if(!start||!end||start>end)fail('请输入有效起止日期');
+    if(f){if(start>f.start||end<f.end)fail('已有时间帧只能扩大范围，不能缩小');f.name=name(action.name);f.start=start;f.end=end;}
+    else {const key=id(t);t.frames[key]={id:key,name:name(action.name),start,end,members:{}};}
+  } else if(action.type==='add'){
+    if(!f)fail('请先创建时间帧');let key=action.categoryId;
+    if(key){if(!own(t.categories,key))fail('类别不存在');if(own(f.members,key))fail('此类已加入，请使用恢复按钮');}
+    else{key=id(t);t.categories[key]={id:key,name:name(action.name)};}
+    const color=(action.color||nextColor(f.members)).toLowerCase();if(!hex(color))fail('颜色须为六位HEX');
+    if(Object.values(f.members).some(m=>m.color.toLowerCase()===color))fail('这个颜色已经占用，包括停用类别');
+    f.members[key]={active:true,color};
+  }else if(action.type==='toggle'){
+    if(!f||!own(f.members,action.categoryId))fail('类别不存在');f.members[action.categoryId].active=!f.members[action.categoryId].active;
+  }else if(action.type==='rename'){
+    if(!own(t.categories,action.categoryId))fail('类别不存在');t.categories[action.categoryId].name=name(action.name);
+  }else fail('未知配置操作');
+  t.revision++;return validate(out);
+}
+const validBinding = b => obj(b)&&b.version===1&&typeof b.categoryId==='string'&&typeof b.frameId==='string'&&typeof b.name==='string'&&hex(b.color);
+function bind(data, selection, timestamp, previous){
+  validate(data);const date=day(timestamp);if(!date)fail('记录日期无效');
+  if(!validBinding(selection))fail('请选择时间帧内的类别');
+  const t=data.timeFrames,f=t.frames[selection.frameId],m=f?.members[selection.categoryId];
+  if(!f||!m||date<f.start||date>f.end)fail('日期已跨出原时间帧，请明确重新选择目标帧的类别');
+  if(previous&&JSON.stringify(previous)===JSON.stringify(selection))return copy(previous);
+  if(selection.revision!==t.revision)fail('分类配置已更新，请重新打开记录并选择类别；草稿仍保留');
+  if(!m.active)fail('此类别已停用，请选择其他类别');
+  return {version:1,categoryId:selection.categoryId,frameId:f.id,name:t.categories[selection.categoryId].name,frameName:f.name,color:m.color,revision:t.revision};
+}
+const categoryNameCollator = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
+// Display projections only: preserve stored member order, stable IDs and assigned colors.
+const orderedMembers = (t, f) => Object.entries(f.members).sort(([a], [b]) => categoryNameCollator.compare(t.categories[a].name, t.categories[b].name));
+function choices(data,timestamp){const date=day(timestamp),t=data.timeFrames;return Object.values(t.frames).filter(f=>date&&f.start<=date&&date<=f.end).flatMap(f=>orderedMembers(t,f).filter(([,m])=>m.active).map(([key,m])=>({version:1,frameId:f.id,categoryId:key,name:t.categories[key].name,frameName:f.name,color:m.color,revision:t.revision})));}
+function ui({Modal,Notice,make,clear}){
+  const button=(parent,label,fn,cls='')=>{const b=make(parent,'button',{text:label,cls,attr:{type:'button'}});b.onclick=fn;return b;};
+  const field=(parent,label,value,type='text')=>{const wrap=make(parent,'label',{cls:'mtf-field'});make(wrap,'span',{text:label});const el=make(wrap,'input',{attr:{type}});el.value=value||'';return el;};
+  class Manager extends Modal {
+    constructor(plugin,state){super(plugin.app);this.plugin=plugin;this.state=state;this.data=copy(state.recordsData);this.frameId=Object.keys(this.data.timeFrames.frames).at(-1)||'';}
+    onOpen(){this.modalEl.addClass('mtf-manager');this.draw();}
+    async commit(action){if(this.busy)return;this.busy=true;const controls=[...this.contentEl.querySelectorAll('input,select,button')];controls.forEach(e=>e.disabled=true);
+      try{this.data=await this.plugin.mutateTimeFrame(this.state,action,this.data.timeFrames.revision);if(action.type==='frame'&&!action.frameId)this.frameId=Object.keys(this.data.timeFrames.frames).at(-1);this.draw();}
+      catch(e){new Notice(e.message);}
+      finally{this.busy=false;controls.forEach(e=>e.disabled=false);}
+    }
+    close(){if(this.busy)return;return super.close();}
+    draw(){clear(this.contentEl);const root=this.contentEl;
+      make(root,'div',{cls:'mtf-eyebrow',text:'TIME FRAMES'});make(root,'h2',{text:'时间帧与分类'});
+      make(root,'p',{cls:'mtf-hint',text:'让分类随阶段生长，已经使用的颜色保持原样。'});
+      const nav=make(root,'div',{cls:'mtf-actions'}),select=make(nav,'select',{attr:{'aria-label':'选择时间帧'}});
+      make(select,'option',{text:'新建时间帧',attr:{value:''}});
+      for(const f of Object.values(this.data.timeFrames.frames))make(select,'option',{text:`${f.name} · ${f.start} — ${f.end}`,attr:{value:f.id}});
+      select.value=this.frameId;select.onchange=()=>{this.frameId=select.value;this.draw();};
+      button(nav,'新建时间帧',()=>{this.frameId='';this.draw();});
+      const f=this.data.timeFrames.frames[this.frameId],form=make(root,'div',{cls:'mtf-form'});
+      const title=field(form,'时间帧名称',f?.name||''),start=field(form,'开始',f?.start||new Date().toLocaleDateString('sv-SE'),'date'),end=field(form,'结束',f?.end||start.value,'date');
+      button(root,f?'保存名称与扩展范围':'创建时间帧',()=>this.commit({type:'frame',frameId:this.frameId,name:title.value,start:start.value,end:end.value}),'mod-cta');
+      if(!f){make(root,'p',{cls:'mtf-hint',text:'先建立日期范围，再加入这个阶段的类别。帧与帧之间不重叠。'});return;}
+      make(root,'h3',{text:'本帧配色'});
+      const list=make(root,'div',{cls:'mtf-category-list'});
+      for(const [key,m]of orderedMembers(this.data.timeFrames,f)){
+        const row=make(list,'div',{cls:`mtf-category-row${m.active?'':' is-retired'}`});
+        make(row,'span',{cls:'mtf-swatch',style:`background:${m.color}`});
+        const input=make(row,'input',{attr:{'aria-label':'类别名称',maxlength:'60'}});input.value=this.data.timeFrames.categories[key].name;
+        button(row,'改名',()=>this.commit({type:'rename',categoryId:key,name:input.value}));
+        make(row,'span',{cls:'mtf-hint',text:m.active?m.color:'停用 · 颜色保留'});
+        button(row,m.active?'停用':'恢复',()=>this.commit({type:'toggle',frameId:f.id,categoryId:key}));
+      }
+      if(!Object.keys(f.members).length)make(list,'p',{cls:'mtf-hint',text:'还没有类别。从你现在关心的一件事开始。'});
+      const add=make(root,'div',{cls:'mtf-add'});make(add,'h3',{text:'加入类别'});
+      const existing=make(add,'select',{attr:{'aria-label':'新类别或已有类别'}});make(existing,'option',{text:'创建新类别',attr:{value:''}});
+      for(const c of Object.values(this.data.timeFrames.categories).filter(c=>!own(f.members,c.id)).sort((a,b)=>categoryNameCollator.compare(a.name,b.name)))make(existing,'option',{text:`沿用 · ${c.name}`,attr:{value:c.id}});
+      const n=field(add,'新类别名称',''),color=field(add,'颜色 · 留空自动生成','','text');color.placeholder='#c95a52';
+      const recommendation=make(add,'div',{cls:'mtf-binding-preview'}),suggested=nextColor(f.members);
+      make(recommendation,'span',{cls:'mtf-swatch',style:`background:${suggested}`});make(recommendation,'span',{text:`自动推荐 ${suggested}`});
+      existing.onchange=()=>n.disabled=!!existing.value;
+      button(add,'加入并分配颜色',()=>this.commit({type:'add',frameId:f.id,categoryId:existing.value,name:n.value,color:color.value.trim()}),'mod-cta');
+      make(root,'p',{cls:'mtf-hint',text:'停用只隐藏新录入选项；历史块和颜色保留。改名保持同一身份。颜色确定后，本帧内不再更改。'});
+    }
+  }
+  function selector(modal,parent){
+    const box=make(parent,'div',{cls:'mtf-selector'}),label=make(box,'label',{text:'归属类别'}),sel=make(label,'select',{attr:{'aria-label':'归属类别'}}),preview=make(box,'div',{cls:'mtf-binding-preview'});
+    const redraw=()=>{
+      clear(sel);const options=choices(modal.frameData,modal.time.value);make(sel,'option',{text:options.length?'请选择类别':'此日期暂无可用类别，请先配置时间帧',attr:{value:''}});
+      options.forEach((b,i)=>make(sel,'option',{text:`${b.name} · ${b.frameName}`,attr:{value:String(i)}}));
+      const index=options.findIndex(b=>b.categoryId===modal.category?.categoryId&&b.frameId===modal.category?.frameId);
+      sel.value=index<0?'':String(index);clear(preview);
+      if(modal.category){const b=modal.category;make(preview,'span',{cls:'mtf-swatch',style:`background:${b.color}`});make(preview,'span',{text:`${b.name} · ${b.frameName||'时间帧'}`});
+        const date=day(modal.time.value),f=modal.frameData.timeFrames.frames[b.frameId];if(f&&(date<f.start||date>f.end))make(preview,'strong',{text:'日期跨帧，请重新选择',cls:'mtf-warning'});
+      }
+      sel.onchange=()=>{if(modal.saving||modal.finished||modal.closed||sel.value==='')return;modal.category=options[Number(sel.value)];modal.bindingChanged=true;modal.scheduleDraft();redraw();};
+    };
+    modal.time.addEventListener('change',redraw);modal.time.addEventListener('input',redraw);modal.updateBinding=redraw;redraw();
+    make(box,'p',{cls:'mtf-hint',text:'没有合适的类别？先关闭保留草稿，在主页面「时间帧与分类」中添加。'});
+  }
+  function legend(parent,state){
+    const existing=parent.querySelector('.mtf-legend');if(existing)existing.remove();
+    const box=make(parent,'div',{cls:'mtf-legend'}),t=state.recordsData.timeFrames;if(!t)return;
+    const {start,end}=state.sourceSettings.dateRange;
+    const frames=Object.values(t.frames).filter(f=>(!end||f.start<=end)&&(!start||f.end>=start));
+    if(!frames.length){make(box,'p',{cls:'mtf-hint',text:'从一个时间帧开始：设定日期范围，加入你当前关心的类别。'});return;}
+    for(const f of frames){const row=make(box,'div',{cls:'mtf-legend-frame'});make(row,'strong',{text:f.name});make(row,'span',{cls:'mtf-hint',text:`${f.start} — ${f.end}`});
+      for(const [key,m]of orderedMembers(t,f)){const chip=make(row,'span',{cls:`mtf-chip${m.active?'':' is-retired'}`,attr:{title:m.active?'本帧固定颜色':'已停用，历史颜色保留'}});make(chip,'span',{cls:'mtf-swatch',style:`background:${m.color}`});make(chip,'span',{text:t.categories[key].name+(m.active?'':' · 停用')});}
+    }
+  }
+  return {Manager,selector,legend};
+}
+module.exports={empty,validate,change,bind,choices,validBinding,nextColor,contrast,day,ui,lab,candidates};
+
+return module.exports; })();
+/* TIMEFRAMES_FACTORY_END */
 const fs = require("fs");
 const nodePath = require("path");
 
@@ -1992,7 +2165,7 @@ const dateKeysBetween = (startValue, endValue, maxDays = 370) => {
 };
 const dateSpanDaysInclusive = (startValue, endValue) => dateKeysBetween(startValue, endValue, 10000).length;
 const withDroppedDate = (date, timestamp) => `${date} ${tKey(ts(timestamp)) || tKey(nowStr()) || "09:00"}`;
-const complete = (record) => (!!text(record?.leafNodeId) || timeContextValid(record?.operationalContext)) && Number(record?.durationMin) > 0 && Number(record?.score) >= 1 && Number(record?.score) <= 10;
+const complete = (record) => (TimeFrames.validBinding(record?.timeCategory) || !!text(record?.leafNodeId) || timeContextValid(record?.operationalContext)) && Number(record?.durationMin) > 0 && Number(record?.score) >= 1 && Number(record?.score) <= 10;
 const qText = (value) => text(value).toLowerCase();
 const resolveSearchOption = (options, query) => {
   const keyword = qText(query);
@@ -2680,6 +2853,7 @@ const buildOverviewColorResolver = (records, mandala) => {
   });
   return {
     colorForRecord(record) {
+      if (TimeFrames.validBinding(record.timeCategory)) return { fill: record.timeCategory.color, border: record.timeCategory.color };
       if (timeContextValid(record?.operationalContext)) {
         return colorByContextId.get(timeContextIdentity(record.operationalContext)) || fallbackColorFor("");
       }
@@ -2688,6 +2862,7 @@ const buildOverviewColorResolver = (records, mandala) => {
       return colorByLeafId.get(leafId) || fallbackColorFor(leafId);
     },
     patternForRecord(record) {
+      if (TimeFrames.validBinding(record.timeCategory)) return EMPTY_PATTERN;
       if (timeContextValid(record?.operationalContext)) return EMPTY_PATTERN;
       const leafId = text(record?.leafNodeId);
       return fallbackPatternFor(leafId);
@@ -9218,20 +9393,25 @@ ${rosterDiagnostic(payload.workspaceRosterPartial)}
   }
 }
 
-// Additive time-record identity; historical Mandala bindings remain readable.
+
+let timeFrameUi;
+function getTimeFrameUi() { return timeFrameUi ||= TimeFrames.ui({ Modal, Notice, make, clear }); }
+
+// Legacy identity remains available to other Mandala surfaces.
 const timeContextValid = (c) => c?.version === 1 && ["project", "goal"].includes(c.domain)
   && text(c.nodeKey).startsWith("jump:v1:") && !!text(c.contextKeyId) && !!text(c.label);
 const timeContextIdentity = (c) => timeContextValid(c) ? JSON.stringify([c.domain, c.nodeKey, c.contextKeyId]) : "";
 const timeContextLabel = (c) => timeContextValid(c) ? `${c.domain === "project" ? "项目" : "目标"} · ${c.label}` : "";
 const timeRecordBaseline = (record) => JSON.stringify(record ? [record.normalizedTimestamp, record.durationMin,
-  record.score, record.comment, record.leafNodeId, record.operationalContext, record.updatedAt] : null);
+  record.score, record.comment, record.leafNodeId, record.operationalContext, record.timeCategory, record.updatedAt] : null);
 async function readTimeRecordsStrict(plugin, path) {
   const adapter = plugin.app.vault.adapter;
   const exists = await adapter.exists(path);
-  if (!exists) return { data: { version: 1, records: {} }, exists: false, hash: "" };
+  if (!exists) return { data: TimeFrames.empty(), exists: false, hash: "" };
   const raw = await adapter.read(path), data = JSON.parse(raw);
   if (!data || typeof data !== "object" || Array.isArray(data) || !data.records
     || typeof data.records !== "object" || Array.isArray(data.records)) throw new Error("时间块记录文件格式异常，已阻止覆盖");
+  TimeFrames.validate(data);
   return { data, exists: true, hash: createHash("sha256").update(raw, "utf8").digest("hex") };
 }
 async function timeContextOptions(plugin, domain, scope, readPurpose = "display") {
@@ -9307,13 +9487,13 @@ class RecordModal extends Modal {
     this.sourceNotePath = session.scope || plugin.getPaths().sourceNotePath;
     this.allowIncomplete = session.allowIncomplete === true;
     this.baseline = session.baseline ?? timeRecordBaseline(record);
-    this.context = record?.operationalContext || null; this.bindingChanged = false;
+    this.context = record?.operationalContext || null; this.category = record?.timeCategory || null; this.frameData = session.frameData; this.bindingChanged = false;
     this.draftId = gid(); this.newRecordId = gid(); this.restoredDrafts = new Map(); this.finished = false;
     (plugin.timeRecordEditors ||= new Set()).add(this);
   }
   values() {
     return { normalizedTimestamp: this.time.value, durationMin: this.duration.value, score: this.score.value,
-      comment: this.comment.value, operationalContext: this.context, bindingChanged: this.bindingChanged };
+      comment: this.comment.value, operationalContext: this.context, timeCategory: this.category, bindingChanged: this.bindingChanged };
   }
   changed() { return this.initialValues !== JSON.stringify(this.values()); }
   scheduleDraft() {
@@ -9327,14 +9507,14 @@ class RecordModal extends Modal {
       values: this.values(), newRecordId: this.newRecordId, updatedAt: nowIso() };
     await this.plugin.mutatePluginData("time-record-draft", (latest) => {
       if (this.finished) return latest;
-      latest.timeBlockRecordDrafts = { ...(latest.timeBlockRecordDrafts || {}), [this.draftId]: payload }; return latest;
+      latest.timeFrameRecordDraftsV2 = { ...(latest.timeFrameRecordDraftsV2 || {}), [this.draftId]: payload }; return latest;
     });
   }
   async clearDrafts() {
     await this.plugin.mutatePluginData("time-record-draft-clear", (latest) => {
-      const drafts = { ...(latest.timeBlockRecordDrafts || {}) }; delete drafts[this.draftId];
+      const drafts = { ...(latest.timeFrameRecordDraftsV2 || {}) }; delete drafts[this.draftId];
       for (const [id, snapshot] of this.restoredDrafts) if (JSON.stringify(drafts[id]) === snapshot) delete drafts[id];
-      latest.timeBlockRecordDrafts = drafts; return latest;
+      latest.timeFrameRecordDraftsV2 = drafts; return latest;
     });
   }
   async close() {
@@ -9346,7 +9526,7 @@ class RecordModal extends Modal {
   async commit(result) {
     if (this.saving) return;
     this.saving = true;
-    const controls = Array.from(this.contentEl.querySelectorAll("input,textarea,button"));
+    const controls = Array.from(this.contentEl.querySelectorAll("input,textarea,select,button"));
     controls.forEach((control) => { control.disabled = true; });
     try {
       if (await this.onDone(result, this.baseline, this.newRecordId) === false) return;
@@ -9361,20 +9541,12 @@ class RecordModal extends Modal {
     this.modalEl.addClass("mandala-time-blocks-record-modal");
     Object.assign(this.modalEl.style, { width: "720px", maxWidth: "92vw", maxHeight: "88vh" });
     Object.assign(content.style, { maxHeight: "calc(88vh - 32px)", overflow: "auto" });
-    make(content, "h3", { text: this.record ? "✏️ 修改时间块" : "➕ 新增时间块" });
+    make(content, "h3", { text: this.record ? "编辑记录" : "新增记录" });
     const recovery = make(content, "div");
     const form = make(content, "div", { cls: "mtb-modal-form" });
     make(form, "label", { text: "记录时间" });
     this.time = make(form, "input", { attr: { type: "text", placeholder: DT } }); this.time.value = this.record?.normalizedTimestamp || nowStr();
-    make(form, "label", { text: "有效的操作上下文主键（项目 / 目标）" });
-    const row = make(form, "div", { cls: "mtb-leaf-row" });
-    this.bindingText = make(row, "div", { cls: "mtb-selected-leaf" });
-    this.updateBinding = () => { this.bindingText.textContent = timeContextLabel(this.context) || (this.record?.leafNodeId ? `历史分类 · ${this.record.leafPathSnapshot || this.record.leafTitleSnapshot || this.record.leafNodeId}` : "尚未选择"); };
-    this.updateBinding();
-    make(row, "button", { text: "选择有效主键" }).onclick = () => new TimeContextPickerModal(this.plugin, this.sourceNotePath, (c) => {
-      if (this.finished || this.closed || this.saving) return;
-      this.context = c; this.bindingChanged = true; this.updateBinding(); this.scheduleDraft();
-    }).open();
+    getTimeFrameUi().selector(this, form);
     const meta = make(form, "div", { cls: "mtb-meta-row" });
     const dur = make(meta, "div", { cls: "mtb-meta-col" }); make(dur, "label", { text: "耗时(分钟)" });
     this.duration = make(dur, "input", { attr: { type: "number", min: "1" } }); this.duration.value = this.record?.durationMin ? String(this.record.durationMin) : "";
@@ -9384,12 +9556,12 @@ class RecordModal extends Modal {
     this.comment = make(form, "textarea", { attr: { rows: "8", maxlength: "2000" } }); this.comment.value = this.record?.comment || "";
     this.initialValues = JSON.stringify(this.values());
     for (const input of [this.time, this.duration, this.score, this.comment]) input.addEventListener("input", () => this.scheduleDraft());
-    for (const [id, draft] of Object.entries(this.plugin.settings.timeBlockRecordDrafts || {})) {
+    for (const [id, draft] of Object.entries(this.plugin.settings.timeFrameRecordDraftsV2 || {})) {
       if (draft.version !== 1 || draft.scope !== this.sourceNotePath || draft.recordId !== (this.record?.id || "")) continue;
       make(recovery, "button", { text: `恢复未保存草稿 · ${draft.updatedAt}` }).onclick = () => {
         const v = draft.values; if (!v) return;
         for (const [name, value] of [["time", v.normalizedTimestamp], ["duration", v.durationMin], ["score", v.score], ["comment", v.comment]]) this[name].value = value ?? "";
-        this.context = v.operationalContext; this.bindingChanged = !!v.bindingChanged; this.baseline = draft.baseline;
+        this.context = v.operationalContext; this.category = v.timeCategory || null; this.bindingChanged = !!v.bindingChanged; this.baseline = draft.baseline;
         if (draft.newRecordId) this.newRecordId = draft.newRecordId;
         this.restoredDrafts.set(id, JSON.stringify(draft)); this.updateBinding(); this.scheduleDraft(); clear(recovery);
       };
@@ -9411,9 +9583,9 @@ class RecordModal extends Modal {
       if (!Number.isFinite(durationValue) || durationValue < 0 || (!this.allowIncomplete && durationValue === 0)) return new Notice("请输入正确耗时");
       if (!Number.isFinite(scoreValue) || scoreValue < 0 || scoreValue > 10 || (!this.allowIncomplete && scoreValue < 1)) return new Notice("评分范围应为 1-10");
       if (!text(v.comment)) return new Notice("请输入评论");
-      if (!this.allowIncomplete && !timeContextValid(this.context) && !(this.record?.leafNodeId && !this.bindingChanged)) return new Notice("请选择有效的操作上下文主键");
+      if (!this.allowIncomplete && !TimeFrames.validBinding(this.category)) return new Notice("请选择归属类别");
       await this.commit({ normalizedTimestamp: timeValue, durationMin: durationValue, score: scoreValue, comment: text(v.comment),
-        operationalContext: this.context, bindingChanged: this.bindingChanged, leafNodeId: this.bindingChanged ? "" : this.record?.leafNodeId || "" });
+        timeCategory: this.category, bindingChanged: this.bindingChanged });
     };
   }
   onClose() {
@@ -9455,10 +9627,10 @@ function captureSnapshotMandala() {
 function renderCaptureRows(parent, records, state, plugin, readOnly = false) {
   const table = make(parent, "table", { cls: "mtb-table" });
   const head = make(make(table, "thead"), "tr"), body = make(table, "tbody");
-  ["日期", "时间", "操作上下文 / 历史分类", "评论", "耗时", "评分", ...(readOnly ? [] : ["操作"])].forEach(title => make(head, "th", { text: title }));
+  ["日期", "时间", "类别 / 时间帧", "评论", "耗时", "评分", ...(readOnly ? [] : ["操作"])].forEach(title => make(head, "th", { text: title }));
   for (const record of records) {
     const row = make(body, "tr");
-    const label = timeContextLabel(record.operationalContext) || record.leafPathSnapshot || record.leafTitleSnapshot || "历史分类未记录";
+    const label = record.timeCategory ? `${record.timeCategory.name} · ${record.timeCategory.frameName}` : timeContextLabel(record.operationalContext) || record.leafPathSnapshot || record.leafTitleSnapshot || "历史分类未记录";
     [dKey(record.normalizedTimestamp) || "日期待核对", tKey(record.normalizedTimestamp), label, record.comment || "", `${record.durationMin || 0}m`, String(record.score || "")]
       .forEach(value => make(row, "td", { text: value }));
     if (!readOnly) make(make(row, "td"), "button", { text: "编辑" }).onclick = () => plugin.editRecord(state.recordsData.records[record.id], state).catch(e => new Notice(e.message));
@@ -9468,7 +9640,7 @@ function renderCaptureDetails(section, state, plugin) {
   let details = section.querySelector(".mtb-details");
   if (!details) {
     details = make(section, "details", { cls: "mtb-details" });
-    make(details, "summary", { text: "📋 详细记录表" });
+    make(details, "summary", { text: "记录明细" });
     details._body = make(details, "div");
     details._page = 0;
   }
@@ -9542,7 +9714,7 @@ class TimeCaptureView extends ItemView {
   draftKey() { return JSON.stringify([this.sourceNotePath, this.captureId]); }
   getDraft() {
     if (!this.draft) {
-      const drafts = this.plugin.settings.timeCaptureDrafts || {};
+      const drafts = this.plugin.settings.timeFrameQuickDraftsV2 || {};
       this.draft = clone(drafts[this.draftKey()], null);
       if (!this.draft) {
         const claimed = new Set(Array.from(this.plugin.captureViews || []).filter(v => v !== this && !v.closed).flatMap(v => [v.draftKey(), v.recoveredDraft?.key]));
@@ -9569,10 +9741,10 @@ class TimeCaptureView extends ItemView {
     if (!this.draftDirty) return;
     const key = this.draftKey(), snapshot = { ...this.getDraft() }, serialized = JSON.stringify(snapshot), recovery = this.recoveredDraft;
     await this.plugin.mutatePluginData("capture-draft", latest => {
-      latest.timeCaptureDrafts = { ...(latest.timeCaptureDrafts || {}) };
-      if (snapshot.comment) latest.timeCaptureDrafts[key] = snapshot;
-      else delete latest.timeCaptureDrafts[key];
-      if (recovery && recovery.key !== key && JSON.stringify(latest.timeCaptureDrafts[recovery.key]) === recovery.snapshot) delete latest.timeCaptureDrafts[recovery.key];
+      latest.timeFrameQuickDraftsV2 = { ...(latest.timeFrameQuickDraftsV2 || {}) };
+      if (snapshot.comment) latest.timeFrameQuickDraftsV2[key] = snapshot;
+      else delete latest.timeFrameQuickDraftsV2[key];
+      if (recovery && recovery.key !== key && JSON.stringify(latest.timeFrameQuickDraftsV2[recovery.key]) === recovery.snapshot) delete latest.timeFrameQuickDraftsV2[recovery.key];
       return latest;
     });
     if (key === this.draftKey() && serialized === JSON.stringify(this.draft)) this.draftDirty = false;
@@ -9580,7 +9752,7 @@ class TimeCaptureView extends ItemView {
   publishRecords(data) {
     if (this.closed || !this.isSourceCurrent() || !this.liveState) return;
     this.generation += 1;
-    Object.assign(this.liveState, captureProjection(data));
+    Object.assign(this.liveState, { recordsData: data, archivedRecords: [] });
     this.localDirty = true;
   }
   publishRange(settings) {
@@ -9617,11 +9789,11 @@ class TimeCaptureView extends ItemView {
       this.getDraft();
       clear(this.contentEl);
       const toolbar = make(this.contentEl, "div", { cls: "mtb-inline-row mtb-capture-toolbar" });
-      make(toolbar, "strong", { text: "⏱ 时间块记录" });
+      make(toolbar, "strong", { text: "时间帧" });
       make(toolbar, "button", { text: "刷新" }).onclick = () => this.refresh();
       make(toolbar, "button", { text: "保存草稿", attr: { title: "快速记录未提交内容会自动保留；保存失败时可在此重试" } }).onclick = () => this.flushDraft().catch(e => this.showDraftFailure(e));
-      this.plugin.renderQuick(this.contentEl, state, focus);
       this.plugin.renderControls(this.contentEl, state);
+      this.plugin.renderQuick(this.contentEl, state, focus);
       this.pendingEl = make(this.contentEl, "div");
       this.overviewEl = make(this.contentEl, "div");
       this.plugin.renderPending(this.pendingEl, state);
@@ -10717,8 +10889,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
         structuredFieldDraftStore: latestDrafts,
         dailyLessonOntologyRecoveryStore: latestOntologyRecovery,
         longitudinalOntologyRecoveryStore: latestLongitudinalOntologyRecovery,
-        timeBlockRecordDrafts: latest.timeBlockRecordDrafts || {},
-        timeCaptureDrafts: latest.timeCaptureDrafts || {},
+        timeFrameRecordDraftsV2: latest.timeFrameRecordDraftsV2 || {},
+        timeFrameQuickDraftsV2: latest.timeFrameQuickDraftsV2 || {},
         dailyViewDrafts: latest.dailyViewDrafts || {},
         weeklyViewDrafts: latest.weeklyViewDrafts || {},
       });
@@ -14157,6 +14329,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       longitudinalOntology: join(sourceFolder, MANDALA_LONGITUDINAL_ONTOLOGY_FILE),
       dailyScores: join(sourceFolder, MANDALA_DAILY_SCORES_FILE),
       records: join(sourceFolder, RECORDS_FILE),
+      captureRecords: join(sourceFolder, "MandalaTimeBlocks_TimeFrames.json"),
       settings: join(sourceFolder, SETTINGS_FILE),
       migration: join(sourceFolder, MIGRATION_FILE),
       legacy: join(sourceFolder, LEGACY_FILE),
@@ -22275,7 +22448,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   assertCaptureSource(state) {
-    if (this.isUnloading || !state?.paths?.sourceNotePath || state.paths.sourceNotePath !== this.getPaths().sourceNotePath || state.paths.records !== this.getPaths().records) throw new Error("时间块来源已切换，请重新打开后再操作");
+    if (this.isUnloading || !state?.paths?.sourceNotePath || state.paths.sourceNotePath !== this.getPaths().sourceNotePath || state.paths.records !== this.getPaths().captureRecords) throw new Error("时间块来源已切换，请重新打开后再操作");
     if (state.captureHost?.closed) throw new Error("时间块页面已关闭");
   }
 
@@ -22285,13 +22458,12 @@ class MandalaTimeBlocksPlugin extends Plugin {
     return note ? { ok: true, paths } : { ok: false, code: "source-note-not-found", message: "未找到时间块来源笔记，请检查插件设置。" };
   }
   async loadCaptureState(source) {
-    const paths = { ...this.getPaths() };
+    const paths = { ...this.getPaths(), records: this.getPaths().captureRecords };
     if (source !== paths.sourceNotePath) throw new Error("时间块来源不匹配");
     const [settings, evidence] = await Promise.all([this.loadSourceSettings(false), readTimeRecordsStrict(this, paths.records)]);
-    const dateRange = { ...settings.dateRange };
-    dateRange.start = dateRange.start && dateRange.start >= CAPTURE_ARCHIVE_BEFORE ? dateRange.start : CAPTURE_ARCHIVE_BEFORE;
-    if (dateRange.end && dateRange.end < dateRange.start) dateRange.end = dateRange.start;
-    const state = { paths, sourceSettings: { ...settings, dateRange }, ...captureProjection(evidence.data), mandala: captureSnapshotMandala() };
+    const today = new Date().toLocaleDateString("sv-SE");
+    const dateRange = settings.timeFrameDateRange ? { ...settings.timeFrameDateRange } : { start: today, end: today };
+    const state = { paths, sourceSettings: { ...settings, dateRange }, recordsData: evidence.data, archivedRecords: [], mandala: captureSnapshotMandala() };
     this.assertCaptureSource(state); return state;
   }
   publishCaptureCommit(state, data) {
@@ -22316,9 +22488,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
       this.assertCaptureSource(state);
       const evidence = await readTimeRecordsStrict(this, state.paths.records);
       this.assertCaptureSource(state);
-      const before = clone(evidence.data.records, {});
       mutate(evidence.data.records);
-      assertCaptureArchiveUnchanged(before, evidence.data.records);
+      TimeFrames.validate(evidence.data);
       await this.writeJsonSafely(state.paths.records, evidence.data, {
         expectedTargetExists: evidence.exists, expectedTargetHash: evidence.hash,
         assertCanPublish: () => this.assertCaptureSource(state),
@@ -22329,9 +22500,28 @@ class MandalaTimeBlocksPlugin extends Plugin {
     return operation;
   }
 
+  async mutateTimeFrame(state, action, expectedRevision) {
+    this.assertCaptureSource(state);
+    const previous = this.timeRecordMutationQueue || Promise.resolve();
+    const operation = previous.catch(() => undefined).then(async () => {
+      this.assertCaptureSource(state);
+      const evidence = await readTimeRecordsStrict(this, state.paths.records);
+      const data = TimeFrames.change(evidence.data, action, expectedRevision);
+      const txId = gid();
+      console.info("[MandalaTimeBlocks][timeframe.start]", { txId, action: action.type });
+      await this.writeJsonSafely(state.paths.records, data, { expectedTargetExists: evidence.exists, expectedTargetHash: evidence.hash,
+        assertCanPublish: () => this.assertCaptureSource(state) });
+      console.info("[MandalaTimeBlocks][timeframe.summary]", { txId, outcome: "committed", revision: data.timeFrames.revision });
+      state.recordsData = data; this.publishCaptureCommit(state, data);
+      try { await this.refreshTimeCapture(state); } catch (_) { new Notice("配置已保存，请刷新页面"); }
+      return data;
+    });
+    this.timeRecordMutationQueue = operation.catch(() => undefined); return operation;
+  }
+
   async saveCaptureRange(state, dateRange) {
     this.assertCaptureSource(state);
-    if (!captureDate({ normalizedTimestamp: dateRange.start }) || dateRange.start < CAPTURE_ARCHIVE_BEFORE || !captureDate({ normalizedTimestamp: dateRange.end }) || dateRange.end < dateRange.start) throw new Error("展示范围须从2026年9月15日或以后开始，结束日期不得早于开始日期");
+    if (!TimeFrames.day(dateRange.start) || !TimeFrames.day(dateRange.end) || dateRange.end < dateRange.start) throw new Error("请输入有效的浏览起止日期");
     const previous = this.captureSettingsQueue || Promise.resolve();
     const operation = previous.catch(() => undefined).then(async () => {
       this.assertCaptureSource(state);
@@ -22339,13 +22529,13 @@ class MandalaTimeBlocksPlugin extends Plugin {
       const exists = await adapter.exists(target), raw = exists ? await adapter.read(target) : null;
       const latest = raw === null ? clone(DEFAULT_SOURCE_SETTINGS, {}) : JSON.parse(raw);
       if (!latest || typeof latest !== "object" || Array.isArray(latest)) throw new Error("时间块设置格式异常");
-      latest.dateRange = { ...dateRange };
+      latest.timeFrameDateRange = { ...dateRange };
       this.assertCaptureSource(state);
       await this.writeJsonSafely(target, latest, {
         expectedTargetExists: exists, expectedTargetHash: raw === null ? null : createHash("sha256").update(raw, "utf8").digest("hex"),
         assertCanPublish: () => this.assertCaptureSource(state),
       });
-      try { state.captureHost?.publishRange(latest); } catch (error) { console.error("[MandalaTimeBlocks][capture-range-publication]", error); }
+      try { state.captureHost?.publishRange({ ...latest, dateRange: latest.timeFrameDateRange }); } catch (error) { console.error("[MandalaTimeBlocks][capture-range-publication]", error); }
     });
     this.captureSettingsQueue = operation.catch(() => undefined);
     return operation;
@@ -25227,8 +25417,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
   renderQuick(parent, state, focus) {
     const host = state.captureHost;
     const section = make(parent, "section", { cls: "mtb-section mtb-quick" });
-    make(section, "h3", { text: "🧠 快速记录" });
-    make(section, "p", { cls: "mtb-muted", text: "先把内容记下来，之后在待整理区补有效主键、耗时和评分。" });
+    make(section, "h3", { text: "随手记" });
+    make(section, "p", { cls: "mtb-muted", text: "先记下当下，稍后补上类别、时长和评分。" });
     const row = make(section, "div", { cls: "mtb-inline-row" });
     make(row, "span", { text: "时间" });
     const time = make(row, "input", { attr: { type: "text", placeholder: DT } });
@@ -25240,7 +25430,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const now = make(row, "button", { text: "现在" });
     now.onclick = () => { time.value = nowStr(); changed(); };
     const actions = make(section, "div", { cls: "mtb-section-actions" });
-    const submit = make(actions, "button", { cls: "mod-cta", text: "➕ 先记下来" });
+    const submit = make(actions, "button", { cls: "mod-cta", text: "存入待整理" });
     let busy = false, recordId = host?.getDraft().recordId || gid();
     submit.onclick = async () => {
       if (busy) return;
@@ -25278,12 +25468,12 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
   renderControls(parent, state) {
     const section = make(parent, "section", { cls: "mtb-section" });
-    make(section, "h3", { text: "📅 视图与完整录入" });
+    make(section, "h3", { text: "" });
     const row = make(section, "div", { cls: "mtb-inline-row mtb-wrap" });
-    make(row, "span", { text: "展示范围" });
-    const start = make(row, "input", { attr: { type: "date", min: CAPTURE_ARCHIVE_BEFORE } }); start.value = state.sourceSettings.dateRange.start;
+    make(row, "span", { text: "浏览日期" });
+    const start = make(row, "input", { attr: { type: "date" } }); start.value = state.sourceSettings.dateRange.start;
     const end = make(row, "input", { attr: { type: "date" } }); end.value = state.sourceSettings.dateRange.end;
-    const save = make(row, "button", { text: "保存范围" });
+    const save = make(row, "button", { text: "应用" });
     save.onclick = async () => {
       if (save.disabled) return;
       if (start.value && end.value && start.value > end.value) return new Notice("开始日期不能晚于结束日期");
@@ -25291,11 +25481,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
       try {
         await this.saveCaptureRange(state, { start: start.value || DEFAULT_SOURCE_SETTINGS.dateRange.start, end: end.value || DEFAULT_SOURCE_SETTINGS.dateRange.end });
         await this.refreshTimeCapture(state);
-      } catch (error) { new Notice(`保存范围失败：${error.message}`); }
+      } catch (error) { new Notice(`应用失败：${error.message}`); }
       finally { save.disabled = false; }
     };
-    make(row, "button", { cls: "mod-cta", text: "🧩 完整录入一条" }).onclick = () => this.editRecord(null, state).catch(error => new Notice(error.message));
-    make(row, "button", { text: "历史封存 · 只读" }).onclick = () => new CaptureHistoryModal(this, state).open();
+    make(row, "button", { cls: "mod-cta", text: "新增记录" }).onclick = () => this.editRecord(null, state).catch(error => new Notice(error.message));
+    make(row, "button", { text: "时间帧与分类" }).onclick = () => new (getTimeFrameUi().Manager)(this, state).open();
   }
 
   renderPending(parent, state) {
@@ -25304,7 +25494,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       .sort((a, b) => text(b.normalizedTimestamp).localeCompare(text(a.normalizedTimestamp)));
     if (!pending.length) return;
     const section = make(parent, "section", { cls: "mtb-section mtb-pending" });
-    make(section, "h3", { text: `🧾 待整理记录 (${pending.length})` });
+    make(section, "h3", { text: `待整理 (${pending.length})` });
     make(section, "div", {
       cls: "mtb-muted",
       text: "这些记录还没补有效主键、耗时和评分。可以直接点“补全”，也可以拖到下方日期列后再补全。",
@@ -26282,13 +26472,14 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const section = parent.querySelector(".mtb-overview") || make(parent, "section", { cls: "mtb-section mtb-overview" });
     const records = this.filteredRecords(state);
     const overviewColors = buildOverviewColorResolver(records, state.mandala);
+    getTimeFrameUi().legend(section, state);
     let heading = section.querySelector("h3");
     if (!heading) heading = make(section, "h3");
-    heading.textContent = `📊 每日颜色块总览 (${records.length})`;
+    heading.textContent = `时间分布 (${records.length})`;
     const pendingCount = Object.values(state.recordsData.records).filter((record) => !complete(record)).length;
     section.querySelector(".mtb-muted")?.remove();
     if (pendingCount) {
-      make(section, "p", { cls: "mtb-muted", text: "待整理记录可以直接拖到某一天的日期列，再继续补全有效主键、耗时和评分。" });
+      make(section, "p", { cls: "mtb-muted", text: "待整理记录可以直接拖到某一天的日期列，再补全类别、时长和评分。" });
     }
     const byDate = new Map();
     records.forEach((record) => {
@@ -26304,7 +26495,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     }
     const chart = section.querySelector(".mtb-chart") || make(section, "div", { cls: "mtb-chart" });
     for (const old of Array.from(chart.children)) if (!days.includes(old.getAttribute("data-drop-date"))) old.remove();
-    const palette = JSON.stringify(Array.from(new Set(records.map(r => timeContextIdentity(r.operationalContext)).filter(Boolean))).sort());
+    const palette = JSON.stringify(state.recordsData.timeFrames || {});
     const maxBlocksPerDay = days.reduce((max, date) => Math.max(max, (byDate.get(date) || []).length), 0);
     const dynamicMinHeight = Math.max(280, maxBlocksPerDay * 68 + 64);
     days.forEach((date) => {
@@ -26326,15 +26517,17 @@ class MandalaTimeBlocksPlugin extends Plugin {
       dayRecords.forEach((record) => {
           const color = overviewColors.colorForRecord(record);
           const pattern = overviewColors.patternForRecord(record);
-          const title = timeContextLabel(record.operationalContext) || state.mandala.nodeById[record.leafNodeId]?.title || record.leafTitleSnapshot || "失效叶子";
+          const title = record.timeCategory?.name || timeContextLabel(record.operationalContext) || state.mandala.nodeById[record.leafNodeId]?.title || record.leafTitleSnapshot || "失效叶子";
           const block = make(col, "button", {
             cls: "mtb-time-block",
             attr: { title: `${record.normalizedTimestamp} | ${title}\n${record.comment}` },
             style: `--mtb-fill:${color.fill}; --mtb-border:${color.border}; --mtb-pattern-image:${pattern.image}; --mtb-pattern-size:${pattern.size}; --mtb-pattern-position:${pattern.position}; --mtb-pattern-ink:${pattern.ink}; background-color:var(--mtb-fill); border-color:var(--mtb-border);`,
           });
-          make(block, "span", { cls: "mtb-block-score", text: String(record.score) });
-          const shortTitle = timeContextValid(record.operationalContext) ? record.operationalContext.label : title;
-          make(block, "span", { cls: "mtb-block-title", text: shortTitle.length > 4 ? `${shortTitle.slice(0, 4)}…` : shortTitle });
+          make(block, "span", { cls: "mtb-block-score", text: `评分 ${record.score}` });
+          const shortTitle = title;
+          if (record.timeCategory) block.style.color = TimeFrames.contrast(record.timeCategory.color);
+          make(block, "span", { cls: "mtb-block-title", text: shortTitle });
+          make(block, "span", { cls: "mtf-block-meta", text: `${tKey(record.normalizedTimestamp)} · ${record.durationMin} 分钟` });
           block.onclick = () => this.editRecord(record, state).catch(error => new Notice(error.message));
         });
       const total = dayRecords.reduce((sum, item) => sum + Number(item.durationMin || 0), 0);
@@ -26385,26 +26578,20 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   async editRecord(record, currentState, options = {}) {
-    if (currentState) this.assertCaptureSource(currentState);
-    const paths = { ...this.getPaths() };
-    const mandala = currentState?.mandala || (await this.loadMandala());
+    if (!currentState || currentState.paths?.records !== this.getPaths().captureRecords) throw new Error("请从新版时间帧页面录入；旧记录不接入新系统");
+    this.assertCaptureSource(currentState);
+    const paths = { ...this.getPaths(), records: this.getPaths().captureRecords };
+    const mandala = currentState.mandala;
     const original = currentState?.recordsData?.records?.[record?.id]
       || (record?.id ? (await readTimeRecordsStrict(this, paths.records)).data.records[record.id] : null);
-    if (captureArchived(original) || captureArchived(record)) throw new Error("此时间块已封存，只能查看");
+    if (record?.id && !original) throw new Error("新时间帧中不存在此记录，未导入旧数据");
     const baseline = timeRecordBaseline(original);
     const modal = new RecordModal(this, mandala, record, async (result, expectedBaseline, newRecordId) => {
       if (!result) return false;
       const previous = this.timeRecordMutationQueue || Promise.resolve();
       const operation = previous.catch(() => undefined).then(async () => {
         if (currentState) this.assertCaptureSource(currentState);
-        if (this.getPaths().records !== paths.records || this.getPaths().sourceNotePath !== paths.sourceNotePath) throw new Error("源笔记已切换，请回到原页面再保存");
-        if (!result.__delete && (result.bindingChanged || !record?.id)) {
-          if (!timeContextValid(result.operationalContext)) throw new Error("请选择有效主键");
-          const candidates = await timeContextOptions(this, result.operationalContext.domain, paths.sourceNotePath, "operation-check");
-          const fresh = candidates.find((c) => timeContextIdentity(c) === timeContextIdentity(result.operationalContext));
-          if (!fresh) throw new Error("该主键已不再有效，请重新选择；输入内容已保留");
-          result.operationalContext = fresh;
-        }
+        if (this.getPaths().captureRecords !== paths.records || this.getPaths().sourceNotePath !== paths.sourceNotePath) throw new Error("源笔记已切换，请回到原页面再保存");
         const evidence = await readTimeRecordsStrict(this, paths.records);
         const records = evidence.data;
         const before = clone(records.records, {});
@@ -26415,21 +26602,19 @@ class MandalaTimeBlocksPlugin extends Plugin {
           delete records.records[record.id];
         } else {
           const id = record?.id || newRecordId;
-          const binding = result.bindingChanged || !latest ? {
-            operationalContext: { ...result.operationalContext }, leafNodeId: "", leafTitleSnapshot: "", leafPathSnapshot: "",
-            branchChain: [], colorToken: "", emojiSnapshot: "",
-          } : {};
+          const binding = { timeCategory: result.timeCategory ? TimeFrames.bind(records, result.timeCategory, result.normalizedTimestamp, latest?.timeCategory) : null };
+          if (!binding.timeCategory && (latest?.timeCategory || !options.allowIncomplete)) throw new Error("请选择归属类别");
           records.records[id] = Object.assign({}, latest || {}, binding, {
             id, normalizedTimestamp: result.normalizedTimestamp, durationMin: result.durationMin,
             score: result.score, comment: result.comment, source: latest?.source || "manual",
             createdAt: latest?.createdAt || nowIso(), updatedAt: nowIso(),
           });
         }
-        assertCaptureArchiveUnchanged(before, records.records);
-        if (this.isUnloading || this.getPaths().records !== paths.records || this.getPaths().sourceNotePath !== paths.sourceNotePath) throw new Error("源笔记已切换或插件正在卸载");
+        TimeFrames.validate(records);
+        if (this.isUnloading || this.getPaths().captureRecords !== paths.records || this.getPaths().sourceNotePath !== paths.sourceNotePath) throw new Error("源笔记已切换或插件正在卸载");
         await this.writeJsonSafely(paths.records, records, {
           expectedTargetExists: evidence.exists, expectedTargetHash: evidence.hash,
-          assertCanPublish: () => { if (currentState) this.assertCaptureSource(currentState); if (this.isUnloading || this.getPaths().records !== paths.records || this.getPaths().sourceNotePath !== paths.sourceNotePath) throw new Error("源笔记已切换或插件正在卸载"); },
+          assertCanPublish: () => { if (currentState) this.assertCaptureSource(currentState); if (this.isUnloading || this.getPaths().captureRecords !== paths.records || this.getPaths().sourceNotePath !== paths.sourceNotePath) throw new Error("源笔记已切换或插件正在卸载"); },
         });
         this.publishCaptureCommit(currentState, records);
         return true;
@@ -26441,7 +26626,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       try { await this.refreshTimeCapture(currentState); }
       catch (error) { console.error("[MandalaTimeBlocks][time-record.refresh-failed]", error); new Notice("记录已保存，页面刷新失败，请重新打开回顾"); }
       return true;
-    }, { scope: paths.sourceNotePath, baseline, allowIncomplete: options.allowIncomplete === true && !!record && !complete(record) });
+    }, { scope: paths.sourceNotePath, baseline, frameData: currentState.recordsData, allowIncomplete: options.allowIncomplete === true && !!record && !complete(record) });
     modal.open();
     return modal;
   }
