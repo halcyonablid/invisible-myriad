@@ -8,8 +8,20 @@
 
 .tf-view {
   padding: 0;
+  min-height: 0;
+  height: 100%;
   overflow: auto;
 }
+
+.tf-outcome-keywords { grid-column: 1 / -1; min-width: 0; display: grid; gap: 6px; padding: 8px; border-top: 1px solid var(--tf-border); }
+.tf-keyword-heading, .tf-keyword-mount { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tf-keyword-label { flex: 1 1 100px; overflow-wrap: anywhere; font-size: 12px; }
+.tf-card-milestone { margin: 4px 0; padding: 4px 6px; border-left: 2px solid var(--tf-amber); color: var(--text-muted); font-size: 11px; overflow-wrap: anywhere; }
+.tf-direction-description { margin: 4px 10px; color: var(--text-muted); white-space: pre-wrap; }
+.tf-recovery-row { margin: 8px 0; padding: 10px; border: 1px solid var(--tf-border); border-radius: 6px; }
+.tf-recovery-row small { display: block; }
+.tf-retained-draft { width: 100%; min-height: 180px; margin: 8px 0; }
+.tf-outcome-card .tf-keyword-mount .tf-button { font-size: 10px; padding: 2px 5px; }
 
 .tf-shell { min-width: min(100%, 760px); color: var(--text-normal); }
 .tf-topbar { position: sticky; top: 0; z-index: 20; min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--tf-border); background: var(--background-primary); }
@@ -155,7 +167,7 @@
 .theme-dark .tf-source-badge.is-goal { color: #f4c47d; background: #51341d; }
 .theme-dark .tf-source-badge.is-project { color: #9dcaee; background: #203e57; }
 .tf-membership-card > .tf-outcome-card + .tf-outcome-card { margin-top: 6px; }
-.tf-overview-tree-viewport { position: relative; min-width: 0; max-width: 100%; overflow: auto; overscroll-behavior: contain; contain: inline-size paint; border: 1px solid color-mix(in srgb, var(--tf-blue) 28%, var(--tf-border)); border-radius: 7px; background-color: var(--background-secondary-alt); background-image: linear-gradient(to right, color-mix(in srgb, var(--tf-border) 34%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--tf-border) 34%, transparent) 1px, transparent 1px); background-size: 24px 24px; }
+.tf-overview-tree-viewport { position: relative; min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; overscroll-behavior-y: auto; contain: inline-size; border: 1px solid color-mix(in srgb, var(--tf-blue) 28%, var(--tf-border)); border-radius: 7px; background-color: var(--background-secondary-alt); background-image: linear-gradient(to right, color-mix(in srgb, var(--tf-border) 34%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--tf-border) 34%, transparent) 1px, transparent 1px); background-size: 24px 24px; }
 .tf-overview-tree-canvas { box-sizing: border-box; width: max-content; min-width: 100%; min-height: 120px; padding: 22px; }
 .tf-overview-tree-virtual-root, .tf-overview-tree-branch { display: flex; align-items: center; }
 .tf-overview-tree-root-label { position: relative; flex: 0 0 auto; width: 126px; min-height: 48px; display: grid; place-content: center; gap: 2px; padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--tf-blue) 52%, var(--tf-border)); border-radius: 7px; background: color-mix(in srgb, var(--tf-blue) 10%, var(--background-primary)); color: var(--text-normal); text-align: center; }

@@ -1,8 +1,8 @@
 {
   "format": "obsidian-vault-backup-v1",
-  "captured_at": "2026-10-28T22:19:19.298318+08:00",
+  "captured_at": "2026-10-29T11:40:18.290678+08:00",
   "count": 4312,
-  "bytes": 210678676,
+  "bytes": 210626247,
   "directories": [
     ".",
     ".obsidian",
@@ -21572,18 +21572,18 @@
     },
     {
       "path": ".obsidian/plugins/temporal-framework/main.js",
-      "bytes": 388338,
-      "sha256": "b6b11a72d91d117cdada69c4d78ffc0177f0b2704d32192b133ced4e285db171"
+      "bytes": 334928,
+      "sha256": "2827d53d9bf7510abcd79cc35be381d981dfef85ab982cd5f88949da3b860203"
     },
     {
       "path": ".obsidian/plugins/temporal-framework/manifest.json",
-      "bytes": 267,
-      "sha256": "78c5e097ab62ea2a28730c64d7c0369cb786005140649d24674b1d9ca2529f70"
+      "bytes": 263,
+      "sha256": "30938db1cd95fdd9a676da97e9ca19ad0fb6553df860bb04959dd7d7428fe705"
     },
     {
       "path": ".obsidian/plugins/temporal-framework/styles.css",
-      "bytes": 59039,
-      "sha256": "430e6efe5bd7ac5208cb7d86b5c585e0f321d5197598965ffdd97ebeb0acdd31"
+      "bytes": 60024,
+      "sha256": "1420a2209c17356d9e857fccddf67819d1dc5c7c88a0c9aaf0a140f944084ca5"
     },
     {
       "path": ".obsidian/plugins/timeline-planner/data.json",

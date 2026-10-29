@@ -209,269 +209,10 @@ var DraftStore = class {
   }
 };
 
-// src/mandala-bridge.mjs
-var text = (value, fallback = "") => String(value ?? fallback).trim();
-function isUsablePlanningTarget(target = {}) {
-  if (text(target.status, "active") === "stopped") return false;
-  const label = text(target.label || target.itemName || target.name);
-  if (!label || label === "\u5DF2\u5220\u9664") return false;
-  if (/^item_[a-z0-9]+$/i.test(label)) return false;
-  if (/^[a-z0-9]{10,}$/i.test(label)) return false;
-  return true;
-}
-function isWorkspaceJumpNodeKey(value) {
-  const raw = text(value);
-  if (!raw.startsWith("jump:v1:")) return false;
-  const segments = raw.slice("jump:v1:".length).split("|");
-  if (segments.length !== 5) return false;
-  try {
-    const decoded = segments.map((segment) => decodeURIComponent(segment).trim());
-    return decoded.every(Boolean) && decoded[0] === "workspace-mount-view";
-  } catch (_) {
-    return false;
-  }
-}
-function isMandalaGoalJumpNodeKey(value) {
-  const raw = text(value);
-  if (!raw.startsWith("jump:v1:")) return false;
-  const segments = raw.slice("jump:v1:".length).split("|");
-  if (segments.length !== 5) return false;
-  try {
-    const decoded = segments.map((segment) => decodeURIComponent(segment).trim());
-    return decoded.every(Boolean) && decoded[0] === "mandala-time-blocks" && decoded[2] === "node" && decoded[3] === "mandala";
-  } catch (_) {
-    return false;
-  }
-}
-function malformedEffectiveSnapshot(reason) {
-  const error = new Error(`Mandala \u8FD4\u56DE\u4E86\u7578\u5F62\u7684\u6709\u6548\u64CD\u4F5C\u4E0A\u4E0B\u6587\u4E3B\u952E\u5FEB\u7167\uFF1A${reason}`);
-  error.code = "EFFECTIVE_OPERATIONAL_CONTEXT_SNAPSHOT_MALFORMED";
-  return error;
-}
-function validateEffectiveOperationalContextSnapshot(snapshot = {}, options = {}) {
-  const domain = text(options.domain, "project");
-  const expectedType = domain === "goal" ? "mandala-effective-goal-operational-context-keys-v1" : "mandala-effective-operational-context-keys-v1";
-  const targets = Array.isArray(snapshot?.targets) ? snapshot.targets : null;
-  const count = Number(snapshot?.count);
-  const returnedCount = Number(snapshot?.returnedCount);
-  const totalCount = Number(snapshot?.totalCount);
-  const limit = Number(snapshot?.limit);
-  const generatedAt = text(snapshot?.generatedAt);
-  const sourceScope = text(snapshot?.sourceScope);
-  const sourceNotePath = text(snapshot?.sourceNotePath);
-  if (snapshot?.ok !== true || snapshot?.complete !== true || Number(snapshot?.contractVersion) !== 1 || text(snapshot?.snapshotType) !== expectedType || snapshot?.truncated === true || snapshot?.hasMore === true || !targets || !text(snapshot?.revision) || !text(snapshot?.providerGeneration || snapshot?.instanceId) || !generatedAt || !Number.isFinite(Date.parse(generatedAt)) || !sourceScope || sourceScope !== sourceNotePath || !Array.isArray(snapshot?.diagnostics) || count !== targets.length || returnedCount !== targets.length || !Number.isInteger(totalCount) || totalCount < count || !Number.isInteger(limit) || limit < totalCount || limit > 500) throw malformedEffectiveSnapshot("envelope");
-  const seen = /* @__PURE__ */ new Set();
-  targets.forEach((target) => {
-    const sourceKey = text(target?.sourceKey);
-    const aliases = Array.isArray(target?.aliases) ? target.aliases.map((value) => text(value)) : [];
-    const contextKey = target?.contextKey;
-    if (text(target?.sourcePlugin) !== "mandala-time-blocks" || text(target?.domain) !== domain || text(target?.sourceType) !== domain || text(target?.sourceScope) !== sourceScope || text(target?.sourceNotePath) !== sourceNotePath || Number(target?.identityVersion) !== 1 || !(domain === "goal" ? isMandalaGoalJumpNodeKey(sourceKey) : isWorkspaceJumpNodeKey(sourceKey)) || text(target?.sourceId) !== sourceKey || text(target?.nodeId) !== sourceKey || text(target?.status) !== "active" || target?.active !== true || text(target?.lifecycleState) !== "active" || !isUsablePlanningTarget(target) || !text(target?.label) || !text(target?.pathLabel) || !Number.isFinite(Number(target?.order)) || aliases.length === 0 || aliases.some((alias) => !alias) || new Set(aliases).size !== aliases.length || !aliases.includes(sourceKey) || !contextKey || !text(contextKey?.contextKeyId) || !text(contextKey?.address) || !text(contextKey?.canonicalLabel) || !text(contextKey?.displayLabel) || text(target?.evidenceRevision) !== text(snapshot?.revision)) throw malformedEffectiveSnapshot("target");
-    if (seen.has(sourceKey)) throw malformedEffectiveSnapshot("duplicate-owner");
-    seen.add(sourceKey);
-  });
-  return targets;
-}
-function validateEffectiveOperationalContextSnapshots(projectSnapshot = {}, goalSnapshot = {}) {
-  const projectTargets = validateEffectiveOperationalContextSnapshot(projectSnapshot, { domain: "project" });
-  const goalTargets = validateEffectiveOperationalContextSnapshot(goalSnapshot, { domain: "goal" });
-  const seen = /* @__PURE__ */ new Set();
-  return [...projectTargets, ...goalTargets].map((target) => {
-    const identity = `${text(target.domain)}\0${text(target.sourceScope)}\0${text(target.sourceKey)}`;
-    if (seen.has(identity)) throw malformedEffectiveSnapshot("cross-domain-duplicate-owner");
-    seen.add(identity);
-    return target;
-  });
-}
-function providerFailure(action, result) {
-  const reason = text(result?.reason, "UNKNOWN_PROVIDER_FAILURE");
-  return new Error(`${action}\u5931\u8D25\uFF1A${reason}`);
-}
-async function openPlanningTargetOntology(api, primaryRef, options = {}) {
-  const provider = api?.ontologyIndexProvider;
-  if (typeof provider?.resolvePlanningTargetOntologyOwner !== "function") {
-    throw new Error("Mandala \u4E3B\u952E Ontology \u89E3\u6790\u80FD\u529B\u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u66F4\u65B0\u6216\u91CD\u542F Mandala");
-  }
-  if (typeof provider.openOntology !== "function") {
-    throw new Error("Mandala \u4E3B\u952E Ontology \u6253\u5F00\u80FD\u529B\u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u91CD\u542F Mandala");
-  }
-  const resolved = await provider.resolvePlanningTargetOntologyOwner(primaryRef, { signal: options.signal });
-  if (resolved?.ok !== true) throw providerFailure("\u5B9A\u4F4D\u6240\u5C5E\u4E3B\u952E Ontology", resolved);
-  if (!resolved.stableRef || typeof resolved.stableRef !== "object") {
-    throw new Error("Mandala \u672A\u8FD4\u56DE\u6B63\u5F0F Ontology \u5730\u5740");
-  }
-  const stableRef = structuredClone(resolved.stableRef);
-  const opened = await provider.openOntology(stableRef, {
-    signal: options.signal,
-    familyId: resolved.familyId
-  });
-  if (opened?.ok !== true) throw providerFailure("\u6253\u5F00\u6240\u5C5E\u4E3B\u952E Ontology", opened);
-  return { ok: true, familyId: resolved.familyId, stableRef, opened };
-}
-
-// src/outcome-search.mjs
-var MAX_OUTCOME_SEARCH_PATH_DEPTH = 32;
-var DEFAULT_OUTCOME_SEARCH_LIMIT = 20;
-function compareText(left, right) {
-  if (left === right) return 0;
-  return left < right ? -1 : 1;
-}
-function isValidIsoDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) return false;
-  const parsed = /* @__PURE__ */ new Date(`${value}T00:00:00.000Z`);
-  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
-}
-function validMembership(projection, membershipId, frameworkId) {
-  const membership = projection.membershipsById?.[membershipId];
-  return membership && membership.id === membershipId && membership.status === "active" && membership.frameworkId === frameworkId && ["goal", "project"].includes(membership.primaryRef?.domain) ? membership : null;
-}
-function normalizeOutcomeSearchText(value) {
-  return String(value || "").normalize("NFKC").toLocaleLowerCase("zh-CN").replace(/\s+/gu, " ").trim();
-}
-function activePlacementIndex(projection, frameworkId) {
-  const byOutcomeId = /* @__PURE__ */ new Map();
-  for (const [placementKey, placement] of Object.entries(projection.placementsById || {})) {
-    if (!placement || placementKey !== placement.id || placement.status !== "active" || placement.frameworkId !== frameworkId) continue;
-    if (!placement.outcomeId || !isValidIsoDate(placement.startDate) || !isValidIsoDate(placement.endDateExclusive)) continue;
-    if (placement.startDate >= placement.endDateExclusive) continue;
-    const outcome = projection.outcomesById?.[placement.outcomeId];
-    if (!outcome || outcome.id !== placement.outcomeId || outcome.status !== "active" || outcome.frameworkId !== frameworkId) continue;
-    const bucket = byOutcomeId.get(placement.outcomeId) || [];
-    bucket.push(placement);
-    byOutcomeId.set(placement.outcomeId, bucket);
-  }
-  for (const bucket of byOutcomeId.values()) {
-    bucket.sort((left, right) => compareText(left.startDate, right.startDate) || compareText(left.endDateExclusive, right.endDateExclusive) || compareText(left.id, right.id));
-  }
-  return byOutcomeId;
-}
-function outcomePath(projection, outcome, frameworkId) {
-  const path4 = [];
-  const visited = /* @__PURE__ */ new Set();
-  let cursor = outcome;
-  let pathStatus = "complete";
-  while (cursor) {
-    if (visited.has(cursor.id)) {
-      pathStatus = "cycle";
-      break;
-    }
-    if (path4.length >= MAX_OUTCOME_SEARCH_PATH_DEPTH) {
-      pathStatus = "truncated";
-      break;
-    }
-    if (projection.outcomesById?.[cursor.id] !== cursor || cursor.status !== "active" || cursor.frameworkId !== frameworkId) return null;
-    if (!validMembership(projection, cursor.membershipId, frameworkId)) return null;
-    visited.add(cursor.id);
-    path4.push(cursor);
-    if (!cursor.outlineParentId) break;
-    const parent = projection.outcomesById?.[cursor.outlineParentId];
-    if (!parent || parent.id !== cursor.outlineParentId || parent.status !== "active" || parent.frameworkId !== frameworkId) return null;
-    cursor = parent;
-  }
-  path4.reverse();
-  return {
-    pathOutcomeIds: path4.map((item) => item.id),
-    pathTitles: path4.map((item) => item.title),
-    pathStatus
-  };
-}
-function buildOutcomeSearchEntries(projection, frameworkId) {
-  const entries = [];
-  const placements = activePlacementIndex(projection, frameworkId);
-  for (const [outcomeKey, outcome] of Object.entries(projection.outcomesById || {})) {
-    if (!outcome || outcomeKey !== outcome.id || outcome.status !== "active" || outcome.frameworkId !== frameworkId) continue;
-    if (!normalizeOutcomeSearchText(outcome.title)) continue;
-    const membership = validMembership(projection, outcome.membershipId, frameworkId);
-    if (!membership) continue;
-    let frameworkItem = null;
-    if (membership.frameworkItemId) {
-      frameworkItem = projection.frameworkItemsById?.[membership.frameworkItemId];
-      if (!frameworkItem || frameworkItem.id !== membership.frameworkItemId || frameworkItem.status !== "active" || frameworkItem.frameworkId !== frameworkId) continue;
-    }
-    const path4 = outcomePath(projection, outcome, frameworkId);
-    if (!path4) continue;
-    const placement = placements.get(outcome.id)?.[0] || null;
-    const frameworkItemTitle = frameworkItem?.title || "\u672A\u5F52\u5C5E\u6846\u67B6\u6761\u76EE";
-    const membershipLabel = membership.lastKnownLabel || membership.labelAtCreation || membership.id;
-    const pathLabel = path4.pathTitles.join(" / ");
-    entries.push({
-      outcomeId: outcome.id,
-      title: outcome.title,
-      outcomeKind: outcome.outcomeKind === "stage_gate" ? "stage_gate" : "outcome",
-      membershipId: membership.id,
-      membershipDomain: membership.primaryRef.domain,
-      membershipLabel,
-      frameworkItemId: frameworkItem?.id || null,
-      frameworkItemTitle,
-      pathOutcomeIds: path4.pathOutcomeIds,
-      pathTitles: path4.pathTitles,
-      pathLabel,
-      pathStatus: path4.pathStatus,
-      placement: placement ? {
-        id: placement.id,
-        startDate: placement.startDate,
-        endDateExclusive: placement.endDateExclusive
-      } : null,
-      normalizedTitle: normalizeOutcomeSearchText(outcome.title),
-      normalizedMembership: normalizeOutcomeSearchText(membershipLabel),
-      normalizedFrameworkItem: normalizeOutcomeSearchText(frameworkItemTitle),
-      normalizedPath: normalizeOutcomeSearchText(pathLabel)
-    });
-  }
-  return entries.sort((left, right) => compareText(left.normalizedTitle, right.normalizedTitle) || compareText(left.normalizedPath, right.normalizedPath) || compareText(left.normalizedMembership, right.normalizedMembership) || compareText(left.normalizedFrameworkItem, right.normalizedFrameworkItem) || compareText(left.outcomeId, right.outcomeId));
-}
-function matchRank(entry, query, tokens) {
-  if (entry.normalizedTitle === query) return 0;
-  if (entry.normalizedTitle.startsWith(query)) return 1;
-  if (entry.normalizedTitle.includes(query)) return 2;
-  if (entry.normalizedPath.includes(query)) return 3;
-  if (entry.normalizedMembership.includes(query)) return 4;
-  if (entry.normalizedFrameworkItem.includes(query)) return 5;
-  const combined = `${entry.normalizedTitle} ${entry.normalizedPath} ${entry.normalizedMembership} ${entry.normalizedFrameworkItem}`;
-  return tokens.every((token) => combined.includes(token)) ? 6 : null;
-}
-function searchOutcomeEntries(entries, queryValue, limitValue = DEFAULT_OUTCOME_SEARCH_LIMIT) {
-  const query = normalizeOutcomeSearchText(queryValue);
-  if (!query) return [];
-  const tokens = query.split(" ").filter(Boolean);
-  const limit = Math.max(1, Math.min(DEFAULT_OUTCOME_SEARCH_LIMIT, Number.isFinite(Number(limitValue)) ? Math.floor(Number(limitValue)) : DEFAULT_OUTCOME_SEARCH_LIMIT));
-  return entries.map((entry) => ({ entry, rank: matchRank(entry, query, tokens) })).filter((candidate) => candidate.rank !== null).sort((left, right) => left.rank - right.rank || compareText(left.entry.normalizedTitle, right.entry.normalizedTitle) || compareText(left.entry.normalizedPath, right.entry.normalizedPath) || compareText(left.entry.normalizedMembership, right.entry.normalizedMembership) || compareText(left.entry.normalizedFrameworkItem, right.entry.normalizedFrameworkItem) || compareText(left.entry.outcomeId, right.entry.outcomeId)).slice(0, limit).map((candidate) => candidate.entry);
-}
-
-// src/outcome-overview-navigation.mjs
-var OutcomeOverviewReturnQueue = class {
-  constructor() {
-    this.sequence = 0;
-    this.pending = null;
-  }
-  queue(projection, frameworkId, outcomeId) {
-    const token = ++this.sequence;
-    this.pending = null;
-    const outcome = projection?.outcomesById?.[outcomeId];
-    const membership = outcome ? projection?.membershipsById?.[outcome.membershipId] : null;
-    if (outcome?.status !== "active" || membership?.status !== "active") return null;
-    if (outcome.id !== outcomeId || membership.id !== outcome.membershipId) return null;
-    if (outcome.frameworkId !== frameworkId || membership.frameworkId !== frameworkId) return null;
-    this.pending = { token, frameworkId, membershipId: membership.id, outcomeId: outcome.id };
-    return this.pending;
-  }
-  current() {
-    return this.pending;
-  }
-  consume(token, frameworkId) {
-    const intent = this.pending;
-    if (!intent || intent.token !== token) return null;
-    this.pending = null;
-    return intent.frameworkId === frameworkId ? intent : null;
-  }
-  clear() {
-    this.sequence += 1;
-    this.pending = null;
-  }
-};
-
 // src/temporal-engine.mjs
 var import_node_crypto2 = require("node:crypto");
 var STORE_SCHEMA_VERSION = 2;
+var LOCAL_DIRECTION_SCHEMA_VERSION = 3;
 var LEGACY_STORE_SCHEMA_VERSION = 1;
 var EVENT_BUCKETS = [
   "frameworkEventsById",
@@ -531,9 +272,9 @@ function createEmptyStore(createdAt = nowIso()) {
 }
 function ensureFrameworkItemSchema(store) {
   if (store.schemaVersion === LEGACY_STORE_SCHEMA_VERSION) store.schemaVersion = STORE_SCHEMA_VERSION;
-  if (store.schemaVersion !== STORE_SCHEMA_VERSION) throw new Error("\u65F6\u95F4\u6846\u67B6 Store \u7248\u672C\u4E0D\u652F\u6301\u6846\u67B6\u6761\u76EE\u80FD\u529B");
+  if (![STORE_SCHEMA_VERSION, LOCAL_DIRECTION_SCHEMA_VERSION].includes(store.schemaVersion)) throw new Error("\u65F6\u95F4\u6846\u67B6 Store \u7248\u672C\u4E0D\u652F\u6301\u6846\u67B6\u6761\u76EE\u80FD\u529B");
 }
-function text2(value, fallback = "") {
+function text(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
 }
 function assertIsoDate(value, field) {
@@ -573,7 +314,7 @@ function dateInTimezone(value, timezone) {
 }
 function milestoneProgress(milestone, options = {}) {
   try {
-    const timezone = text2(options.timezone, "Asia/Shanghai");
+    const timezone = text(options.timezone, "Asia/Shanghai");
     const startDate = dateInTimezone(milestone?.createdAt, timezone);
     const targetDate = assertIsoDate(milestone?.targetDate, "targetDate");
     const today = typeof options.today === "string" ? assertIsoDate(options.today, "today") : dateInTimezone(options.today || /* @__PURE__ */ new Date(), timezone);
@@ -645,8 +386,8 @@ function canonicalTimeBox(scale, date, options = {}) {
   if (!TIME_SCALES.includes(scale)) throw new Error(`\u4E0D\u652F\u6301\u7684\u65F6\u95F4\u5C3A\u5EA6\uFF1A${scale}`);
   const startDate = startOfScale(date, scale);
   const endDateExclusive = advanceScale(startDate, scale);
-  const timezone = text2(options.timezone, "Asia/Shanghai");
-  const calendar = text2(options.calendar, "iso8601");
+  const timezone = text(options.timezone, "Asia/Shanghai");
+  const calendar = text(options.calendar, "iso8601");
   const policyVersion = Number(options.policyVersion || 1);
   return {
     id: `${timezone}|${calendar}|v${policyVersion}|${scale}|${startDate}|${endDateExclusive}`,
@@ -744,7 +485,7 @@ function appendDomainEvent(store, bucket, type, payload = {}, options = {}) {
     commitRevision: Number(options.commitRevision || store.revision + 1),
     ordinal: Number(store.nextEventOrdinal || 1),
     createdAt: options.createdAt || nowIso(),
-    ...options.omitReason === true ? {} : { reason: text2(payload.reason) },
+    ...options.omitReason === true ? {} : { reason: text(payload.reason) },
     ...clonedPayload
   };
   store.nextEventOrdinal = event.ordinal + 1;
@@ -761,6 +502,7 @@ function applyPatch(target, patch, allowed) {
 }
 function reduceTemporalStore(store) {
   const projection = {
+    localDirectionModel: store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION,
     frameworksById: {},
     frameworkItemsById: {},
     frameworkMilestonesById: {},
@@ -850,11 +592,13 @@ function reduceTemporalStore(store) {
     }
   }
   for (const event of orderedEvents(store, "membershipEventsById")) {
-    if (event.type === "admit") {
+    if (event.type === "admit" || event.type === "direction-create") {
       projection.membershipsById[event.membershipId] = {
         id: event.membershipId,
         frameworkId: event.frameworkId,
-        primaryRef: structuredClone(event.primaryRef),
+        primaryRef: event.type === "direction-create" ? null : structuredClone(event.primaryRef),
+        localDirection: event.type === "direction-create",
+        description: event.description || "",
         labelAtCreation: event.labelAtCreation,
         lastKnownLabel: event.lastKnownLabel || event.labelAtCreation,
         planningStart: event.planningStart,
@@ -869,6 +613,12 @@ function reduceTemporalStore(store) {
     }
     const current = projection.membershipsById[event.membershipId];
     if (!current) continue;
+    if (event.type === "direction-localize") {
+      current.primaryRef = null;
+      current.localDirection = true;
+      current.sourceState = "local";
+    }
+    if (event.type === "direction-revise") applyPatch(current, event.patch, ["lastKnownLabel", "description"]);
     if (event.type === "revise-window") applyPatch(current, event.patch, ["planningStart", "planningEndDateExclusive"]);
     if (event.type === "refresh-label") applyPatch(current, event.patch, ["lastKnownLabel", "sourceState"]);
     if (event.type === "mark-source-unknown") current.sourceState = "unknown";
@@ -980,7 +730,7 @@ function reduceTemporalStore(store) {
     current.updatedAt = event.createdAt;
   }
   for (const event of orderedEvents(store, "gatePolicyEventsById")) {
-    if (event.type !== "set") continue;
+    if (event.type !== "set" || store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION) continue;
     projection.gatePoliciesByOutcomeId[event.outcomeId] = {
       outcomeId: event.outcomeId,
       mode: event.mode,
@@ -1069,7 +819,7 @@ function validateProjection(projection) {
   for (const membership of Object.values(projection.membershipsById || {})) {
     let identityKey = null;
     try {
-      identityKey = `${membership.frameworkId}|${primaryRefKey(membership.primaryRef)}`;
+      identityKey = membership.localDirection === true && membership.primaryRef === null ? `${membership.frameworkId}|local|${membership.id}` : `${membership.frameworkId}|${primaryRefKey(membership.primaryRef)}`;
     } catch {
       errors.push(`${membership.id}: invalid primary reference`);
     }
@@ -1191,7 +941,8 @@ function validateProjection(projection) {
   return errors;
 }
 function assertValidStore(store) {
-  if (!store || ![LEGACY_STORE_SCHEMA_VERSION, STORE_SCHEMA_VERSION].includes(store.schemaVersion)) throw new Error("Temporal Framework store schema \u4E0D\u517C\u5BB9");
+  if (!store || ![LEGACY_STORE_SCHEMA_VERSION, STORE_SCHEMA_VERSION, LOCAL_DIRECTION_SCHEMA_VERSION].includes(store.schemaVersion)) throw new Error("Temporal Framework store schema \u4E0D\u517C\u5BB9");
+  if (store.schemaVersion !== LOCAL_DIRECTION_SCHEMA_VERSION && Object.values(store.membershipEventsById || {}).some((event) => event.type.startsWith("direction-"))) throw new Error("\u81EA\u6CBB\u65B9\u5411\u4E8B\u4EF6\u9700\u8981 v3 Store");
   if (store.schemaVersion === LEGACY_STORE_SCHEMA_VERSION) {
     const v2FrameworkEvents = Object.values(store.frameworkEventsById || {}).some((event) => String(event.type).startsWith("item-") || String(event.type).startsWith("milestone-"));
     const v2MembershipEvents = Object.values(store.membershipEventsById || {}).some((event) => event.type === "assign-framework-item" || event.frameworkItemId);
@@ -1203,13 +954,91 @@ function assertValidStore(store) {
   for (const bucket of EVENT_BUCKETS) if (!store[bucket] || typeof store[bucket] !== "object" || Array.isArray(store[bucket])) throw new Error(`${bucket} \u65E0\u6548`);
   const projection = reduceTemporalStore(store);
   if (projection.diagnostics.length) throw new Error(projection.diagnostics.slice(0, 8).join("; "));
+  if (store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION) {
+    if (Object.values(projection.membershipsById).some((item) => item.localDirection !== true || item.primaryRef !== null || !text(item.lastKnownLabel))) throw new Error("v3 \u4E0A\u5C42\u7EA7\u65B9\u5411\u8EAB\u4EFD\u65E0\u6548");
+    if (activeValues(projection.relationsById).length) throw new Error("v3 \u4E0D\u652F\u6301\u6210\u679C\u95F4\u5148\u540E\u6216\u524D\u7F6E\u5173\u7CFB");
+  }
   return store;
 }
+function projectLocalDirections(store) {
+  const projection = reduceTemporalStore(store);
+  projection.localDirectionModel = true;
+  for (const direction of Object.values(projection.membershipsById)) {
+    direction.primaryRef = null;
+    direction.localDirection = true;
+    direction.sourceState = "local";
+  }
+  for (const relation of Object.values(projection.relationsById)) if (relation.status === "active") relation.status = "retired";
+  projection.gatePoliciesByOutcomeId = {};
+  return projection;
+}
+function migrateLocalDirections(store, options = {}) {
+  assertValidStore(store);
+  if (store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION) return false;
+  const projection = reduceTemporalStore(store);
+  store.schemaVersion = LOCAL_DIRECTION_SCHEMA_VERSION;
+  for (const direction of Object.values(projection.membershipsById)) appendDomainEvent(store, "membershipEventsById", "direction-localize", { membershipId: direction.id }, options);
+  for (const relation of activeValues(projection.relationsById)) revokeOutcomeRelation(store, { relationId: relation.id, reason: "\u65F6\u95F4\u6846\u67B6\u7B80\u5316\uFF1A\u9000\u5F79\u6210\u679C\u95F4\u5173\u7CFB" }, options);
+  return true;
+}
+function createDirection(store, input, options = {}) {
+  const title = text(input.title);
+  if (!title) throw new Error("\u8BF7\u586B\u5199\u4E0A\u5C42\u7EA7\u65B9\u5411\u540D\u79F0");
+  const projection = reduceTemporalStore(store);
+  const framework = projection.frameworksById[input.frameworkId];
+  if (!framework || framework.status !== "active") throw new Error("\u65F6\u95F4\u6846\u67B6\u4E0D\u53EF\u7528");
+  const membershipId = options.membershipId || stableId("direction");
+  if (projection.membershipsById[membershipId]) throw new Error("\u65B9\u5411 ID \u5DF2\u4F7F\u7528");
+  if (input.frameworkItemId && projection.frameworkItemsById[input.frameworkItemId]?.frameworkId !== framework.id) throw new Error("\u6846\u67B6\u6761\u76EE\u4E0D\u5C5E\u4E8E\u5F53\u524D\u6846\u67B6");
+  migrateLocalDirections(store, options);
+  appendDomainEvent(store, "membershipEventsById", "direction-create", {
+    membershipId,
+    frameworkId: framework.id,
+    labelAtCreation: title,
+    lastKnownLabel: title,
+    description: text(input.description),
+    frameworkItemId: input.frameworkItemId || null,
+    planningStart: framework.startDate,
+    planningEndDateExclusive: framework.endDateExclusive
+  }, options);
+  return membershipId;
+}
+function reviseDirection(store, input, options = {}) {
+  const direction = reduceTemporalStore(store).membershipsById[input.membershipId];
+  if (!direction || direction.status !== "active") throw new Error("\u4E0A\u5C42\u7EA7\u65B9\u5411\u4E0D\u5B58\u5728");
+  const title = text(input.title);
+  if (!title) throw new Error("\u8BF7\u586B\u5199\u4E0A\u5C42\u7EA7\u65B9\u5411\u540D\u79F0");
+  migrateLocalDirections(store, options);
+  appendDomainEvent(store, "membershipEventsById", "direction-revise", { membershipId: direction.id, patch: { lastKnownLabel: title, description: text(input.description) } }, options);
+}
+function completeAndRemoveOutcome(store, input, options = {}) {
+  const projection = reduceTemporalStore(store);
+  const outcome = projection.outcomesById[input.outcomeId];
+  if (!outcome || outcome.status !== "active") throw new Error("\u6210\u679C\u5DF2\u7ECF\u79FB\u9664\u6216\u4E0D\u5B58\u5728");
+  migrateLocalDirections(store, options);
+  const parent = projection.outcomesById[outcome.outlineParentId];
+  for (const child of activeValues(projection.outcomesById).filter((item) => item.outlineParentId === outcome.id)) {
+    const parentId = parent?.status === "active" && parent.membershipId === child.membershipId ? parent.id : null;
+    appendDomainEvent(store, "outcomeEventsById", "link-parent", { outcomeId: child.id, outlineParentId: parentId, reason: "\u7236\u6210\u679C\u5B8C\u6210\uFF0C\u4FDD\u7559\u5B50\u6210\u679C" }, options);
+  }
+  for (const binding of activeValues(projection.frameworkMilestoneBindingsById).filter((item) => item.targetType === "outcome" && item.targetId === outcome.id)) unbindFrameworkMilestone(store, { bindingId: binding.id, reason: "\u6210\u679C\u5B8C\u6210\u79FB\u9664" }, options);
+  archiveOutcome(store, { outcomeId: outcome.id, reason: "\u5B8C\u6210\u5E76\u79FB\u9664" }, options);
+}
+function restoreRemovedOutcome(store, input, options = {}) {
+  const projection = reduceTemporalStore(store);
+  const outcome = projection.outcomesById[input.outcomeId];
+  if (!outcome || outcome.status !== "archived") throw new Error("\u6210\u679C\u672A\u88AB\u79FB\u9664");
+  migrateLocalDirections(store, options);
+  if (outcome.outlineParentId && projection.outcomesById[outcome.outlineParentId]?.status !== "active") {
+    appendDomainEvent(store, "outcomeEventsById", "link-parent", { outcomeId: outcome.id, outlineParentId: null, reason: "\u6062\u590D\u6210\u679C\uFF1A\u539F\u7236\u6210\u679C\u4E0D\u53EF\u7528\uFF0C\u4FDD\u7559\u5728\u539F\u65B9\u5411\u4E0B" }, options);
+  }
+  appendDomainEvent(store, "outcomeEventsById", "restore", { outcomeId: outcome.id, reason: "\u6062\u590D\u79FB\u9664\u7684\u6210\u679C\uFF08\u65F6\u95F4\u53EF\u91CD\u65B0\u5B89\u6392\uFF09" }, options);
+}
 function normalizePrimaryRef(value = {}) {
-  const providerId = text2(value.providerId || value.sourcePlugin);
-  const domain = text2(value.domain || value.sourceType);
-  const sourceScope = text2(value.sourceScope || value.sourceNotePath);
-  const sourceKey = text2(value.sourceKey || value.sourceId || value.nodeId);
+  const providerId = text(value.providerId || value.sourcePlugin);
+  const domain = text(value.domain || value.sourceType);
+  const sourceScope = text(value.sourceScope || value.sourceNotePath);
+  const sourceKey = text(value.sourceKey || value.sourceId || value.nodeId);
   const identityVersion = Number(value.identityVersion || 1);
   if (!providerId || !domain || !sourceScope || !sourceKey || !Number.isInteger(identityVersion) || identityVersion < 1) {
     throw new Error("\u4E3B\u952E\u8EAB\u4EFD\u7F3A\u5C11 provider/domain/sourceScope/sourceKey/identityVersion");
@@ -1226,50 +1055,6 @@ function activeTemporalRelations(projection) {
     const target = projection.outcomesById[relation.targetOutcomeId];
     return source?.status === "active" && target?.status === "active";
   });
-}
-function buildOutcomeRelationProjection(projection, frameworkId) {
-  const relationsByOutcomeId = {};
-  const endpointGroups = /* @__PURE__ */ new Map();
-  const addEndpoint = (outcomeId, endpoint) => {
-    const key = `${outcomeId}|${endpoint.direction}|${endpoint.relationType}|${endpoint.peerOutcomeId}`;
-    const current = endpointGroups.get(key);
-    if (current) {
-      current.relationIds.push(endpoint.relationId);
-      current.duplicateCount = current.relationIds.length;
-      if (endpoint.violation && !current.violation) current.violation = endpoint.violation;
-      return;
-    }
-    const grouped = { ...endpoint, relationIds: [endpoint.relationId], duplicateCount: 1 };
-    endpointGroups.set(key, grouped);
-    if (!relationsByOutcomeId[outcomeId]) relationsByOutcomeId[outcomeId] = [];
-    relationsByOutcomeId[outcomeId].push(grouped);
-  };
-  for (const relation of activeTemporalRelations(projection)) {
-    const source = projection.outcomesById[relation.sourceOutcomeId];
-    const target = projection.outcomesById[relation.targetOutcomeId];
-    if (relation.frameworkId !== frameworkId || source.frameworkId !== frameworkId || target.frameworkId !== frameworkId) continue;
-    const violation = temporalRelationViolation(projection, relation);
-    addEndpoint(source.id, {
-      relationId: relation.id,
-      relationType: relation.relationType,
-      direction: "outgoing",
-      peerOutcomeId: target.id,
-      peerTitle: target.title,
-      violation
-    });
-    addEndpoint(target.id, {
-      relationId: relation.id,
-      relationType: relation.relationType,
-      direction: "incoming",
-      peerOutcomeId: source.id,
-      peerTitle: source.title,
-      violation
-    });
-  }
-  for (const endpoints of Object.values(relationsByOutcomeId)) {
-    endpoints.sort((left, right) => left.direction.localeCompare(right.direction) || RELATION_TYPES.indexOf(left.relationType) - RELATION_TYPES.indexOf(right.relationType) || left.peerTitle.localeCompare(right.peerTitle, "zh-CN") || left.relationId.localeCompare(right.relationId));
-  }
-  return relationsByOutcomeId;
 }
 function compareVisiblePlacements(projection, left, right) {
   const leftOutcome = projection.outcomesById[left.outcomeId];
@@ -1945,7 +1730,7 @@ function placementConstraintSummary(projection, outcomeId) {
 }
 function createFramework(store, input, options = {}) {
   const frameworkId = options.frameworkId || stableId("framework");
-  const title = text2(input.title);
+  const title = text(input.title);
   if (!title) throw new Error("\u6846\u67B6\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A");
   assertIsoDate(input.startDate, "startDate");
   assertIsoDate(input.endDateExclusive, "endDateExclusive");
@@ -1955,8 +1740,8 @@ function createFramework(store, input, options = {}) {
     title,
     startDate: input.startDate,
     endDateExclusive: input.endDateExclusive,
-    timezone: text2(input.timezone, store.timezone || "Asia/Shanghai"),
-    calendar: text2(input.calendar, store.calendar || "iso8601"),
+    timezone: text(input.timezone, store.timezone || "Asia/Shanghai"),
+    calendar: text(input.calendar, store.calendar || "iso8601"),
     policyVersion: Number(input.policyVersion || store.policyVersion || 1)
   }, options);
   return frameworkId;
@@ -2029,7 +1814,7 @@ function reviseFrameworkBoundary(store, input = {}, options = {}) {
   const allowed = /* @__PURE__ */ new Set(["frameworkId", "startDate", "endDateExclusive", "reason"]);
   const unexpected = Object.keys(input).filter((key) => !allowed.has(key));
   if (unexpected.length) throw new Error(`\u65F6\u95F4\u6846\u67B6\u8FB9\u754C\u63A5\u53E3\u4E0D\u63A5\u53D7\u5B57\u6BB5\uFF1A${unexpected.join("\u3001")}`);
-  const reason = text2(input.reason);
+  const reason = text(input.reason);
   if (!reason) throw new Error("\u8BF7\u586B\u5199\u8C03\u6574\u65F6\u95F4\u6846\u67B6\u8FB9\u754C\u7684\u539F\u56E0");
   const projection = reduceTemporalStore(store);
   const framework = projection.frameworksById?.[input.frameworkId];
@@ -2051,26 +1836,6 @@ function reviseFrameworkBoundary(store, input = {}, options = {}) {
   }, options);
   return input.frameworkId;
 }
-function admitMembership(store, input, options = {}) {
-  const membershipId = options.membershipId || stableId("membership");
-  const primaryRef = normalizePrimaryRef(input.primaryRef);
-  const label = text2(input.labelAtCreation || input.lastKnownLabel);
-  if (!label) throw new Error("\u4E3B\u952E\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A");
-  const projection = reduceTemporalStore(store);
-  const identityKey = primaryRefKey(primaryRef);
-  const duplicate = Object.values(projection.membershipsById).find((membership) => membership.frameworkId === input.frameworkId && primaryRefKey(membership.primaryRef) === identityKey);
-  if (duplicate) throw new Error("\u8BE5\u4E3B\u952E\u66FE\u7ECF\u7EB3\u5165\u5F53\u524D\u65F6\u95F4\u6846\u67B6\uFF0C\u8BF7\u6062\u590D\u539F\u6709\u4E3B\u952E\u8BB0\u5F55");
-  appendDomainEvent(store, "membershipEventsById", "admit", {
-    membershipId,
-    frameworkId: input.frameworkId,
-    primaryRef,
-    labelAtCreation: label,
-    lastKnownLabel: text2(input.lastKnownLabel, label),
-    planningStart: input.planningStart,
-    planningEndDateExclusive: input.planningEndDateExclusive
-  }, options);
-  return membershipId;
-}
 function membershipExitBlockers(projection, membershipId) {
   const membership = projection.membershipsById?.[membershipId];
   if (!membership) return [{ code: "membership_not_found", message: "\u627E\u4E0D\u5230\u8981\u79FB\u51FA\u7684\u76EE\u6807\u6216\u9879\u76EE\u4E3B\u952E" }];
@@ -2086,7 +1851,7 @@ function membershipExitBlockers(projection, membershipId) {
   return blockers;
 }
 function exitMembership(store, input, options = {}) {
-  const reason = text2(input.reason);
+  const reason = text(input.reason);
   if (!reason) throw new Error("\u79FB\u51FA\u65F6\u95F4\u6846\u67B6\u9700\u8981\u586B\u5199\u539F\u56E0");
   const projection = reduceTemporalStore(store);
   const blockers = membershipExitBlockers(projection, input.membershipId);
@@ -2102,24 +1867,6 @@ function exitMembership(store, input, options = {}) {
   }, options);
   return input.membershipId;
 }
-function reinstateMembership(store, input, options = {}) {
-  const projection = reduceTemporalStore(store);
-  const membership = projection.membershipsById?.[input.membershipId];
-  if (!membership) throw new Error("\u627E\u4E0D\u5230\u8981\u6062\u590D\u7684\u76EE\u6807\u6216\u9879\u76EE\u4E3B\u952E");
-  if (membership.status !== "exited") throw new Error("\u8BE5\u76EE\u6807\u6216\u9879\u76EE\u5DF2\u7ECF\u5728\u65F6\u95F4\u6846\u67B6\u4E2D");
-  const lastKnownLabel = text2(input.lastKnownLabel, membership.lastKnownLabel);
-  if (!lastKnownLabel) throw new Error("\u4E3B\u952E\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A");
-  appendDomainEvent(store, "membershipEventsById", "reinstate", {
-    membershipId: membership.id,
-    patch: {
-      lastKnownLabel,
-      sourceState: text2(input.sourceState, "fresh"),
-      planningStart: input.planningStart ?? membership.planningStart,
-      planningEndDateExclusive: input.planningEndDateExclusive ?? membership.planningEndDateExclusive
-    }
-  }, options);
-  return membership.id;
-}
 function frameworkItemBindingBlockers(projection, membershipId) {
   const targetIds = /* @__PURE__ */ new Set([membershipId, ...Object.values(projection.outcomesById || {}).filter((outcome) => outcome.membershipId === membershipId).map((outcome) => outcome.id)]);
   return activeValues(projection.frameworkMilestoneBindingsById).filter((binding) => targetIds.has(binding.targetId));
@@ -2128,7 +1875,7 @@ function createFrameworkItem(store, input, options = {}) {
   ensureFrameworkItemSchema(store);
   const projection = reduceTemporalStore(store);
   const framework = projection.frameworksById[input.frameworkId];
-  const title = text2(input.title);
+  const title = text(input.title);
   if (!framework || framework.status !== "active") throw new Error("\u627E\u4E0D\u5230\u5F53\u524D\u65F6\u95F4\u6846\u67B6");
   if (!title) throw new Error("\u6846\u67B6\u6761\u76EE\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A");
   const frameworkItemId = options.frameworkItemId || stableId("framework_item");
@@ -2136,17 +1883,17 @@ function createFrameworkItem(store, input, options = {}) {
     frameworkItemId,
     frameworkId: input.frameworkId,
     title,
-    description: text2(input.description)
+    description: text(input.description)
   }, options);
   return frameworkItemId;
 }
 function reviseFrameworkItem(store, input, options = {}) {
   ensureFrameworkItemSchema(store);
   const item = reduceTemporalStore(store).frameworkItemsById[input.frameworkItemId];
-  const title = text2(input.title);
+  const title = text(input.title);
   if (!item || item.status !== "active") throw new Error("\u6846\u67B6\u6761\u76EE\u4E0D\u5B58\u5728\u6216\u5DF2\u505C\u7528");
   if (!title) throw new Error("\u6846\u67B6\u6761\u76EE\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A");
-  appendDomainEvent(store, "frameworkEventsById", "item-revise", { frameworkItemId: item.id, patch: { title, description: text2(input.description) } }, options);
+  appendDomainEvent(store, "frameworkEventsById", "item-revise", { frameworkItemId: item.id, patch: { title, description: text(input.description) } }, options);
   return item.id;
 }
 function archiveFrameworkItem(store, input, options = {}) {
@@ -2156,7 +1903,7 @@ function archiveFrameworkItem(store, input, options = {}) {
   if (!item || item.status !== "active") throw new Error("\u6846\u67B6\u6761\u76EE\u4E0D\u5B58\u5728\u6216\u5DF2\u505C\u7528");
   if (activeValues(projection.membershipsById).some((membership) => membership.frameworkItemId === item.id)) throw new Error("\u6846\u67B6\u6761\u76EE\u4ECD\u5305\u542B\u76EE\u6807\u6216\u9879\u76EE\uFF0C\u4E0D\u80FD\u505C\u7528");
   if (activeValues(projection.frameworkMilestonesById).some((milestone) => milestone.frameworkItemId === item.id)) throw new Error("\u6846\u67B6\u6761\u76EE\u4ECD\u6709\u6709\u6548\u91CC\u7A0B\u7891\uFF0C\u4E0D\u80FD\u505C\u7528");
-  appendDomainEvent(store, "frameworkEventsById", "item-archive", { frameworkItemId: item.id, reason: text2(input.reason, "\u6846\u67B6\u6761\u76EE\u505C\u7528") }, options);
+  appendDomainEvent(store, "frameworkEventsById", "item-archive", { frameworkItemId: item.id, reason: text(input.reason, "\u6846\u67B6\u6761\u76EE\u505C\u7528") }, options);
 }
 function assignMembershipFrameworkItem(store, input, options = {}) {
   ensureFrameworkItemSchema(store);
@@ -2176,7 +1923,7 @@ function createFrameworkMilestone(store, input, options = {}) {
   ensureFrameworkItemSchema(store);
   const projection = reduceTemporalStore(store);
   const item = projection.frameworkItemsById[input.frameworkItemId];
-  const achievement = text2(input.achievement);
+  const achievement = text(input.achievement);
   assertIsoDate(input.targetDate, "targetDate");
   if (!item || item.status !== "active") throw new Error("\u6846\u67B6\u6761\u76EE\u4E0D\u5B58\u5728\u6216\u5DF2\u505C\u7528");
   const framework = projection.frameworksById[item.frameworkId];
@@ -2194,7 +1941,7 @@ function reviseFrameworkMilestone(store, input, options = {}) {
   assertIsoDate(input.targetDate, "targetDate");
   const framework = projection.frameworksById[milestone.frameworkId];
   if (compareDate(input.targetDate, framework.startDate) < 0 || compareDate(input.targetDate, framework.endDateExclusive) >= 0) throw new Error("\u91CC\u7A0B\u7891\u65E5\u671F\u5FC5\u987B\u4F4D\u4E8E\u65F6\u95F4\u6846\u67B6\u8FB9\u754C\u5185");
-  const achievement = text2(input.achievement);
+  const achievement = text(input.achievement);
   if (!achievement) throw new Error("\u91CC\u7A0B\u7891\u8FBE\u6210\u5185\u5BB9\u4E0D\u80FD\u4E3A\u7A7A");
   appendDomainEvent(store, "frameworkEventsById", "milestone-revise", { milestoneId: milestone.id, patch: { targetDate: input.targetDate, achievement } }, options);
   return milestone.id;
@@ -2205,7 +1952,7 @@ function archiveFrameworkMilestone(store, input, options = {}) {
   const milestone = projection.frameworkMilestonesById[input.milestoneId];
   if (!milestone || milestone.status !== "active") throw new Error("\u6846\u67B6\u91CC\u7A0B\u7891\u4E0D\u5B58\u5728\u6216\u5DF2\u505C\u7528");
   if (activeValues(projection.frameworkMilestoneBindingsById).some((binding) => binding.milestoneId === milestone.id)) throw new Error("\u6846\u67B6\u91CC\u7A0B\u7891\u4ECD\u6709\u5173\u8054\u8282\u70B9\uFF0C\u8BF7\u5148\u89E3\u9664");
-  appendDomainEvent(store, "frameworkEventsById", "milestone-archive", { milestoneId: milestone.id, reason: text2(input.reason, "\u6846\u67B6\u91CC\u7A0B\u7891\u505C\u7528") }, options);
+  appendDomainEvent(store, "frameworkEventsById", "milestone-archive", { milestoneId: milestone.id, reason: text(input.reason, "\u6846\u67B6\u91CC\u7A0B\u7891\u505C\u7528") }, options);
 }
 function bindFrameworkMilestone(store, input, options = {}) {
   ensureFrameworkItemSchema(store);
@@ -2228,7 +1975,7 @@ function unbindFrameworkMilestone(store, input, options = {}) {
   ensureFrameworkItemSchema(store);
   const binding = reduceTemporalStore(store).frameworkMilestoneBindingsById[input.bindingId];
   if (!binding || binding.status !== "active") throw new Error("\u6846\u67B6\u91CC\u7A0B\u7891\u5173\u8054\u4E0D\u5B58\u5728\u6216\u5DF2\u89E3\u9664");
-  appendDomainEvent(store, "frameworkEventsById", "milestone-unbind", { bindingId: binding.id, reason: text2(input.reason, "\u89E3\u9664\u6846\u67B6\u91CC\u7A0B\u7891\u5173\u8054") }, options);
+  appendDomainEvent(store, "frameworkEventsById", "milestone-unbind", { bindingId: binding.id, reason: text(input.reason, "\u89E3\u9664\u6846\u67B6\u91CC\u7A0B\u7891\u5173\u8054") }, options);
 }
 function frameworkMilestoneSentence(milestone) {
   return `${milestone.targetDate}\uFF0C\u6211\u5E94\u8BE5\u80FD\u591F\u8FBE\u6210 ${milestone.achievement}`;
@@ -2510,7 +2257,7 @@ function buildMilestoneBindingContextGroups(projection, milestoneId) {
 }
 function createOutcome(store, input, options = {}) {
   const outcomeId = options.outcomeId || stableId("outcome");
-  const title = text2(input.title);
+  const title = text(input.title);
   if (!title) throw new Error("\u9636\u6BB5\u6210\u679C\u4E0D\u80FD\u4E3A\u7A7A");
   const membership = reduceTemporalStore(store).membershipsById[input.membershipId];
   if (!membership || membership.status !== "active" || membership.frameworkId !== input.frameworkId) throw new Error("\u6240\u5C5E\u76EE\u6807\u6216\u9879\u76EE\u4E0D\u5728\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u4E2D");
@@ -2519,7 +2266,7 @@ function createOutcome(store, input, options = {}) {
     frameworkId: input.frameworkId,
     membershipId: input.membershipId,
     title,
-    acceptance: text2(input.acceptance),
+    acceptance: text(input.acceptance),
     outcomeKind: input.outcomeKind === "stage_gate" ? "stage_gate" : "outcome",
     outlineParentId: input.outlineParentId || null,
     supersedesOutcomeId: input.supersedesOutcomeId || null,
@@ -2548,76 +2295,15 @@ function placeOutcome(store, input, options = {}) {
   }, options);
   return placementId;
 }
-function outcomeRelationCandidateContext(store, input, options = {}) {
-  if (!RELATION_TYPES.includes(input.relationType)) throw new Error("\u5173\u7CFB\u7C7B\u578B\u65E0\u6548");
-  const projection = reduceTemporalStore(store);
-  const duplicate = activeValues(projection.relationsById).find((relation2) => relation2.frameworkId === input.frameworkId && relation2.sourceOutcomeId === input.sourceOutcomeId && relation2.targetOutcomeId === input.targetOutcomeId && relation2.relationType === input.relationType);
-  if (duplicate) throw new Error("\u8BE5\u6210\u679C\u5173\u7CFB\u5DF2\u7ECF\u5B58\u5728");
-  const relationId = options.relationId || stableId("relation");
-  if (projection.relationsById[relationId]) throw new Error(`\u6210\u679C\u5173\u7CFB ID \u5DF2\u5B58\u5728\uFF1A${relationId}`);
-  const relation = {
-    id: relationId,
-    relationId,
-    frameworkId: input.frameworkId,
-    sourceOutcomeId: input.sourceOutcomeId,
-    targetOutcomeId: input.targetOutcomeId,
-    relationType: input.relationType,
-    supersedesRelationId: input.supersedesRelationId || null,
-    status: "active",
-    createdAt: nowIso(),
-    updatedAt: nowIso()
-  };
-  const candidateProjection = structuredClone(projection);
-  if (relation.supersedesRelationId && candidateProjection.relationsById[relation.supersedesRelationId]) {
-    candidateProjection.relationsById[relation.supersedesRelationId].status = "superseded";
-  }
-  candidateProjection.relationsById[relationId] = structuredClone(relation);
-  const structuralViolations = validateProjection(candidateProjection);
-  return {
-    projection,
-    candidateProjection,
-    relation,
-    structuralViolations,
-    temporalViolation: structuralViolations.length ? null : temporalRelationViolation(candidateProjection, relation),
-    sourcePlacement: outcomePlacement(projection, relation.sourceOutcomeId),
-    targetPlacement: outcomePlacement(projection, relation.targetOutcomeId)
-  };
-}
-function outcomeRelationCandidateDiagnostics(store, input, options = {}) {
-  const context = outcomeRelationCandidateContext(store, input, options);
-  return {
-    relation: structuredClone(context.relation),
-    structuralViolations: [...context.structuralViolations],
-    temporalViolation: context.temporalViolation,
-    sourcePlacement: context.sourcePlacement ? structuredClone(context.sourcePlacement) : null,
-    targetPlacement: context.targetPlacement ? structuredClone(context.targetPlacement) : null
-  };
-}
-function addOutcomeRelation(store, input, options = {}) {
-  const context = outcomeRelationCandidateContext(store, input, options);
-  if (context.structuralViolations.length || context.temporalViolation) {
-    throw new Error(context.structuralViolations[0] || context.temporalViolation);
-  }
-  appendDomainEvent(store, "relationEventsById", "add", {
-    relationId: context.relation.id,
-    frameworkId: context.relation.frameworkId,
-    sourceOutcomeId: context.relation.sourceOutcomeId,
-    targetOutcomeId: context.relation.targetOutcomeId,
-    relationType: context.relation.relationType,
-    supersedesRelationId: context.relation.supersedesRelationId
-  }, options);
-  const relationId = context.relation.id;
-  return relationId;
-}
 function reviseOutcome(store, input, options = {}) {
   const patch = {};
   if (Object.prototype.hasOwnProperty.call(input, "title")) {
-    patch.title = text2(input.title);
+    patch.title = text(input.title);
     if (!patch.title) throw new Error("\u9636\u6BB5\u6210\u679C\u4E0D\u80FD\u4E3A\u7A7A");
   }
-  if (Object.prototype.hasOwnProperty.call(input, "acceptance")) patch.acceptance = text2(input.acceptance);
+  if (Object.prototype.hasOwnProperty.call(input, "acceptance")) patch.acceptance = text(input.acceptance);
   if (!Object.keys(patch).length) throw new Error("\u6CA1\u6709\u9700\u8981\u4FEE\u6539\u7684\u6210\u679C\u5B57\u6BB5");
-  appendDomainEvent(store, "outcomeEventsById", "revise", { outcomeId: input.outcomeId, patch, reason: text2(input.reason) }, options);
+  appendDomainEvent(store, "outcomeEventsById", "revise", { outcomeId: input.outcomeId, patch, reason: text(input.reason) }, options);
 }
 function setOutcomeEffective(store, input, options = {}) {
   if (typeof input.effective !== "boolean") throw new Error("\u6B63\u5728\u751F\u6548\u72B6\u6001\u5FC5\u987B\u662F\u5E03\u5C14\u503C");
@@ -2649,158 +2335,8 @@ function moveOutcomePlacement(store, input, options = {}) {
       declaredScale: input.declaredScale,
       homeTimeBoxRef: structuredClone(input.homeTimeBoxRef)
     },
-    reason: text2(input.reason)
+    reason: text(input.reason)
   }, options);
-}
-function jointPlacementCandidate(current, input) {
-  return {
-    ...current,
-    ...input,
-    id: current.id,
-    frameworkId: current.frameworkId,
-    outcomeId: current.outcomeId,
-    mode: input.mode === "point" ? "point" : "interval",
-    dueOn: input.dueOn || null,
-    homeTimeBoxRef: structuredClone(input.homeTimeBoxRef),
-    status: "active"
-  };
-}
-function placementSemantics(placement) {
-  return {
-    mode: placement.mode === "point" ? "point" : "interval",
-    startDate: placement.startDate,
-    endDateExclusive: placement.endDateExclusive,
-    dueOn: placement.dueOn || null,
-    declaredScale: placement.declaredScale,
-    homeTimeBoxRef: placement.homeTimeBoxRef
-  };
-}
-function jointPlacementSetContext(projection, framework, relation, placementInputs) {
-  if (!Array.isArray(placementInputs) || placementInputs.length < 2) throw new Error("\u8054\u5408\u8C03\u6574\u81F3\u5C11\u9700\u8981\u5173\u7CFB\u4E24\u7AEF\u7684\u65F6\u95F4\u5B89\u6392");
-  const seen = /* @__PURE__ */ new Set();
-  const entries = [];
-  for (const input of placementInputs) {
-    if (!input?.outcomeId || seen.has(input.outcomeId)) throw new Error("\u8054\u5408\u8C03\u6574\u6210\u679C\u91CD\u590D\u6216\u7F3A\u5C11\u7A33\u5B9A ID");
-    seen.add(input.outcomeId);
-    const outcome = projection.outcomesById[input.outcomeId];
-    if (!outcome || outcome.status !== "active") throw new Error(`\u8054\u5408\u8C03\u6574\u6210\u679C\u5DF2\u7ECF\u505C\u7528\u6216\u4E0D\u5B58\u5728\uFF1A${input.outcomeId}`);
-    if (outcome.frameworkId !== relation.frameworkId || input.frameworkId !== relation.frameworkId) throw new Error("\u8054\u5408\u8C03\u6574\u6210\u679C\u7684\u65F6\u95F4\u6846\u67B6\u4E0D\u5339\u914D");
-    const current = outcomePlacement(projection, input.outcomeId);
-    if (!current || current.frameworkId !== relation.frameworkId) throw new Error(`\u6210\u679C\u201C${outcome.title}\u201D\u6CA1\u6709\u53EF\u8054\u5408\u8C03\u6574\u7684\u6709\u6548\u65F6\u95F4\u5B89\u6392`);
-    assertPlacementShape(input);
-    const expectedTimeBox = canonicalTimeBox(input.declaredScale, input.startDate, framework);
-    if (hashValue(input.homeTimeBoxRef) !== hashValue(expectedTimeBox)) throw new Error("\u8054\u5408\u8C03\u6574\u7684\u5F52\u5C5E TimeBox \u4E0D\u662F\u5F53\u524D\u65E5\u671F\u7684\u89C4\u8303\u5730\u5740");
-    entries.push({ input, outcome, current, candidate: jointPlacementCandidate(current, input) });
-  }
-  if (!seen.has(relation.sourceOutcomeId) || !seen.has(relation.targetOutcomeId)) throw new Error("\u8054\u5408\u8C03\u6574\u5FC5\u987B\u5305\u542B\u6210\u679C\u5173\u7CFB\u7684\u4E24\u4E2A\u7AEF\u70B9");
-  const jointProjection = projectionWithPlacementCandidates(projection, entries.map((entry) => entry.candidate));
-  const diagnostics = [];
-  for (const entry of entries) {
-    const candidate = outcomePlacement(jointProjection, entry.outcome.id);
-    if (compareDate(candidate.startDate, framework.startDate) < 0 || compareDate(candidate.endDateExclusive, framework.endDateExclusive) > 0) {
-      diagnostics.push({
-        code: "FRAMEWORK_BOUNDARY",
-        constraintType: "framework",
-        constraintId: `framework-boundary:${entry.outcome.id}`,
-        outcomeIds: [entry.outcome.id],
-        adjustableOutcomeIds: [entry.outcome.id],
-        blocker: false,
-        message: `\u201C${entry.outcome.title}\u201D\u5FC5\u987B\u4F4D\u4E8E\u65F6\u95F4\u6846\u67B6\u8FB9\u754C\u5185`
-      });
-    }
-  }
-  diagnostics.push(...placementConstraintDiagnostics(jointProjection, seen));
-  return {
-    projection,
-    jointProjection,
-    framework,
-    relation,
-    entries,
-    diagnostics: uniqueConstraintDiagnostics(diagnostics)
-  };
-}
-function candidateRelationPlacementSetContext(store, relationInput, placementInputs, options = {}) {
-  const relationContext = outcomeRelationCandidateContext(store, relationInput, options);
-  if (relationContext.structuralViolations.length) throw new Error(relationContext.structuralViolations.join("\uFF1B"));
-  const projection = relationContext.candidateProjection;
-  const framework = projection.frameworksById[relationContext.relation.frameworkId];
-  if (!framework || framework.status !== "active") throw new Error("\u65F6\u95F4\u6846\u67B6\u5DF2\u7ECF\u505C\u7528\u6216\u4E0D\u5B58\u5728");
-  return jointPlacementSetContext(projection, framework, relationContext.relation, placementInputs);
-}
-function relatedPlacementSetContext(store, relationId, placementInputs) {
-  if (!relationId) throw new Error("\u7F3A\u5C11\u9700\u8981\u8054\u5408\u8C03\u6574\u7684\u6210\u679C\u5173\u7CFB");
-  const projection = reduceTemporalStore(store);
-  const relation = projection.relationsById[relationId];
-  if (!relation || relation.status !== "active") throw new Error("\u6210\u679C\u5173\u7CFB\u5DF2\u7ECF\u64A4\u9500\u6216\u4E0D\u5B58\u5728");
-  const framework = projection.frameworksById[relation.frameworkId];
-  if (!framework || framework.status !== "active") throw new Error("\u65F6\u95F4\u6846\u67B6\u5DF2\u7ECF\u505C\u7528\u6216\u4E0D\u5B58\u5728");
-  if (relation.sourceOutcomeId === relation.targetOutcomeId) throw new Error("\u8054\u5408\u8C03\u6574\u9700\u8981\u4E24\u4E2A\u4E0D\u540C\u7684\u6210\u679C");
-  return jointPlacementSetContext(projection, framework, relation, placementInputs);
-}
-function candidateOutcomeRelationPlacementSetDiagnostics(store, relationInput, placementInputs, options = {}) {
-  return structuredClone(candidateRelationPlacementSetContext(store, relationInput, placementInputs, options).diagnostics);
-}
-function relatedOutcomePlacementSetDiagnostics(store, relationId, placementInputs) {
-  return structuredClone(relatedPlacementSetContext(store, relationId, placementInputs).diagnostics);
-}
-function changedJointEntries(context, forceOutcomeIds = []) {
-  const forced = new Set(forceOutcomeIds);
-  return context.entries.filter((entry) => forced.has(entry.outcome.id) || hashValue(placementSemantics(entry.current)) !== hashValue(placementSemantics(entry.candidate)));
-}
-function preflightJointEventIds(store, eventIds) {
-  const proposed = eventIds.filter(Boolean);
-  if (new Set(proposed).size !== proposed.length) throw new Error(`\u8054\u5408\u8C03\u6574\u4E8B\u4EF6 ID \u4E0D\u80FD\u91CD\u590D\uFF1A${proposed.join("\u3001")}`);
-  for (const eventId of proposed) {
-    for (const bucket of EVENT_BUCKETS) if (store[bucket]?.[eventId]) throw new Error(`\u4E8B\u4EF6 ID \u5DF2\u5B58\u5728\uFF1A${eventId}`);
-  }
-}
-function appendJointPlacementMoves(store, context, changedEntries, eventIdsByOutcomeId, options, fallbackReason) {
-  const eventOptions = { ...options };
-  for (const key of ["relationId", "relationEventId", "sourceEventId", "targetEventId", "placementEventIdsByOutcomeId", "forceOutcomeIds"]) delete eventOptions[key];
-  const eventsByOutcomeId = {};
-  for (const entry of changedEntries) {
-    eventsByOutcomeId[entry.outcome.id] = appendDomainEvent(store, "placementEventsById", "move", {
-      placementId: entry.current.id,
-      patch: structuredClone(placementSemantics(entry.candidate)),
-      reason: text2(entry.input.reason, fallbackReason)
-    }, { ...eventOptions, eventId: eventIdsByOutcomeId[entry.outcome.id] });
-  }
-  return eventsByOutcomeId;
-}
-function moveRelatedOutcomePlacementSet(store, relationId, placementInputs, options = {}) {
-  const context = relatedPlacementSetContext(store, relationId, placementInputs);
-  if (context.diagnostics.length) throw new Error(context.diagnostics.map((item) => item.message).join("\uFF1B"));
-  const changedEntries = changedJointEntries(context, options.forceOutcomeIds);
-  if (!changedEntries.length) throw new Error("\u6CA1\u6709\u9700\u8981\u4FDD\u5B58\u7684\u65F6\u95F4\u8C03\u6574");
-  const createId = options.createId || stableId;
-  const eventIdsByOutcomeId = { ...options.placementEventIdsByOutcomeId || {} };
-  for (const entry of changedEntries) if (!eventIdsByOutcomeId[entry.outcome.id]) eventIdsByOutcomeId[entry.outcome.id] = createId("place_evt");
-  preflightJointEventIds(store, changedEntries.map((entry) => eventIdsByOutcomeId[entry.outcome.id]));
-  const placementEventsByOutcomeId = appendJointPlacementMoves(store, context, changedEntries, eventIdsByOutcomeId, options, "\u5173\u7CFB\u65F6\u95F4\u51B2\u7A81\u8054\u5408\u8C03\u6574");
-  return { placementEventsByOutcomeId, changedOutcomeIds: changedEntries.map((entry) => entry.outcome.id) };
-}
-function addOutcomeRelationWithJointPlacementSet(store, relationInput, placementInputs, options = {}) {
-  const relationId = options.relationId || stableId("relation");
-  const context = candidateRelationPlacementSetContext(store, relationInput, placementInputs, { relationId });
-  if (context.diagnostics.length) throw new Error(context.diagnostics.map((item) => item.message).join("\uFF1B"));
-  const changedEntries = changedJointEntries(context, options.forceOutcomeIds);
-  const createId = options.createId || stableId;
-  const relationEventId = options.relationEventId || createId("relation_evt");
-  const eventIdsByOutcomeId = { ...options.placementEventIdsByOutcomeId || {} };
-  for (const entry of changedEntries) if (!eventIdsByOutcomeId[entry.outcome.id]) eventIdsByOutcomeId[entry.outcome.id] = createId("place_evt");
-  preflightJointEventIds(store, [relationEventId, ...changedEntries.map((entry) => eventIdsByOutcomeId[entry.outcome.id])]);
-  const relationOptions = { ...options, eventId: relationEventId };
-  for (const key of ["relationId", "relationEventId", "sourceEventId", "targetEventId", "placementEventIdsByOutcomeId", "forceOutcomeIds"]) delete relationOptions[key];
-  const relationEvent = appendDomainEvent(store, "relationEventsById", "add", {
-    relationId,
-    frameworkId: relationInput.frameworkId,
-    sourceOutcomeId: relationInput.sourceOutcomeId,
-    targetOutcomeId: relationInput.targetOutcomeId,
-    relationType: relationInput.relationType,
-    supersedesRelationId: relationInput.supersedesRelationId || null
-  }, relationOptions);
-  const placementEventsByOutcomeId = appendJointPlacementMoves(store, context, changedEntries, eventIdsByOutcomeId, options, "\u5EFA\u7ACB\u5173\u7CFB\u5E76\u8054\u5408\u8C03\u6574\u65F6\u95F4");
-  return { relationId, relationEvent, placementEventsByOutcomeId, changedOutcomeIds: changedEntries.map((entry) => entry.outcome.id) };
 }
 function archiveOutcome(store, input, options = {}) {
   const projection = reduceTemporalStore(store);
@@ -2809,43 +2345,21 @@ function archiveOutcome(store, input, options = {}) {
   const placement = outcomePlacement(projection, input.outcomeId);
   if (placement) appendDomainEvent(store, "placementEventsById", "unassign", {
     placementId: placement.id,
-    reason: text2(input.reason, "\u9636\u6BB5\u6210\u679C\u505C\u7528")
+    reason: text(input.reason, "\u9636\u6BB5\u6210\u679C\u505C\u7528")
   }, options);
   appendDomainEvent(store, "outcomeEventsById", "archive", {
     outcomeId: input.outcomeId,
-    reason: text2(input.reason, "\u9636\u6BB5\u6210\u679C\u505C\u7528")
+    reason: text(input.reason, "\u9636\u6BB5\u6210\u679C\u505C\u7528")
   }, options);
 }
 function revokeOutcomeRelation(store, input, options = {}) {
-  const reason = text2(input.reason);
+  const reason = text(input.reason);
   if (!reason) throw new Error("\u64A4\u9500\u5173\u7CFB\u9700\u8981\u539F\u56E0");
   appendDomainEvent(store, "relationEventsById", "revoke", { relationId: input.relationId, reason }, options);
 }
-function setGatePolicy(store, input, options = {}) {
-  appendDomainEvent(store, "gatePolicyEventsById", "set", {
-    outcomeId: input.outcomeId,
-    mode: input.mode === "threshold_count" ? "threshold_count" : "all",
-    threshold: input.mode === "threshold_count" ? Number(input.threshold) : null
-  }, options);
-}
-function paintOutcome(store, input, options = {}) {
-  assertIsoDate(input.completedOn, "completedOn");
-  appendDomainEvent(store, "completionEventsById", "paint", {
-    outcomeId: input.outcomeId,
-    completedOn: input.completedOn,
-    evidence: text2(input.evidence),
-    note: text2(input.note),
-    reason: text2(input.reason)
-  }, options);
-}
-function unpaintOutcome(store, input, options = {}) {
-  const reason = text2(input.reason);
-  if (!reason) throw new Error("\u53D6\u6D88\u5B8C\u6210\u9700\u8981\u539F\u56E0");
-  appendDomainEvent(store, "completionEventsById", "unpaint", { outcomeId: input.outcomeId, reason }, options);
-}
 function decideNoDeployment(store, input, options = {}) {
   const coverageId = options.coverageId || stableId("coverage");
-  const reason = text2(input.reason);
+  const reason = text(input.reason);
   if (!reason) throw new Error("\u8BF7\u8BF4\u660E\u672C\u9636\u6BB5\u65E0\u90E8\u7F72\u7684\u539F\u56E0");
   const membership = reduceTemporalStore(store).membershipsById[input.membershipId];
   if (!membership || membership.status !== "active" || membership.frameworkId !== input.frameworkId) throw new Error("\u6240\u5C5E\u76EE\u6807\u6216\u9879\u76EE\u4E0D\u5728\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u4E2D");
@@ -2862,7 +2376,7 @@ function decideNoDeployment(store, input, options = {}) {
   return coverageId;
 }
 function revokeCoverageDecision(store, input, options = {}) {
-  const reason = text2(input.reason);
+  const reason = text(input.reason);
   if (!reason) throw new Error("\u64A4\u9500\u65E0\u90E8\u7F72\u51B3\u5B9A\u9700\u8981\u539F\u56E0");
   appendDomainEvent(store, "coverageEventsById", "revoke", { coverageId: input.coverageId, reason }, options);
 }
@@ -2914,10 +2428,10 @@ function buildFrameworkDiagnostics(projection, frameworkId, today = localDate())
   for (const outcome of activeOutcomes) {
     const placement = outcomePlacement(projection, outcome.id);
     if (!placement) diagnostics.push({ type: "outcome_unscheduled", outcomeId: outcome.id, title: outcome.title });
-    else if (compareDate(placement.endDateExclusive, addDays(today, 1)) <= 0 && projection.completionByOutcomeId[outcome.id]?.painted !== true) {
-      diagnostics.push({ type: "past_unpainted", outcomeId: outcome.id, title: outcome.title, dueOn: placement.dueOn || addDays(placement.endDateExclusive, -1) });
+    else if (compareDate(placement.endDateExclusive, addDays(today, 1)) <= 0 && (projection.localDirectionModel || projection.completionByOutcomeId[outcome.id]?.painted !== true)) {
+      diagnostics.push({ type: projection.localDirectionModel ? "past_due" : "past_unpainted", outcomeId: outcome.id, title: outcome.title, dueOn: placement.dueOn || addDays(placement.endDateExclusive, -1) });
     }
-    if (outcome.outcomeKind === "stage_gate") {
+    if (!projection.localDirectionModel && outcome.outcomeKind === "stage_gate") {
       const readiness = outcomeReadiness(projection, outcome.id);
       if (!readiness.ready) diagnostics.push({ type: "gate_not_ready", outcomeId: outcome.id, title: outcome.title, ...readiness });
     }
@@ -2935,6 +2449,303 @@ function buildFrameworkDiagnostics(projection, frameworkId, today = localDate())
   }
   return diagnostics;
 }
+
+// src/keyword-bridge.mjs
+var OUTCOME_MOUNT_TYPE = "temporal-outcome-keyword-mount";
+var OUTCOME_VIEW_TYPE = "temporal-framework-view";
+function keywordMounts(eva, sourceNodeKey) {
+  if (!eva?.getNodeRelationSnapshot) return [];
+  const snapshot = eva.getNodeRelationSnapshot(sourceNodeKey);
+  return (snapshot?.outgoing || []).filter((relation) => relation.relationType === OUTCOME_MOUNT_TYPE).map((relation) => {
+    const target = relation.target || eva.getNodeRecord?.(relation.targetNodeKey);
+    const identity = eva.parseJumpNodeKey?.(relation.targetNodeKey);
+    const isKeyword = identity?.viewType === "keyword-index-plugin";
+    return {
+      relationId: relation.id,
+      targetNodeKey: relation.targetNodeKey,
+      isKeyword,
+      label: target?.label || "\u6302\u8F7D\u6765\u6E90\u6682\u4E0D\u53EF\u7528",
+      unavailable: !target
+    };
+  });
+}
+function uniqueKeywordNotes(result) {
+  if (!Array.isArray(result)) throw new Error("Keyword Index \u8FD4\u56DE\u7684 Note \u6E05\u5355\u65E0\u6548");
+  return [...new Map(result.filter((note) => typeof note?.path === "string" && note.path.trim()).map((note) => [note.path, note])).values()];
+}
+var TemporalKeywordBridge = class {
+  constructor({ store, notePath, getEva, reveal, report = () => {
+  } }) {
+    Object.assign(this, { store, notePath, getEva, reveal, report });
+    this.adapterId = "temporal-framework:outcomes";
+    this.owner = {};
+    this.items = [];
+    this.eva = null;
+    this.signature = null;
+    this.disposed = false;
+    this.queue = Promise.resolve();
+    this.requested = false;
+  }
+  nodeKey(id) {
+    return `jump:v1:${[OUTCOME_VIEW_TYPE, this.notePath, "outcome", id, "outcome"].map(encodeURIComponent).join("|")}`;
+  }
+  release(eva) {
+    if (eva?.releaseAdapterRegistration) eva.releaseAdapterRegistration(this.adapterId, this.owner);
+    else eva?.unregisterAdapter?.(this.adapterId);
+  }
+  refresh() {
+    if (this.disposed) return Promise.resolve(false);
+    this.requested = true;
+    const run = async () => {
+      if (this.disposed) return false;
+      if (!this.requested) return !!this.signature && this.eva === this.getEva();
+      this.requested = false;
+      const eva = this.getEva();
+      if (!eva?.registerAdapter || !eva?.refreshAdapter) return false;
+      const store = await this.store.read();
+      if (this.disposed || eva !== this.getEva()) return false;
+      const projection = projectLocalDirections(store);
+      const items = Object.values(projection.outcomesById).filter((x) => x.status === "active").map((x) => ({
+        nodeKey: this.nodeKey(x.id),
+        label: x.title,
+        pathLabel: `${projection.frameworksById[x.frameworkId]?.title || ""} / ${projection.membershipsById[x.membershipId]?.lastKnownLabel || ""} / ${x.title}`,
+        searchText: x.title,
+        metaFields: [{ label: "\u7C7B\u578B", value: "\u9636\u6BB5\u6210\u679C" }]
+      }));
+      const signature = JSON.stringify(items);
+      if (this.eva === eva && signature === this.signature) return true;
+      const meta = eva.getMetaCaptureState?.();
+      if (meta?.sourceNodeKey && this.items.some((item) => item.nodeKey === meta.sourceNodeKey) && !items.some((item) => item.nodeKey === meta.sourceNodeKey)) eva.stopMetaCapture?.("temporal-outcome-removed");
+      this.items = items;
+      if (this.eva !== eva) {
+        this.release(this.eva);
+        this.eva = eva;
+        const accepted = await eva.registerAdapter({
+          adapterId: this.adapterId,
+          registrationOwner: this.owner,
+          viewType: OUTCOME_VIEW_TYPE,
+          notePath: this.notePath,
+          viewLabel: "\u65F6\u95F4\u6846\u67B6\u6210\u679C",
+          listItems: () => this.disposed ? [] : this.items,
+          openNode: async (key) => {
+            if (this.disposed) return false;
+            const identity = eva.parseJumpNodeKey?.(key);
+            if (identity?.viewType !== OUTCOME_VIEW_TYPE || identity.notePath !== this.notePath || identity.scopeType !== "outcome" || identity.itemId !== "outcome") return false;
+            return this.reveal(identity.scopeId);
+          }
+        });
+        if (!accepted) {
+          this.eva = null;
+          throw new Error("EVA \u672A\u63A5\u53D7\u6210\u679C\u5165\u53E3");
+        }
+      } else await eva.refreshAdapter(this.adapterId);
+      if (this.disposed || eva !== this.getEva()) {
+        this.release(eva);
+        if (this.eva === eva) this.eva = null;
+        return false;
+      }
+      this.signature = signature;
+      this.report("adapter-ready", { count: items.length, revision: store.revision });
+      return true;
+    };
+    const pending = this.queue.then(run, run);
+    this.queue = pending.catch((error) => {
+      this.release(this.eva);
+      this.eva = null;
+      this.signature = null;
+      this.report("adapter-failed", { message: error.message });
+    });
+    return pending;
+  }
+  async startMount(outcomeId) {
+    if (!await this.refresh()) throw new Error("\u8BF7\u5148\u542F\u7528 EVA Cross Relations");
+    const eva = this.getEva();
+    const projection = projectLocalDirections(await this.store.read());
+    const outcome = projection.outcomesById[outcomeId];
+    if (this.disposed || eva !== this.eva || outcome?.status !== "active") throw new Error("\u6210\u679C\u6216 EVA \u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u8BD5");
+    if (!eva.startMetaCapture || !eva.captureMetaNode) throw new Error("EVA Meta \u63A5\u53E3\u5C1A\u672A\u5C31\u7EEA");
+    await eva.startMetaCapture({ reason: "temporal-outcome-mount", relationType: OUTCOME_MOUNT_TYPE });
+    if (this.disposed || eva !== this.getEva()) throw new Error("EVA \u5DF2\u91CD\u65B0\u52A0\u8F7D");
+    await eva.captureMetaNode({ nodeKey: this.nodeKey(outcome.id), label: outcome.title, sourcePlugin: OUTCOME_VIEW_TYPE });
+  }
+  mounts(outcomeId) {
+    try {
+      return keywordMounts(this.getEva(), this.nodeKey(outcomeId));
+    } catch (error) {
+      this.report("snapshot-failed", { message: error.message });
+      return [];
+    }
+  }
+  dispose() {
+    this.disposed = true;
+    this.requested = false;
+    const meta = this.eva?.getMetaCaptureState?.();
+    if (meta?.sourceNodeKey && this.items.some((item) => item.nodeKey === meta.sourceNodeKey)) this.eva.stopMetaCapture?.("temporal-unload");
+    this.release(this.eva);
+    this.items = [];
+  }
+};
+
+// src/outcome-search.mjs
+var MAX_OUTCOME_SEARCH_PATH_DEPTH = 32;
+var DEFAULT_OUTCOME_SEARCH_LIMIT = 20;
+function compareText(left, right) {
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
+}
+function isValidIsoDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) return false;
+  const parsed = /* @__PURE__ */ new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+function validMembership(projection, membershipId, frameworkId) {
+  const membership = projection.membershipsById?.[membershipId];
+  return membership && membership.id === membershipId && membership.status === "active" && membership.frameworkId === frameworkId && (membership.localDirection === true || ["goal", "project"].includes(membership.primaryRef?.domain)) ? membership : null;
+}
+function normalizeOutcomeSearchText(value) {
+  return String(value || "").normalize("NFKC").toLocaleLowerCase("zh-CN").replace(/\s+/gu, " ").trim();
+}
+function activePlacementIndex(projection, frameworkId) {
+  const byOutcomeId = /* @__PURE__ */ new Map();
+  for (const [placementKey, placement] of Object.entries(projection.placementsById || {})) {
+    if (!placement || placementKey !== placement.id || placement.status !== "active" || placement.frameworkId !== frameworkId) continue;
+    if (!placement.outcomeId || !isValidIsoDate(placement.startDate) || !isValidIsoDate(placement.endDateExclusive)) continue;
+    if (placement.startDate >= placement.endDateExclusive) continue;
+    const outcome = projection.outcomesById?.[placement.outcomeId];
+    if (!outcome || outcome.id !== placement.outcomeId || outcome.status !== "active" || outcome.frameworkId !== frameworkId) continue;
+    const bucket = byOutcomeId.get(placement.outcomeId) || [];
+    bucket.push(placement);
+    byOutcomeId.set(placement.outcomeId, bucket);
+  }
+  for (const bucket of byOutcomeId.values()) {
+    bucket.sort((left, right) => compareText(left.startDate, right.startDate) || compareText(left.endDateExclusive, right.endDateExclusive) || compareText(left.id, right.id));
+  }
+  return byOutcomeId;
+}
+function outcomePath(projection, outcome, frameworkId) {
+  const path4 = [];
+  const visited = /* @__PURE__ */ new Set();
+  let cursor = outcome;
+  let pathStatus = "complete";
+  while (cursor) {
+    if (visited.has(cursor.id)) {
+      pathStatus = "cycle";
+      break;
+    }
+    if (path4.length >= MAX_OUTCOME_SEARCH_PATH_DEPTH) {
+      pathStatus = "truncated";
+      break;
+    }
+    if (projection.outcomesById?.[cursor.id] !== cursor || cursor.status !== "active" || cursor.frameworkId !== frameworkId) return null;
+    if (!validMembership(projection, cursor.membershipId, frameworkId)) return null;
+    visited.add(cursor.id);
+    path4.push(cursor);
+    if (!cursor.outlineParentId) break;
+    const parent = projection.outcomesById?.[cursor.outlineParentId];
+    if (!parent || parent.id !== cursor.outlineParentId || parent.status !== "active" || parent.frameworkId !== frameworkId) return null;
+    cursor = parent;
+  }
+  path4.reverse();
+  return {
+    pathOutcomeIds: path4.map((item) => item.id),
+    pathTitles: path4.map((item) => item.title),
+    pathStatus
+  };
+}
+function buildOutcomeSearchEntries(projection, frameworkId) {
+  const entries = [];
+  const placements = activePlacementIndex(projection, frameworkId);
+  for (const [outcomeKey, outcome] of Object.entries(projection.outcomesById || {})) {
+    if (!outcome || outcomeKey !== outcome.id || outcome.status !== "active" || outcome.frameworkId !== frameworkId) continue;
+    if (!normalizeOutcomeSearchText(outcome.title)) continue;
+    const membership = validMembership(projection, outcome.membershipId, frameworkId);
+    if (!membership) continue;
+    let frameworkItem = null;
+    if (membership.frameworkItemId) {
+      frameworkItem = projection.frameworkItemsById?.[membership.frameworkItemId];
+      if (!frameworkItem || frameworkItem.id !== membership.frameworkItemId || frameworkItem.status !== "active" || frameworkItem.frameworkId !== frameworkId) continue;
+    }
+    const path4 = outcomePath(projection, outcome, frameworkId);
+    if (!path4) continue;
+    const placement = placements.get(outcome.id)?.[0] || null;
+    const frameworkItemTitle = frameworkItem?.title || "\u672A\u5F52\u5C5E\u6846\u67B6\u6761\u76EE";
+    const membershipLabel = membership.lastKnownLabel || membership.labelAtCreation || membership.id;
+    const pathLabel = path4.pathTitles.join(" / ");
+    entries.push({
+      outcomeId: outcome.id,
+      title: outcome.title,
+      outcomeKind: outcome.outcomeKind === "stage_gate" ? "stage_gate" : "outcome",
+      membershipId: membership.id,
+      membershipDomain: membership.localDirection ? "direction" : membership.primaryRef?.domain,
+      membershipLabel,
+      frameworkItemId: frameworkItem?.id || null,
+      frameworkItemTitle,
+      pathOutcomeIds: path4.pathOutcomeIds,
+      pathTitles: path4.pathTitles,
+      pathLabel,
+      pathStatus: path4.pathStatus,
+      placement: placement ? {
+        id: placement.id,
+        startDate: placement.startDate,
+        endDateExclusive: placement.endDateExclusive
+      } : null,
+      normalizedTitle: normalizeOutcomeSearchText(outcome.title),
+      normalizedMembership: normalizeOutcomeSearchText(membershipLabel),
+      normalizedFrameworkItem: normalizeOutcomeSearchText(frameworkItemTitle),
+      normalizedPath: normalizeOutcomeSearchText(pathLabel)
+    });
+  }
+  return entries.sort((left, right) => compareText(left.normalizedTitle, right.normalizedTitle) || compareText(left.normalizedPath, right.normalizedPath) || compareText(left.normalizedMembership, right.normalizedMembership) || compareText(left.normalizedFrameworkItem, right.normalizedFrameworkItem) || compareText(left.outcomeId, right.outcomeId));
+}
+function matchRank(entry, query, tokens) {
+  if (entry.normalizedTitle === query) return 0;
+  if (entry.normalizedTitle.startsWith(query)) return 1;
+  if (entry.normalizedTitle.includes(query)) return 2;
+  if (entry.normalizedPath.includes(query)) return 3;
+  if (entry.normalizedMembership.includes(query)) return 4;
+  if (entry.normalizedFrameworkItem.includes(query)) return 5;
+  const combined = `${entry.normalizedTitle} ${entry.normalizedPath} ${entry.normalizedMembership} ${entry.normalizedFrameworkItem}`;
+  return tokens.every((token) => combined.includes(token)) ? 6 : null;
+}
+function searchOutcomeEntries(entries, queryValue, limitValue = DEFAULT_OUTCOME_SEARCH_LIMIT) {
+  const query = normalizeOutcomeSearchText(queryValue);
+  if (!query) return [];
+  const tokens = query.split(" ").filter(Boolean);
+  const limit = Math.max(1, Math.min(DEFAULT_OUTCOME_SEARCH_LIMIT, Number.isFinite(Number(limitValue)) ? Math.floor(Number(limitValue)) : DEFAULT_OUTCOME_SEARCH_LIMIT));
+  return entries.map((entry) => ({ entry, rank: matchRank(entry, query, tokens) })).filter((candidate) => candidate.rank !== null).sort((left, right) => left.rank - right.rank || compareText(left.entry.normalizedTitle, right.entry.normalizedTitle) || compareText(left.entry.normalizedPath, right.entry.normalizedPath) || compareText(left.entry.normalizedMembership, right.entry.normalizedMembership) || compareText(left.entry.normalizedFrameworkItem, right.entry.normalizedFrameworkItem) || compareText(left.entry.outcomeId, right.entry.outcomeId)).slice(0, limit).map((candidate) => candidate.entry);
+}
+
+// src/outcome-overview-navigation.mjs
+var OutcomeOverviewReturnQueue = class {
+  constructor() {
+    this.sequence = 0;
+    this.pending = null;
+  }
+  queue(projection, frameworkId, outcomeId) {
+    const token = ++this.sequence;
+    this.pending = null;
+    const outcome = projection?.outcomesById?.[outcomeId];
+    const membership = outcome ? projection?.membershipsById?.[outcome.membershipId] : null;
+    if (outcome?.status !== "active" || membership?.status !== "active") return null;
+    if (outcome.id !== outcomeId || membership.id !== outcome.membershipId) return null;
+    if (outcome.frameworkId !== frameworkId || membership.frameworkId !== frameworkId) return null;
+    this.pending = { token, frameworkId, membershipId: membership.id, outcomeId: outcome.id };
+    return this.pending;
+  }
+  current() {
+    return this.pending;
+  }
+  consume(token, frameworkId) {
+    const intent = this.pending;
+    if (!intent || intent.token !== token) return null;
+    this.pending = null;
+    return intent.frameworkId === frameworkId ? intent : null;
+  }
+  clear() {
+    this.sequence += 1;
+    this.pending = null;
+  }
+};
 
 // src/temporal-store.mjs
 var import_node_crypto3 = require("node:crypto");
@@ -2964,15 +2775,15 @@ async function writeFileSynced(target, value) {
   }
 }
 async function validatedFile(target, context) {
-  const text3 = await import_promises.default.readFile(target, "utf8");
+  const text2 = await import_promises.default.readFile(target, "utf8");
   let value;
   try {
-    value = JSON.parse(text3);
+    value = JSON.parse(text2);
   } catch (error) {
     throw new Error(`${context} JSON \u89E3\u6790\u5931\u8D25\uFF1A${error.message}`);
   }
   assertValidStore(value);
-  return { value, text: text3, hash: hashText2(text3) };
+  return { value, text: text2, hash: hashText2(text2) };
 }
 function assertAppendOnlyHistory(current, draft) {
   if (draft.nextEventOrdinal < current.nextEventOrdinal) throw new Error("event ordinal \u4E0D\u5141\u8BB8\u56DE\u9000");
@@ -3248,12 +3059,6 @@ function timeTreeBranchIdentity(treeInstanceKey, outcomeId) {
 var VIEW_TYPE = "temporal-framework-view";
 var API_KEY = "__temporalFrameworkPluginApi";
 var SCALE_LABELS = { year: "\u5E74", quarter: "\u5B63\u5EA6", month: "\u6708", week: "\u5468" };
-var RELATION_LABELS = { precedes: "\u5148\u4E8E", requires: "\u4E3A\u5176\u524D\u7F6E\u6761\u4EF6", contributes_to: "\u5171\u540C\u6C47\u805A\u5230" };
-var RELATION_ENDPOINT_LABELS = {
-  precedes: { outgoing: "\u5148\u4E8E", incoming: "\u540E\u4E8E" },
-  requires: { outgoing: "\u4F5C\u4E3A\u524D\u7F6E", incoming: "\u4F9D\u8D56\u4E8E" },
-  contributes_to: { outgoing: "\u6C47\u805A\u5230", incoming: "\u6C47\u805A\u81EA" }
-};
 var MAX_OUTCOME_EXPANSION_DEPTH = 32;
 var nextTemporalViewInstanceId = 0;
 function el(tag, className = "", textValue) {
@@ -3457,524 +3262,58 @@ var TemporalFormModal = class extends import_obsidian.Modal {
     this.contentEl.empty();
   }
 };
-var RelationConflictModal = class extends import_obsidian.Modal {
-  constructor(plugin, framework, projection, diagnostics) {
+var ConfirmationModal = class extends import_obsidian.Modal {
+  constructor(plugin, title, message, action) {
     super(plugin.app);
-    this.plugin = plugin;
-    this.framework = framework;
-    this.projection = projection;
-    this.diagnostics = diagnostics;
+    Object.assign(this, { title, message, action });
   }
   onOpen() {
-    this.modalEl.addClass("tf-modal", "is-relation-conflict-modal");
-    this.titleEl.setText("\u5173\u7CFB\u65F6\u95F4\u51B2\u7A81");
-    this.contentEl.append(el("p", "tf-modal__message", "\u9009\u62E9\u4E00\u7EC4\u51B2\u7A81\u6210\u679C\uFF0C\u5728\u540C\u4E00\u65F6\u95F4\u523B\u5EA6\u4E0A\u8054\u5408\u8C03\u6574\u3002"));
-    const list = el("div", "tf-conflict-list");
-    for (const diagnostic of this.diagnostics) {
-      const relation = this.projection.relationsById[diagnostic.relationId];
-      const source = this.projection.outcomesById[diagnostic.sourceOutcomeId];
-      const target = this.projection.outcomesById[diagnostic.targetOutcomeId];
-      if (!relation || !source || !target) continue;
-      const row = el("article", "tf-conflict-row");
-      const copy = el("div", "tf-conflict-row__copy");
-      copy.append(
-        el("strong", "tf-conflict-row__title", `${source.title} ${RELATION_LABELS[relation.relationType]} ${target.title}`),
-        el("span", "tf-conflict-row__message", diagnostic.message)
-      );
-      row.append(copy, button("\u8054\u5408\u8C03\u6574", "git-compare-arrows", () => {
-        this.close();
-        this.plugin.openJointRelationAdjustment(this.framework.id, relation.id);
-      }, "is-primary"));
-      list.append(row);
-    }
-    this.contentEl.append(list);
-  }
-  onClose() {
-    this.contentEl.empty();
-  }
-};
-var JointRelationAdjustmentModal = class extends import_obsidian.Modal {
-  constructor(plugin, framework, projection, relation, storeSnapshot, baseRevision, options = {}) {
-    super(plugin.app);
-    this.plugin = plugin;
-    this.framework = framework;
-    this.projection = projection;
-    this.relation = relation;
-    this.storeSnapshot = structuredClone(storeSnapshot);
-    this.baseRevision = baseRevision;
-    this.mode = options.mode === "create" ? "create" : "existing";
-    this.onCommitted = options.onCommitted || null;
-    this.allowClose = false;
-    this.submitting = false;
-    const source = outcomePlacement(projection, relation.sourceOutcomeId);
-    const target = outcomePlacement(projection, relation.targetOutcomeId);
-    this.endpointIds = [relation.sourceOutcomeId, relation.targetOutcomeId];
-    this.session = plugin.drafts.openSession({
-      recordType: this.mode === "create" ? "relation-create-joint-placement" : "relation-joint-placement",
-      recordId: this.mode === "create" ? `${relation.sourceOutcomeId}|${relation.targetOutcomeId}|${relation.relationType}|${relation.id}` : relation.id,
-      baseRevision,
-      baseHash: hashValue({ relation, source, target })
-    }, { valueVersion: 2, placementsByOutcomeId: { [source.outcomeId]: structuredClone(source), [target.outcomeId]: structuredClone(target) }, displayedOutcomeIds: [...this.endpointIds], discoveryReasonsByOutcomeId: {} });
-    this.value = this.normalizeDraftValue(this.session.value, source, target);
-    this.originalPlacementsByOutcomeId = {};
-    for (const outcomeId of this.value.displayedOutcomeIds) {
-      const current = outcomePlacement(projection, outcomeId);
-      if (current) this.originalPlacementsByOutcomeId[outcomeId] = structuredClone(current);
-    }
-    this.currentDiagnostics = [];
-    this.expandConflictClosure();
-    this.axis = this.buildAxis(this.displayedPlacements());
-    this.activeInteraction = null;
-    this.editor = null;
-  }
-  normalizeDraftValue(raw, source, target) {
-    const legacy = raw?.valueVersion !== 2;
-    const placementsByOutcomeId = legacy ? {
-      [source.outcomeId]: structuredClone(raw?.source || source),
-      [target.outcomeId]: structuredClone(raw?.target || target)
-    } : structuredClone(raw.placementsByOutcomeId || {});
-    placementsByOutcomeId[source.outcomeId] ||= structuredClone(source);
-    placementsByOutcomeId[target.outcomeId] ||= structuredClone(target);
-    const requestedOrder = legacy ? this.endpointIds : raw.displayedOutcomeIds || this.endpointIds;
-    const displayedOutcomeIds = [];
-    for (const outcomeId of [...this.endpointIds, ...requestedOrder]) {
-      if (displayedOutcomeIds.includes(outcomeId)) continue;
-      const outcome = this.projection.outcomesById[outcomeId];
-      const current = outcomePlacement(this.projection, outcomeId);
-      if (!outcome || outcome.status !== "active" || !current) continue;
-      const candidate = placementsByOutcomeId[outcomeId] || current;
-      placementsByOutcomeId[outcomeId] = { ...structuredClone(current), ...structuredClone(candidate), id: current.id, outcomeId, frameworkId: this.framework.id };
-      displayedOutcomeIds.push(outcomeId);
-    }
-    return {
-      valueVersion: 2,
-      placementsByOutcomeId,
-      displayedOutcomeIds,
-      discoveryReasonsByOutcomeId: structuredClone(legacy ? {} : raw.discoveryReasonsByOutcomeId || {})
-    };
-  }
-  displayedPlacements() {
-    return this.value.displayedOutcomeIds.map((outcomeId) => this.value.placementsByOutcomeId[outcomeId]).filter(Boolean);
-  }
-  buildAxis(placements) {
-    const unionStart = placements.reduce((value, placement) => compareDate(placement.startDate, value) < 0 ? placement.startDate : value, placements[0]?.startDate || this.framework.startDate);
-    const unionEnd = placements.reduce((value, placement) => compareDate(placement.endDateExclusive, value) > 0 ? placement.endDateExclusive : value, placements[0]?.endDateExclusive || this.framework.endDateExclusive);
-    const padding = Math.max(7, ...placements.map((placement) => daysBetween(placement.startDate, placement.endDateExclusive)));
-    const startDate = compareDate(addDays(unionStart, -padding), this.framework.startDate) < 0 ? this.framework.startDate : addDays(unionStart, -padding);
-    const endDateExclusive = compareDate(addDays(unionEnd, padding), this.framework.endDateExclusive) > 0 ? this.framework.endDateExclusive : addDays(unionEnd, padding);
-    return { startDate, endDateExclusive };
-  }
-  expandAxis() {
-    const desired = this.buildAxis(this.displayedPlacements());
-    const next = {
-      startDate: compareDate(desired.startDate, this.axis.startDate) < 0 ? desired.startDate : this.axis.startDate,
-      endDateExclusive: compareDate(desired.endDateExclusive, this.axis.endDateExclusive) > 0 ? desired.endDateExclusive : this.axis.endDateExclusive
-    };
-    const changed = next.startDate !== this.axis.startDate || next.endDateExclusive !== this.axis.endDateExclusive;
-    this.axis = next;
-    return changed;
-  }
-  relationRule() {
-    if (this.relation.relationType === "precedes") return "\u5148\u4E8E\uFF1AA \u7684\u7ED3\u675F\u8FB9\u754C\u4E0D\u5F97\u665A\u4E8E B \u7684\u5F00\u59CB\u65E5\u3002";
-    if (this.relation.relationType === "requires") return "\u524D\u7F6E\u6761\u4EF6\uFF1AA \u7684\u76EE\u6807\u5B8C\u6210\u65E5\u5FC5\u987B\u65E9\u4E8E B \u7684\u5F00\u59CB\u65E5\u3002";
-    return "\u6C47\u805A\uFF1AA \u7684\u76EE\u6807\u5B8C\u6210\u65E5\u4E0D\u5F97\u665A\u4E8E B \u7684\u5173\u53E3\u65E5\u671F\u3002";
-  }
-  inputFor(placement) {
-    return {
-      frameworkId: this.framework.id,
-      outcomeId: placement.outcomeId,
-      mode: "interval",
-      startDate: placement.startDate,
-      endDateExclusive: placement.endDateExclusive,
-      dueOn: effectiveDueOn(placement),
-      declaredScale: placement.declaredScale,
-      homeTimeBoxRef: canonicalTimeBox(placement.declaredScale, placement.startDate, this.framework)
-    };
-  }
-  placementInputs() {
-    return this.displayedPlacements().map((placement) => this.inputFor(placement));
-  }
-  localDiagnostics() {
-    try {
-      return this.mode === "create" ? candidateOutcomeRelationPlacementSetDiagnostics(this.storeSnapshot, this.relation, this.placementInputs(), { relationId: this.relation.id }) : relatedOutcomePlacementSetDiagnostics(this.storeSnapshot, this.relation.id, this.placementInputs());
-    } catch (error) {
-      return [{ code: "JOINT_CONTEXT_INVALID", constraintType: "identity", outcomeIds: [], adjustableOutcomeIds: [], blocker: true, message: error.message }];
-    }
-  }
-  localViolation() {
-    return this.localDiagnostics()[0]?.message || null;
-  }
-  recordDiscovery(outcomeId, message) {
-    const reasons = this.value.discoveryReasonsByOutcomeId[outcomeId] || [];
-    if (!reasons.includes(message)) reasons.push(message);
-    this.value.discoveryReasonsByOutcomeId[outcomeId] = reasons;
-  }
-  expandConflictClosure() {
-    let addedAny = false;
-    const maximum = Object.keys(this.projection.outcomesById).length + 2;
-    for (let pass = 0; pass < maximum; pass += 1) {
-      const diagnostics = this.localDiagnostics();
-      let addedThisPass = false;
-      for (const diagnostic of diagnostics) {
-        for (const outcomeId of diagnostic.adjustableOutcomeIds || []) {
-          if (this.value.displayedOutcomeIds.includes(outcomeId)) {
-            if (!this.endpointIds.includes(outcomeId)) this.recordDiscovery(outcomeId, diagnostic.message);
-            continue;
-          }
-          const outcome = this.projection.outcomesById[outcomeId];
-          const placement = outcomePlacement(this.projection, outcomeId);
-          if (!outcome || outcome.status !== "active" || outcome.frameworkId !== this.framework.id || !placement) continue;
-          this.value.displayedOutcomeIds.push(outcomeId);
-          this.value.placementsByOutcomeId[outcomeId] = structuredClone(placement);
-          this.originalPlacementsByOutcomeId ||= {};
-          this.originalPlacementsByOutcomeId[outcomeId] = structuredClone(placement);
-          this.recordDiscovery(outcomeId, diagnostic.message);
-          addedThisPass = true;
-          addedAny = true;
-        }
-      }
-      if (!addedThisPass) {
-        this.currentDiagnostics = diagnostics;
-        break;
-      }
-    }
-    this.currentDiagnostics = this.localDiagnostics();
-    return addedAny;
-  }
-  changedOutcomeIds() {
-    return this.value.displayedOutcomeIds.filter((outcomeId) => !placementDatesEqual(
-      this.originalPlacementsByOutcomeId[outcomeId],
-      this.value.placementsByOutcomeId[outcomeId]
-    ));
-  }
-  updateDraft() {
-    this.plugin.drafts.update(this.session, this.value);
-    this.updateStatus();
-  }
-  updateStatus() {
-    const diagnostics = this.localDiagnostics();
-    this.currentDiagnostics = diagnostics;
-    const changedCount = this.changedOutcomeIds().length;
-    this.status.classList.toggle("is-valid", diagnostics.length === 0);
-    this.status.classList.toggle("is-conflict", diagnostics.length > 0);
-    this.status.replaceChildren();
-    if (diagnostics.length) {
-      this.status.append(el("strong", "tf-joint-status__summary", `\u4ECD\u6709 ${diagnostics.length} \u9879\u7EA6\u675F\u672A\u6EE1\u8DB3`));
-      const list = el("ul", "tf-joint-status__list");
-      for (const diagnostic of diagnostics.slice(0, 6)) list.append(el("li", diagnostic.blocker ? "is-blocker" : "", diagnostic.message));
-      if (diagnostics.length > 6) list.append(el("li", "", `\u53E6\u6709 ${diagnostics.length - 6} \u9879\uFF0C\u8BF7\u7EE7\u7EED\u8C03\u6574\u4E0B\u65B9\u8F68\u9053`));
-      this.status.append(list);
-    } else {
-      this.status.append(el("strong", "tf-joint-status__summary", this.mode === "create" ? `\u5173\u7CFB\u4E0E\u5168\u90E8\u7EA6\u675F\u5DF2\u6EE1\u8DB3\uFF0C\u5C06\u5EFA\u7ACB\u5173\u7CFB\u5E76\u4FDD\u5B58 ${changedCount} \u9879\u65F6\u95F4\u8C03\u6574` : `\u5168\u90E8\u7EA6\u675F\u5DF2\u6EE1\u8DB3\uFF0C\u53EF\u4EE5\u540C\u65F6\u4FDD\u5B58 ${changedCount} \u9879\u65F6\u95F4\u8C03\u6574`));
-    }
-    if (this.saveButton) {
-      const label = this.mode === "create" ? `\u5EFA\u7ACB\u5173\u7CFB\u5E76\u4FDD\u5B58 ${changedCount} \u9879\u8C03\u6574` : `\u540C\u65F6\u4FDD\u5B58 ${changedCount} \u9879\u8C03\u6574`;
-      const labelEl = this.saveButton.querySelector(".tf-button__label");
-      if (labelEl) labelEl.textContent = label;
-      this.saveButton.title = label;
-      this.saveButton.disabled = diagnostics.length > 0 || this.submitting || this.mode === "existing" && changedCount === 0;
-    }
-  }
-  renderAxis() {
-    const axis = el("div", "tf-joint-axis");
-    const totalDays = daysBetween(this.axis.startDate, this.axis.endDateExclusive);
-    const tickCount = Math.min(7, Math.max(2, Math.ceil(totalDays / 7) + 1));
-    for (let index = 0; index < tickCount; index += 1) {
-      const offset = Math.round((totalDays - 1) * index / Math.max(1, tickCount - 1));
-      const tick = el("div", "tf-joint-axis__tick");
-      tick.style.left = `${offset / Math.max(1, totalDays - 1) * 100}%`;
-      tick.append(el("span", "tf-joint-axis__line"), el("span", "tf-joint-axis__label", addDays(this.axis.startDate, offset)));
-      axis.append(tick);
-    }
-    return axis;
-  }
-  deriveCandidate(outcomeId, mode, dayOffset, origin, pointerStartDay = null) {
-    const totalDays = daysBetween(this.axis.startDate, this.axis.endDateExclusive);
-    const next = { ...origin };
-    if (mode === "move") {
-      const duration = daysBetween(origin.startDate, origin.endDateExclusive);
-      const originStart = daysBetween(this.axis.startDate, origin.startDate);
-      const delta = dayOffset - pointerStartDay;
-      const nextStart = Math.max(0, Math.min(totalDays - duration, originStart + delta));
-      next.startDate = addDays(this.axis.startDate, nextStart);
-      next.endDateExclusive = addDays(next.startDate, duration);
-      next.dueOn = addDays(effectiveDueOn(origin), nextStart - originStart);
-    } else if (mode === "start") {
-      next.startDate = addDays(this.axis.startDate, Math.min(dayOffset, daysBetween(this.axis.startDate, origin.endDateExclusive) - 1));
-      if (compareDate(effectiveDueOn(next), next.startDate) < 0) next.dueOn = next.startDate;
-    } else if (mode === "end") {
-      const minimumEnd = daysBetween(this.axis.startDate, origin.startDate) + 1;
-      next.endDateExclusive = addDays(this.axis.startDate, Math.max(minimumEnd, Math.min(totalDays, dayOffset + 1)));
-      if (compareDate(effectiveDueOn(next), next.endDateExclusive) >= 0) next.dueOn = addDays(next.endDateExclusive, -1);
-    } else {
-      const minimum = daysBetween(this.axis.startDate, origin.startDate);
-      const maximum = daysBetween(this.axis.startDate, origin.endDateExclusive) - 1;
-      next.dueOn = addDays(this.axis.startDate, Math.max(minimum, Math.min(maximum, dayOffset)));
-    }
-    this.value.placementsByOutcomeId[outcomeId] = next;
-    return next;
-  }
-  renderTrack(outcomeId, marker, index) {
-    const outcome = this.projection.outcomesById[outcomeId];
-    const diagnosticActive = this.currentDiagnostics.some((item) => item.outcomeIds?.includes(outcomeId));
-    const endpointClass = outcomeId === this.relation.sourceOutcomeId ? "is-source" : outcomeId === this.relation.targetOutcomeId ? "is-target" : "is-constraint";
-    const row = el("section", `tf-joint-track-row ${endpointClass}${!diagnosticActive && index >= 2 ? " is-resolved" : ""}`);
-    const heading = el("div", "tf-joint-track-row__heading");
-    const dates = el("span", "tf-joint-track-row__dates");
-    heading.append(el("strong", "tf-joint-track-row__title", `${marker}\uFF1A${outcome.title}`), dates);
-    row.append(heading);
-    if (index >= 2) {
-      const reasons = this.value.discoveryReasonsByOutcomeId[outcomeId] || [];
-      row.append(el("div", "tf-joint-track-row__reason", diagnosticActive ? reasons.join("\uFF1B") : `\u7EA6\u675F\u5DF2\u89E3\u51B3 \xB7 ${reasons.join("\uFF1B")}`));
-    }
-    const track = el("div", "tf-joint-track");
-    const segment = el("div", "tf-joint-segment");
-    const leftHandle = el("button", "tf-joint-handle is-left");
-    const rightHandle = el("button", "tf-joint-handle is-right");
-    const due = el("button", "tf-joint-due");
-    for (const [control, label] of [[segment, `\u79FB\u52A8 ${marker} \u6574\u4E2A\u533A\u95F4`], [leftHandle, `\u8C03\u6574 ${marker} \u5F00\u59CB\u65E5\u671F`], [rightHandle, `\u8C03\u6574 ${marker} \u7ED3\u675F\u8FB9\u754C`], [due, `\u8C03\u6574 ${marker} \u76EE\u6807\u5B8C\u6210\u65E5`]]) {
-      control.type = "button";
-      control.title = label;
-      control.setAttribute("role", "slider");
-      control.setAttribute("aria-label", label);
-      control.tabIndex = 0;
-      control.dataset.outcomeId = outcomeId;
-    }
-    segment.dataset.controlMode = "move";
-    leftHandle.dataset.controlMode = "start";
-    rightHandle.dataset.controlMode = "end";
-    due.dataset.controlMode = "due";
-    track.append(segment, leftHandle, rightHandle, due);
-    row.append(track);
-    const applyLayout = () => {
-      const candidate = this.value.placementsByOutcomeId[outcomeId];
-      const totalDays = daysBetween(this.axis.startDate, this.axis.endDateExclusive);
-      const startOffset = daysBetween(this.axis.startDate, candidate.startDate);
-      const endOffset = daysBetween(this.axis.startDate, candidate.endDateExclusive);
-      const dueOffset = daysBetween(this.axis.startDate, effectiveDueOn(candidate));
-      const denominator = Math.max(1, totalDays);
-      segment.style.left = `${startOffset / denominator * 100}%`;
-      segment.style.width = `${Math.max(1, (endOffset - startOffset) / denominator * 100)}%`;
-      leftHandle.style.left = `${startOffset / denominator * 100}%`;
-      rightHandle.style.left = `${endOffset / denominator * 100}%`;
-      due.style.left = `${dueOffset / denominator * 100}%`;
-      dates.textContent = `${dateRange(candidate.startDate, candidate.endDateExclusive)} \xB7 \u76EE\u6807 ${effectiveDueOn(candidate)}`;
-      for (const [control, value, maximum, textValue] of [
-        [segment, startOffset, totalDays - 1, `${marker} ${dateRange(candidate.startDate, candidate.endDateExclusive)}`],
-        [leftHandle, startOffset, totalDays - 1, `${marker} \u5F00\u59CB\u65E5\u671F ${candidate.startDate}`],
-        [rightHandle, endOffset, totalDays, `${marker} \u7ED3\u675F\u8FB9\u754C ${candidate.endDateExclusive}`],
-        [due, dueOffset, totalDays - 1, `${marker} \u76EE\u6807\u5B8C\u6210\u65E5 ${effectiveDueOn(candidate)}`]
-      ]) {
-        control.setAttribute("aria-valuemin", "0");
-        control.setAttribute("aria-valuemax", String(Math.max(0, maximum)));
-        control.setAttribute("aria-valuenow", String(Math.max(0, Math.min(maximum, value))));
-        control.setAttribute("aria-valuetext", textValue);
-      }
-      return candidate;
-    };
-    const bind = (control, mode) => {
-      control.addEventListener("pointerdown", (event) => {
-        if (event.button !== 0) return;
-        event.preventDefault();
-        event.stopPropagation();
-        this.activeInteraction?.cancel();
-        const rect = track.getBoundingClientRect();
-        const totalDays = daysBetween(this.axis.startDate, this.axis.endDateExclusive);
-        const dayAt = (clientX) => Math.max(0, Math.min(totalDays - 1, Math.floor((clientX - rect.left) / Math.max(1, rect.width) * totalDays)));
-        const origin = structuredClone(this.value.placementsByOutcomeId[outcomeId]);
-        const pointerStartDay = dayAt(event.clientX);
-        let settled = false;
-        const cleanup = () => {
-          window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", up);
-          window.removeEventListener("keydown", escape);
-        };
-        const finish = (commit) => {
-          if (settled) return;
-          settled = true;
-          cleanup();
-          this.activeInteraction = null;
-          if (!commit) this.value.placementsByOutcomeId[outcomeId] = origin;
-          applyLayout();
-          if (commit) this.afterInteraction({ outcomeId, mode });
-          else this.updateStatus();
-        };
-        const move = (moveEvent) => {
-          this.deriveCandidate(outcomeId, mode, dayAt(moveEvent.clientX), origin, pointerStartDay);
-          applyLayout();
-          this.updateDraft();
-        };
-        const up = () => finish(true);
-        const escape = (keyEvent) => {
-          if (keyEvent.key === "Escape") finish(false);
-        };
-        this.activeInteraction = { cancel: () => finish(false) };
-        window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", up, { once: true });
-        window.addEventListener("keydown", escape);
-        control.addEventListener("pointercancel", () => finish(false), { once: true });
-        control.addEventListener("lostpointercapture", () => finish(false), { once: true });
-        try {
-          control.setPointerCapture(event.pointerId);
-        } catch {
-        }
-      });
-      control.addEventListener("keydown", (event) => {
-        if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
-        event.preventDefault();
-        const delta = event.key === "ArrowRight" ? 1 : -1;
-        const current = structuredClone(this.value.placementsByOutcomeId[outcomeId]);
-        const originOffset = mode === "end" ? daysBetween(this.axis.startDate, current.endDateExclusive) - 1 : mode === "due" ? daysBetween(this.axis.startDate, effectiveDueOn(current)) : daysBetween(this.axis.startDate, current.startDate);
-        this.deriveCandidate(outcomeId, mode, originOffset + delta, current, originOffset);
-        applyLayout();
-        this.updateDraft();
-        this.afterInteraction({ outcomeId, mode });
-      });
-    };
-    bind(segment, "move");
-    bind(leftHandle, "start");
-    bind(rightHandle, "end");
-    bind(due, "due");
-    applyLayout();
-    return row;
-  }
-  afterInteraction(focusToken) {
-    this.expandConflictClosure();
-    this.expandAxis();
-    this.plugin.drafts.update(this.session, this.value);
-    this.renderEditor(focusToken);
-    this.updateStatus();
-  }
-  renderEditor(focusToken = null) {
-    this.editor.replaceChildren();
-    this.editor.append(this.renderAxis());
-    this.value.displayedOutcomeIds.forEach((outcomeId, index) => {
-      const marker = index === 0 ? "A" : index === 1 ? "B" : `\u7EA6\u675F ${index - 1}`;
-      this.editor.append(this.renderTrack(outcomeId, marker, index));
+    this.modalEl.addClass("tf-modal");
+    this.contentEl.append(el("h2", "", this.title), el("p", "", this.message));
+    const actions = el("div", "tf-form-actions");
+    const cancel = button("\u53D6\u6D88", "", () => {
+      if (!this.busy) this.close();
     });
-    if (focusToken) requestAnimationFrame(() => {
-      this.editor.querySelector(`[data-outcome-id="${CSS.escape(focusToken.outcomeId)}"][data-control-mode="${focusToken.mode}"]`)?.focus();
-    });
-  }
-  onOpen() {
-    this.modalEl.addClass("tf-modal", "is-joint-relation-modal");
-    this.titleEl.setText(this.mode === "create" ? "\u5EFA\u7ACB\u5173\u7CFB\u5E76\u8054\u5408\u8C03\u6574\u65F6\u95F4\u8F68" : "\u8054\u5408\u8C03\u6574\u65F6\u95F4\u8F68");
-    const source = this.projection.outcomesById[this.relation.sourceOutcomeId];
-    const target = this.projection.outcomesById[this.relation.targetOutcomeId];
-    this.contentEl.append(el("p", "tf-modal__message", `${source.title} ${RELATION_LABELS[this.relation.relationType]} ${target.title}`));
-    const rule = el("div", "tf-joint-rule", this.relationRule());
-    this.status = el("div", "tf-joint-status");
-    this.status.setAttribute("role", "status");
-    this.status.setAttribute("aria-live", "polite");
-    this.editor = el("div", "tf-joint-editor");
-    this.renderEditor();
-    const actions = el("div", "tf-form__actions tf-joint-actions");
-    actions.append(button("\u653E\u5F03\u672C\u6B21\u4FEE\u6539", "trash-2", () => {
-      if (!window.confirm("\u53EA\u653E\u5F03\u672C\u7A97\u53E3\u5C1A\u672A\u4FDD\u5B58\u7684\u8054\u5408\u8C03\u6574\uFF0C\u4E0D\u5F71\u54CD\u5DF2\u7ECF\u4FDD\u5B58\u7684\u65F6\u95F4\u5B89\u6392\u3002\u786E\u8BA4\u7EE7\u7EED\uFF1F")) return;
-      this.plugin.drafts.discard(this.session);
-      this.allowClose = true;
-      super.close();
-    }, "is-quiet"));
-    actions.append(button("\u53D6\u6D88", "x", () => this.close(), "is-quiet"));
-    this.saveButton = button(this.mode === "create" ? "\u5EFA\u7ACB\u5173\u7CFB\u5E76\u4FDD\u5B58\u8C03\u6574" : "\u540C\u65F6\u4FDD\u5B58\u8C03\u6574", "check", () => this.submit(), "is-primary");
-    actions.append(this.saveButton);
-    this.contentEl.append(rule, this.status, this.editor, actions);
-    this.plugin.drafts.update(this.session, this.value);
-    this.updateStatus();
-  }
-  async submit() {
-    if (this.submitting || this.localViolation()) return;
-    this.submitting = true;
-    this.updateStatus();
-    try {
-      this.plugin.drafts.beginCommit(this.session);
-      if (this.mode === "create") await this.plugin.commitNewRelationJointAdjustment(this.framework, this.relation, this.placementInputs(), this.baseRevision);
-      else await this.plugin.commitJointRelationAdjustment(this.framework, this.relation, this.placementInputs(), this.baseRevision);
-      this.plugin.drafts.completeCommit(this.session);
-      this.allowClose = true;
-      super.close();
-      if (this.onCommitted) {
-        try {
-          this.onCommitted();
-        } catch (error) {
-          console.error("[TemporalFramework][relation-create.parent-close-failed]", error);
-          new import_obsidian.Notice("\u5173\u7CFB\u4E0E\u65F6\u95F4\u5DF2\u4FDD\u5B58\uFF0C\u4F46\u539F\u5173\u7CFB\u7A97\u53E3\u672A\u80FD\u81EA\u52A8\u5173\u95ED", 9e3);
-        }
-      }
-    } catch (error) {
+    const confirm = button("\u786E\u8BA4", "check", async () => {
+      if (this.busy) return;
+      this.busy = true;
+      confirm.disabled = true;
+      cancel.disabled = true;
       try {
-        this.plugin.drafts.failCommit(this.session);
-      } catch (draftError) {
-        console.error("[TemporalFramework][draft.recovery-failed]", draftError);
-      }
-      new import_obsidian.Notice(error.message, 9e3);
-    } finally {
-      this.submitting = false;
-      if (this.status?.isConnected) this.updateStatus();
-    }
-  }
-  close() {
-    if (this.allowClose) return super.close();
-    this.activeInteraction?.cancel();
-    try {
-      this.plugin.drafts.flushSync(this.session);
-      this.allowClose = true;
-      super.close();
-    } catch (error) {
-      new import_obsidian.Notice(`\u8349\u7A3F\u672A\u80FD\u5199\u76D8\uFF0C\u7A97\u53E3\u4FDD\u6301\u6253\u5F00\uFF1A${error.message}`, 1e4);
-    }
-  }
-  onClose() {
-    this.activeInteraction?.cancel();
-    try {
-      this.plugin.drafts.closeSession(this.session);
-    } catch (error) {
-      console.error("[TemporalFramework][draft.close-failed]", error);
-    }
-    this.contentEl.empty();
-  }
-};
-var ImportTargetsModal = class extends import_obsidian.Modal {
-  constructor(plugin, framework, targets, existingKeys, onImport) {
-    super(plugin.app);
-    this.plugin = plugin;
-    this.framework = framework;
-    this.targets = targets;
-    this.existingKeys = existingKeys;
-    this.onImport = onImport;
-  }
-  onOpen() {
-    this.modalEl.addClass("tf-modal", "tf-import-modal");
-    this.titleEl.setText("\u7EB3\u5165\u76EE\u6807\u4E0E\u9879\u76EE\u4E3B\u952E");
-    this.contentEl.append(el("p", "tf-modal__message", "\u9009\u62E9\u8981\u8FDB\u5165\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u7684\u4E3B\u952E\u3002\u5DF2\u7EB3\u5165\u9879\u4FDD\u6301\u52FE\u9009\u5E76\u9501\u5B9A\u3002"));
-    const list = el("div", "tf-import-list");
-    for (const target of this.targets) {
-      const ref = this.plugin.primaryRefFromTarget(target);
-      const key = primaryRefKey(ref);
-      const row = el("label", "tf-import-row");
-      const checkbox = el("input");
-      checkbox.type = "checkbox";
-      checkbox.value = key;
-      checkbox.checked = this.existingKeys.has(key);
-      checkbox.disabled = checkbox.checked;
-      row.append(checkbox, el("span", `tf-source-dot is-${target.domain}`), el("span", "tf-import-row__label", target.label));
-      row.dataset.targetKey = key;
-      list.append(row);
-    }
-    this.contentEl.append(list);
-    const actions = el("div", "tf-form__actions");
-    actions.append(button("\u53D6\u6D88", "x", () => this.close(), "is-quiet"));
-    actions.append(button("\u7EB3\u5165\u6240\u9009", "plus", async () => {
-      const selected = [...list.querySelectorAll("input:checked:not(:disabled)")].map((input) => input.value);
-      if (!selected.length) return new import_obsidian.Notice("\u6CA1\u6709\u65B0\u7684\u4E3B\u952E\u9700\u8981\u7EB3\u5165");
-      try {
-        await this.onImport(this.targets.filter((target) => selected.includes(primaryRefKey(this.plugin.primaryRefFromTarget(target)))));
+        await this.action();
+        this.busy = false;
         this.close();
       } catch (error) {
         new import_obsidian.Notice(error.message, 9e3);
+      } finally {
+        this.busy = false;
+        confirm.disabled = false;
+        cancel.disabled = false;
       }
-    }, "is-primary"));
+    }, "is-primary");
+    actions.append(cancel, confirm);
     this.contentEl.append(actions);
+  }
+  close() {
+    if (!this.busy) super.close();
+    else this.closeAfterCommit = true;
+  }
+};
+var ReadOnlyListModal = class extends import_obsidian.Modal {
+  constructor(plugin, title, render) {
+    super(plugin.app);
+    this.title = title;
+    this.renderBody = render;
+  }
+  onOpen() {
+    this.alive = true;
+    this.modalEl.addClass("tf-modal");
+    this.contentEl.append(el("h2", "", this.title));
+    this.renderBody(this);
+  }
+  onClose() {
+    this.alive = false;
+    this.contentEl.empty();
   }
 };
 var TemporalFrameworkView = class extends import_obsidian.ItemView {
@@ -4020,6 +3359,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
   async onOpen() {
     this.contentEl.addClass("tf-view");
     this.unsubscribe = this.plugin.store.onDirty(() => this.renderPreservingView());
+    this.plugin.refreshKeywordProvider?.();
     await this.render();
   }
   async onClose() {
@@ -4047,8 +3387,8 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       scale: TIME_SCALES.includes(value.scale) ? value.scale : "year",
       timePath: Array.isArray(value.timePath) ? value.timePath.filter((item) => item?.id && TIME_SCALES.includes(item.scale)) : [],
       outcomePath: Array.isArray(value.outcomePath) ? value.outcomePath.filter(Boolean) : [],
-      timeProjection: value.timeProjection === "list" ? "list" : "structure",
-      relationLens: ["none", ...RELATION_TYPES].includes(value.relationLens) ? value.relationLens : "none"
+      timeProjection: "structure",
+      relationLens: "none"
     };
     this.pendingCurrentTimeFocus = this.environment.mode === "time" && this.environment.timePath.length === 0 && !this.pendingExplicitTimeAnchor;
     await this.render();
@@ -4096,7 +3436,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     if (generation !== this.renderGeneration) return;
     this.renderRevision = store.revision;
     this.renderTimezone = store.timezone || "Asia/Shanghai";
-    const projection = reduceTemporalStore(store);
+    const projection = projectLocalDirections(store);
     this.environment.outcomePath = this.environment.outcomePath.filter((id) => projection.outcomesById[id]?.status === "active");
     const frameworks = activeValues2(projection.frameworksById);
     if (!frameworks.some((item) => item.id === this.environment.frameworkId)) this.environment.frameworkId = frameworks[0]?.id || null;
@@ -4155,7 +3495,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     actions.append(iconButton("\u65B0\u5EFA\u65F6\u95F4\u6846\u67B6", "plus", () => this.plugin.openFrameworkModal()));
     if (frameworks.length) {
       actions.append(iconButton("\u8C03\u6574\u65F6\u95F4\u6846\u67B6\u8FB9\u754C", "calendar-range", () => this.plugin.openFrameworkBoundaryModal(this.environment.frameworkId)));
-      actions.append(iconButton("\u7EB3\u5165\u76EE\u6807\u4E0E\u9879\u76EE", "import", () => this.plugin.openImportModal(this.environment.frameworkId)));
+      actions.append(iconButton("\u65B0\u589E\u4E0A\u5C42\u7EA7\u65B9\u5411", "plus", () => this.plugin.openDirectionModal(this.environment.frameworkId)));
     }
     actions.append(iconButton("\u5237\u65B0", "refresh-cw", () => this.renderPreservingView()));
     bar.append(actions);
@@ -4164,7 +3504,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
   renderWelcome() {
     const empty = el("section", "tf-welcome");
     empty.append(el("h3", "", "\u5148\u5EFA\u7ACB\u4E00\u4E2A\u672A\u6765\u65F6\u95F4\u6846\u67B6"));
-    empty.append(el("p", "", "\u786E\u5B9A\u6574\u4F53\u65F6\u95F4\u8FB9\u754C\uFF0C\u518D\u628A\u76EE\u6807\u4E0E\u9879\u76EE\u4E3B\u952E\u7EB3\u5165\uFF0C\u968F\u540E\u9010\u5C42\u5E03\u7F6E\u9636\u6BB5\u6210\u679C\u3002"));
+    empty.append(el("p", "", "\u786E\u5B9A\u65F6\u95F4\u8FB9\u754C\uFF0C\u6DFB\u52A0\u4E0A\u5C42\u7EA7\u65B9\u5411\uFF0C\u518D\u9010\u5C42\u5E03\u7F6E\u9636\u6BB5\u6210\u679C\u3002"));
     empty.append(button("\u5EFA\u7ACB\u65F6\u95F4\u6846\u67B6", "plus", () => this.plugin.openFrameworkModal(), "is-primary"));
     return empty;
   }
@@ -4188,7 +3528,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     });
     const outcomeCrumbs = el("div", "tf-breadcrumbs");
     outcomeCrumbs.append(el("span", "tf-breadcrumbs__label", "\u6210\u679C"));
-    outcomeCrumbs.append(button("\u5168\u90E8\u4E3B\u952E", "layers-3", () => this.returnToOutcomeOverview(framework, projection), "is-crumb"));
+    outcomeCrumbs.append(button("\u5168\u90E8\u65B9\u5411", "layers-3", () => this.returnToOutcomeOverview(framework, projection), "is-crumb"));
     this.environment.outcomePath.forEach((outcomeId, index) => {
       const outcome = projection.outcomesById[outcomeId];
       if (!outcome) return;
@@ -4226,24 +3566,15 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     if (allowedOutcomeIds) {
       const focused = projection.outcomesById[this.environment.outcomePath.at(-1)];
       tools.append(el("span", "tf-focus-chip", `\u6210\u679C\u7126\u70B9 \xB7 ${focused?.title || "\u5DF2\u5931\u8054"}`));
-    } else {
-      const projectionControl = el("div", "tf-segmented tf-time-projection-control");
-      for (const [mode, label, icon] of [["structure", "\u6811\u7ED3\u6784", "network"], ["list", "\u65F6\u95F4\u6E05\u5355", "list"]]) {
-        projectionControl.append(button(label, icon, () => {
-          this.environment.timeProjection = mode;
-          this.render();
-        }, this.environment.timeProjection === mode ? "is-active" : ""));
-      }
-      tools.append(projectionControl);
     }
     toolbar.append(tools);
     section.append(toolbar);
     const diagnostics = buildFrameworkDiagnostics(projection, framework.id);
     if (diagnostics.length) section.append(this.renderDiagnostics(framework, projection, diagnostics));
-    const structured = Boolean(allowedOutcomeIds) || this.environment.timeProjection === "structure";
+    const structured = true;
     const layout = el("div", "tf-time-layout");
     const grid = el("div", `tf-time-grid is-${this.environment.scale}${structured ? " is-structured" : ""}${allowedOutcomeIds ? " has-outcome-focus" : ""}`);
-    const relationsByOutcomeId = buildOutcomeRelationProjection(projection, framework.id);
+    const relationsByOutcomeId = {};
     const timeContext = { ...framework, timezone: this.renderTimezone || framework.timezone || "Asia/Shanghai" };
     const boxes = buildTimeBoxes(range.startDate, range.endDateExclusive, this.environment.scale, timeContext);
     boxes.forEach((box, index) => {
@@ -4336,8 +3667,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
         option.setAttribute("aria-selected", String(index === activeIndex));
         const title = el("div", "tf-outcome-search__title");
         title.append(el("strong", "", entry.title));
-        if (entry.outcomeKind === "stage_gate") title.append(el("span", "tf-kind-badge", "\u5173\u53E3"));
-        const ownerKind = entry.membershipDomain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE";
+        const ownerKind = "\u4E0A\u5C42\u7EA7\u65B9\u5411";
         option.append(title);
         option.append(el("div", "tf-outcome-search__context", `${entry.frameworkItemTitle} \xB7 ${ownerKind}\uFF1A${entry.membershipLabel}`));
         const pathLabel = entry.pathStatus === "complete" ? `\u5C42\u7EA7\uFF1A${entry.pathLabel}` : entry.pathStatus === "cycle" ? `\u5C42\u7EA7\u5F02\u5E38\uFF1A${entry.pathLabel}` : `\u8DEF\u5F84\u622A\u65AD\uFF1A${entry.pathLabel}`;
@@ -4628,17 +3958,13 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
   }
   renderDiagnostics(framework, projection, diagnostics) {
     const bar = el("div", "tf-diagnostics");
-    const overdue = diagnostics.filter((item) => item.type === "past_unpainted").length;
+    const overdue = diagnostics.filter((item) => item.type === "past_due").length;
     const unscheduled = diagnostics.filter((item) => item.type === "outcome_unscheduled").length;
     const missing = diagnostics.filter((item) => item.type === "membership_without_outcome").length;
-    const relationConflicts = diagnostics.filter((item) => item.type === "temporal_relation_conflict").length;
     bar.append(el("span", "tf-diagnostics__title", "\u5F85\u8C03\u6574"));
     if (overdue) bar.append(el("span", "tf-diagnostic-chip is-overdue", `\u8FC7\u53BB\u672A\u5B8C\u6210 ${overdue}`));
     if (unscheduled) bar.append(el("span", "tf-diagnostic-chip", `\u672A\u5B89\u6392 ${unscheduled}`));
     if (missing) bar.append(el("span", "tf-diagnostic-chip", `\u5C1A\u65E0\u6210\u679C ${missing}`));
-    if (relationConflicts) bar.append(button(`\u5173\u7CFB\u65F6\u95F4\u51B2\u7A81 ${relationConflicts}`, "git-compare-arrows", () => {
-      this.plugin.openRelationConflictList(framework, projection, diagnostics.filter((item) => item.type === "temporal_relation_conflict"));
-    }, "tf-diagnostic-chip is-overdue is-action"));
     return bar;
   }
   renderTimeBox(framework, projection, box, allowedOutcomeIds = null, relationsByOutcomeId = {}) {
@@ -4664,21 +3990,12 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const placements = selection.placements;
     const body = el("div", "tf-timebox__body");
     if (!placements.length) body.append(el("div", "tf-timebox__empty", "\u5C1A\u672A\u90E8\u7F72\u9636\u6BB5\u6210\u679C"));
-    if (allowedOutcomeIds || this.environment.timeProjection === "structure") body.append(this.renderGlobalTimeStructure(projection, placements, box, relationsByOutcomeId));
-    else for (const placement of placements) {
-      const outcome = projection.outcomesById[placement.outcomeId];
-      if (outcome?.status !== "active") continue;
-      const entry = el("div", "tf-time-outcome-entry");
-      entry.append(this.renderOutcomeCard(projection, outcome, placement, placementMatchesBoxDirectly(placement, box) ? "direct" : "spanning"));
-      const relationRow = this.renderTimeOutcomeRelations(projection, outcome.id, relationsByOutcomeId);
-      if (relationRow) entry.append(relationRow);
-      body.append(entry);
-    }
+    body.append(this.renderGlobalTimeStructure(projection, placements, box, relationsByOutcomeId));
     const coverages = activeValues2(projection.coverageById).filter((coverage) => coverage.frameworkId === framework.id && coverage.timeBoxRef?.id === box.id);
     for (const coverage of coverages) {
       const membership = projection.membershipsById[coverage.membershipId];
       const row = el("div", "tf-coverage");
-      row.append(el("span", "", `${membership?.lastKnownLabel || "\u672A\u77E5\u4E3B\u952E"} \xB7 \u672C\u9636\u6BB5\u65E0\u90E8\u7F72 \xB7 ${coverage.reason}`));
+      row.append(el("span", "", `${membership?.lastKnownLabel || "\u672A\u77E5\u65B9\u5411"} \xB7 \u672C\u9636\u6BB5\u65E0\u90E8\u7F72 \xB7 ${coverage.reason}`));
       row.append(iconButton("\u64A4\u9500\u65E0\u90E8\u7F72\u51B3\u5B9A", "rotate-ccw", () => this.plugin.openRevokeCoverageModal(coverage)));
       body.append(row);
     }
@@ -4697,22 +4014,6 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     if (cursor) labels.unshift("\u5C42\u7EA7\u5F02\u5E38");
     return labels.join(" \u203A ");
   }
-  renderTimeOutcomeRelations(projection, outcomeId, relationsByOutcomeId) {
-    const row = el("div", "tf-time-outcome-relations");
-    for (const endpoint of relationsByOutcomeId[outcomeId] || []) {
-      const peer = projection.outcomesById[endpoint.peerOutcomeId];
-      if (peer?.status !== "active") continue;
-      const relationLabel = RELATION_ENDPOINT_LABELS[endpoint.relationType]?.[endpoint.direction] || RELATION_LABELS[endpoint.relationType];
-      const arrow = endpoint.direction === "outgoing" ? "\u2192" : "\u2190";
-      const duplicateLabel = endpoint.duplicateCount > 1 ? ` \xB7 \u91CD\u590D ${endpoint.duplicateCount}` : "";
-      const label = `${arrow} ${relationLabel} \xB7 ${peer.title}${duplicateLabel}`;
-      const relationButton = button(label, "", () => this.openOutcome(peer.id, projection), `tf-relation-chip ${endpoint.violation ? "is-conflict" : ""}`);
-      relationButton.setAttribute("aria-label", `${label}\uFF1B\u70B9\u51FB\u6253\u5F00\u5173\u8054\u6210\u679C`);
-      relationButton.dataset.relationIds = (endpoint.relationIds || [endpoint.relationId]).join(",");
-      row.append(relationButton);
-    }
-    return row.childElementCount ? row : null;
-  }
   renderGlobalTimeStructure(projection, placements, box, relationsByOutcomeId) {
     const structure = el("div", "tf-time-framework-structure");
     const outerGroups = buildTimeFrameworkItemGroups(projection, placements);
@@ -4721,10 +4022,10 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       itemSection.dataset.frameworkItemId = outer.item?.id || "unassigned";
       const itemHeader = el("header", "tf-time-framework-item-group__header");
       itemHeader.append(el("span", "tf-framework-item-badge", outer.item ? "\u6846\u67B6\u6761\u76EE" : "\u672A\u5F52\u5C5E"));
-      itemHeader.append(el("h3", "tf-time-framework-item-group__title", outer.item?.title || "\u672A\u5F52\u5C5E\u76EE\u6807\u4E0E\u9879\u76EE"));
+      itemHeader.append(el("h3", "tf-time-framework-item-group__title", outer.item?.title || "\u672A\u5F52\u5C5E\u4E0A\u5C42\u7EA7\u65B9\u5411"));
       const membershipIds = new Set(outer.memberships.map((group) => group.membershipId));
       const outcomeCount = outer.placements.length;
-      itemHeader.append(el("span", "tf-time-framework-item-group__count", `${membershipIds.size} \u4E2A\u4E3B\u952E \xB7 ${outcomeCount} \u4E2A\u6210\u679C`));
+      itemHeader.append(el("span", "tf-time-framework-item-group__count", `${membershipIds.size} \u4E2A\u65B9\u5411 \xB7 ${outcomeCount} \u4E2A\u6210\u679C`));
       itemSection.append(itemHeader);
       const membershipBody = el("div", "tf-time-framework-item-group__memberships");
       for (const group of outer.memberships) membershipBody.append(this.renderTimeMembershipGroup(projection, group, box, relationsByOutcomeId));
@@ -4737,9 +4038,9 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const section = el("section", "tf-time-membership-group");
     section.dataset.membershipId = group.membershipId;
     section.dataset.membershipDomain = group.domain;
-    section.setAttribute("aria-label", `${group.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"}\u4E3B\u952E\uFF1A${group.label}`);
+    section.setAttribute("aria-label", `\u4E0A\u5C42\u7EA7\u65B9\u5411\uFF1A${group.label}`);
     const header = el("header", "tf-time-membership-group__header");
-    header.append(el("span", `tf-source-badge is-${group.domain === "goal" ? "goal" : "project"}`, group.domain === "goal" ? "\u76EE\u6807\u4E3B\u952E" : "\u9879\u76EE\u4E3B\u952E"));
+    header.append(el("span", "tf-source-badge is-direction", "\u4E0A\u5C42\u7EA7\u65B9\u5411"));
     header.append(el("h3", "tf-time-membership-group__title", group.label));
     header.append(el("span", "tf-time-membership-group__count", `${group.placements.length} \u4E2A\u6210\u679C`));
     const body = el("div", "tf-time-membership-group__outcomes");
@@ -4804,7 +4105,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
         const path4 = el("div", "tf-time-outcome-path");
         path4.append(el("span", "", this.outcomePathLabel(projection, outcome.id)));
         if (membershipId && projection.outcomesById[outcome.outlineParentId]?.membershipId !== membershipId) {
-          path4.append(button("\u7236\u6210\u679C\u4F4D\u4E8E\u5176\u4ED6\u4E3B\u952E", "external-link", () => this.openOutcome(outcome.outlineParentId, projection), "is-link tf-cross-membership-parent"));
+          path4.append(button("\u7236\u6210\u679C\u4F4D\u4E8E\u5176\u4ED6\u65B9\u5411", "external-link", () => this.openOutcome(outcome.outlineParentId, projection), "is-link tf-cross-membership-parent"));
         }
         node.append(path4);
       }
@@ -4814,8 +4115,6 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
         onDecrease: () => this.setOutcomeExpansionDepth(outcome, Math.max(0, expansionDepth - 1)),
         onIncrease: () => this.setOutcomeExpansionDepth(outcome, Math.min(MAX_OUTCOME_EXPANSION_DEPTH, expansionDepth + 1))
       } : { anchorKey: `${box.id}|${membershipId || outcome.membershipId}|${outcome.id}` }));
-      const relationRow = this.renderTimeOutcomeRelations(projection, outcome.id, relationsByOutcomeId);
-      if (relationRow) node.append(relationRow);
       if (children.length) {
         if (expansionDepth <= 0) {
           const hiddenCount = descendantCount(outcome.id);
@@ -4868,7 +4167,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
   renderOutcomeCard(projection, outcome, placement = null, placementMode = "", options = {}) {
     const completion = projection.completionByOutcomeId[outcome.id];
     const effective = projection.outcomeEffectivenessByOutcomeId?.[outcome.id]?.effective === true;
-    const painted = completion?.painted === true;
+    const painted = false;
     const overdue = placement && compareDate(placement.endDateExclusive, addDays(localDate(), 1)) <= 0 && !painted;
     const membership = projection.membershipsById[outcome.membershipId];
     const card = el("article", `tf-outcome-card ${painted ? "is-painted" : ""} ${effective ? "is-effective" : ""} ${overdue ? "is-overdue" : ""} ${placementMode === "spanning" ? "is-spanning" : ""}`.trim());
@@ -4878,17 +4177,14 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     main.type = "button";
     main.addEventListener("click", () => this.openOutcome(outcome.id, projection));
     const titleLine = el("div", "tf-outcome-card__title-line");
-    titleLine.append(el("span", `tf-completion-mark ${painted ? "is-painted" : ""}`, painted ? "\u2713" : "\u25CB"));
     titleLine.append(el("strong", "tf-outcome-card__title", outcome.title));
-    if (outcome.outcomeKind === "stage_gate") titleLine.append(el("span", "tf-kind-badge", "\u5173\u53E3"));
     if (effective) titleLine.append(el("span", "tf-effect-badge", "\u6B63\u5728\u751F\u6548"));
     if (outcome.outlineParentId && projection.outcomesById[outcome.outlineParentId]?.status !== "active") titleLine.append(el("span", "tf-kind-badge is-warning", "\u4E0A\u7EA7\u5DF2\u505C\u7528"));
     main.append(titleLine);
-    main.append(el("div", "tf-outcome-card__source", `${membership?.primaryRef?.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"} \xB7 ${membership?.lastKnownLabel || outcome.membershipId}`));
-    const meanings = this.renderFrameworkMeaning(projection, "outcome", outcome.id, { compact: true, includeMembership: true });
-    if (meanings) main.append(meanings);
+    const location = effectiveOutcomeFrameworkLocation(projection, outcome.id);
+    if (location.milestone) main.append(el("div", "tf-card-milestone", frameworkMilestoneSentence(location.milestone)));
     if (placement) main.append(el("div", "tf-outcome-card__date", dateRange(placement.startDate, placement.endDateExclusive)));
-    if (overdue) main.append(el("div", "tf-overdue-label", "\u5DF2\u8FC7\u671F\uFF0C\u5C1A\u672A\u624B\u5DE5\u6D82\u8272"));
+    if (overdue) main.append(el("div", "tf-overdue-label", "\u65F6\u95F4\u5DF2\u5230\uFF0C\u5C1A\u672A\u79FB\u9664"));
     card.append(main);
     const actions = el("div", "tf-outcome-card__actions");
     if (Number.isInteger(options.expansionDepth)) {
@@ -4901,10 +4197,44 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       actions.append(decrease, depth, increase);
     }
     actions.append(iconButton(effective ? "\u9000\u51FA\u6B63\u5728\u751F\u6548" : "\u6807\u8BB0\u4E3A\u6B63\u5728\u751F\u6548", effective ? "circle-check-big" : "activity", () => this.plugin.toggleOutcomeEffectiveness(outcome, !effective, this.renderRevision)));
-    actions.append(iconButton(painted ? "\u53D6\u6D88\u5B8C\u6210\u6D82\u8272" : "\u624B\u5DE5\u6807\u8BB0\u5B8C\u6210", painted ? "eraser" : "paintbrush", () => painted ? this.plugin.openUnpaintModal(outcome) : this.plugin.openPaintModal(outcome)));
+    actions.append(iconButton("\u5B8C\u6210\u5E76\u79FB\u9664", "check", () => this.plugin.confirmCompleteOutcome(outcome, this.renderRevision)));
     actions.append(iconButton("\u8C03\u6574\u65F6\u95F4\u5B89\u6392", "calendar-clock", () => this.plugin.openPlacementModal(outcome.frameworkId, { outcomeId: outcome.id })));
     card.append(actions);
+    const mounts = this.renderOutcomeKeywords(outcome, true);
+    if (mounts) card.append(mounts);
     return card;
+  }
+  renderOutcomeKeywords(outcome, compact = false) {
+    const bridge = this.plugin.keywordBridge;
+    const mounts = bridge?.mounts(outcome.id) || [];
+    if (compact && !mounts.length) return null;
+    const area = el("section", "tf-outcome-keywords");
+    if (!compact) {
+      const heading = el("div", "tf-keyword-heading");
+      heading.append(el("strong", "", "\u6302\u8F7D\u5173\u952E\u8BCD"), button("\u5F00\u542F EVA Meta \u6302\u8F7D", "link", () => this.plugin.startKeywordMount(outcome)));
+      const eva = window.evaCrossViewRelations;
+      const meta = eva?.getMetaCaptureState?.();
+      if (meta?.active && meta.sourceNodeKey === bridge?.nodeKey(outcome.id)) heading.append(button("\u7ED3\u675F\u6302\u8F7D", "x", () => eva.stopMetaCapture?.("temporal-user")));
+      area.append(heading);
+      if (!mounts.length) area.append(el("span", "tf-inline-empty", "\u5C1A\u672A\u6302\u8F7D\u5173\u952E\u8BCD"));
+    }
+    for (const mount of mounts) {
+      const row = el("div", "tf-keyword-mount");
+      row.append(el("span", "tf-keyword-label", mount.label));
+      if (!mount.isKeyword) row.append(el("span", "is-warning", "\u6302\u8F7D\u76EE\u6807\u4E0D\u662F Keyword Index"));
+      if (mount.unavailable) row.append(el("span", "is-warning", "\u6765\u6E90\u6682\u4E0D\u53EF\u7528"));
+      row.append(button(mount.isKeyword ? "Keyword Index" : "\u6253\u5F00\u6765\u6E90", "external-link", () => this.plugin.openMountedKeyword(mount)));
+      if (mount.isKeyword) row.append(button("Note", "file-text", () => this.plugin.openMountedNotes(mount, this.leaf)));
+      if (!compact || !mount.isKeyword) row.append(iconButton("\u89E3\u9664\u6302\u8F7D", "unlink", () => {
+        new ConfirmationModal(this.plugin, "\u89E3\u9664\u5173\u952E\u8BCD\u6302\u8F7D", "\u4EC5\u89E3\u9664\u6B64\u6302\u8F7D\uFF0C\u5173\u952E\u8BCD\u4E0E\u7B14\u8BB0\u4F1A\u4FDD\u7559\u3002", async () => {
+          const eva = window.evaCrossViewRelations;
+          if (!eva?.deleteRelation) throw new Error("EVA \u5C1A\u672A\u5C31\u7EEA");
+          await eva.deleteRelation(mount.relationId);
+        }).open();
+      }));
+      area.append(row);
+    }
+    return area;
   }
   openOutcome(outcomeId, projection) {
     this.outcomeOverviewReturnQueue.clear();
@@ -4933,7 +4263,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       const milestoneOrderIndex = buildMembershipMilestoneOrderIndex(projection);
       const compareMemberships = (left, right) => compareMembershipsByMilestoneOrder(milestoneOrderIndex, left.id, right.id, () => (membershipProjectionIndex.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (membershipProjectionIndex.get(right.id) ?? Number.MAX_SAFE_INTEGER) || left.lastKnownLabel.localeCompare(right.lastKnownLabel, "zh-CN") || left.id.localeCompare(right.id));
       const itemToolbar = el("div", "tf-framework-item-toolbar");
-      itemToolbar.append(el("div", "tf-range-title", "\u6846\u67B6\u6761\u76EE\u4E0E\u4E0B\u5C42\u4E3B\u952E"), button("\u65B0\u5EFA\u6846\u67B6\u6761\u76EE", "plus", () => this.plugin.openFrameworkItemModal(framework.id), "is-primary"));
+      itemToolbar.append(el("div", "tf-range-title", "\u6846\u67B6\u6761\u76EE\u4E0E\u4E0A\u5C42\u7EA7\u65B9\u5411"), button("\u65B0\u5EFA\u6846\u67B6\u6761\u76EE", "plus", () => this.plugin.openFrameworkItemModal(framework.id), "is-primary"));
       section.append(itemToolbar);
       const layout = el("div", "tf-outcome-layout");
       const content = el("div", "tf-outcome-framework-list");
@@ -4951,7 +4281,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
             label: membership.lastKnownLabel || membership.id,
             target: card,
             kind: "membership",
-            domain: membership.primaryRef?.domain
+            domain: "direction"
           });
         }
       };
@@ -4970,17 +4300,17 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
         unassignedSection.dataset.outcomeTocIndex = String(tocEntries.length);
         unassignedSection.dataset.anchorKey = "framework-item:unassigned";
         content.append(unassignedSection);
-        addTocGroup(unassignedSection, "unassigned", "\u672A\u5F52\u5C5E\u76EE\u6807\u4E0E\u9879\u76EE", unassigned);
+        addTocGroup(unassignedSection, "unassigned", "\u672A\u5F52\u5C5E\u4E0A\u5C42\u7EA7\u65B9\u5411", unassigned);
       }
       if (!memberships.length) {
         const empty = el("section", "tf-inline-empty");
-        empty.append(el("p", "", "\u5F53\u524D\u6846\u67B6\u5C1A\u672A\u7EB3\u5165\u76EE\u6807\u6216\u9879\u76EE\u4E3B\u952E\u3002"));
-        empty.append(button("\u7EB3\u5165\u4E3B\u952E", "import", () => this.plugin.openImportModal(framework.id), "is-primary"));
+        empty.append(el("p", "", "\u5F53\u524D\u6846\u67B6\u5C1A\u65E0\u4E0A\u5C42\u7EA7\u65B9\u5411\u3002"));
+        empty.append(button("\u65B0\u589E\u4E0A\u5C42\u7EA7\u65B9\u5411", "import", () => this.plugin.openDirectionModal(framework.id), "is-primary"));
         content.append(empty);
       }
       const toc = el("nav", "tf-outcome-toc");
       toc.setAttribute("aria-label", "\u6210\u679C\u603B\u89C8\u6846\u67B6\u6761\u76EE\u5BFC\u822A");
-      toc.append(el("div", "tf-outcome-toc__eyebrow", "\u6846\u67B6\u6761\u76EE \xB7 \u4E3B\u952E"), el("div", "tf-outcome-toc__items"));
+      toc.append(el("div", "tf-outcome-toc__eyebrow", "\u6846\u67B6\u6761\u76EE \xB7 \u4E0A\u5C42\u7EA7\u65B9\u5411"), el("div", "tf-outcome-toc__items"));
       layout.append(content, toc);
       section.append(layout);
       this.outcomeToc = { entries: tocEntries, toc, content, currentIndex: -1, metrics: null, scrollHandler: null, resizeObserver: null, rafId: null };
@@ -5027,8 +4357,8 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const section = el("section", "tf-effect-membership");
     const membership = group.membership;
     const header = el("header", "tf-effect-membership__header");
-    header.append(el("span", `tf-source-badge is-${membership?.primaryRef?.domain || "unknown"}`, membership?.primaryRef?.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"));
-    header.append(el("strong", "", membership?.lastKnownLabel || "\u5931\u8054\u4E3B\u952E"));
+    header.append(el("span", `tf-source-badge is-${"direction"}`, "\u4E0A\u5C42\u7EA7\u65B9\u5411"));
+    header.append(el("strong", "", membership?.lastKnownLabel || "\u672A\u77E5\u65B9\u5411"));
     section.append(header);
     const forest = el("div", "tf-effect-forest");
     const renderNode = (outcomeId, depth = 0) => {
@@ -5040,7 +4370,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       if (externalParent) {
         const reference = el("div", "tf-effect-external-parent");
         if (externalParent.crossMembershipBoundary) {
-          reference.append(el("span", "tf-effect-boundary", `\u4E0A\u7EA7\u4F4D\u4E8E\u5176\u4ED6\u4E3B\u952E \xB7 ${externalParent.membership?.lastKnownLabel || externalParent.outcome.membershipId}`));
+          reference.append(el("span", "tf-effect-boundary", `\u4E0A\u7EA7\u4F4D\u4E8E\u5176\u4ED6\u65B9\u5411 \xB7 ${externalParent.membership?.lastKnownLabel || externalParent.outcome.membershipId}`));
         }
         if (externalParent.crossFrameworkItemBoundary) {
           reference.append(el("span", "tf-effect-boundary", `\u4E0A\u7EA7\u4F4D\u4E8E\u5176\u4ED6\u6846\u67B6\u6761\u76EE \xB7 ${externalParent.item?.title || "\u672A\u5F52\u5C5E"}`));
@@ -5096,9 +4426,10 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     card.dataset.anchorKey = membership.id;
     card.dataset.membershipId = membership.id;
     const header = el("header", "tf-membership-card__header");
-    header.append(el("span", `tf-source-badge is-${membership.primaryRef.domain}`, membership.primaryRef.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"));
+    header.append(el("span", `tf-source-badge is-${"direction"}`, "\u4E0A\u5C42\u7EA7\u65B9\u5411"));
     header.append(el("h3", "tf-membership-card__title", membership.lastKnownLabel));
     const headerActions = el("div", "tf-membership-card__actions");
+    headerActions.append(iconButton("\u7F16\u8F91\u4E0A\u5C42\u7EA7\u65B9\u5411", "pencil", () => this.plugin.openDirectionModal(framework.id, membership)));
     headerActions.append(iconButton("\u8C03\u6574\u6846\u67B6\u6761\u76EE\u5F52\u5C5E", "folder-input", () => this.plugin.openMembershipAssignmentModal(framework.id, membership.id)));
     if (membership.frameworkItemId) headerActions.append(iconButton("\u5173\u8054\u6846\u67B6\u91CC\u7A0B\u7891", "flag", () => this.plugin.openMilestoneBindingModal(framework.id, "membership", membership.id)));
     const exitBlockers = membershipExitBlockers(projection, membership.id);
@@ -5114,8 +4445,9 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     headerActions.append(iconButton("\u65B0\u589E\u9996\u5C42\u9636\u6BB5\u6210\u679C", "plus", () => this.plugin.openOutcomeModal(framework.id, { membershipId: membership.id })));
     header.append(headerActions);
     card.append(header);
-    const meanings = this.renderFrameworkMeaning(projection, "membership", membership.id, { compact: true });
-    if (meanings) card.append(meanings);
+    const location = effectiveMembershipFrameworkLocation(projection, membership.id);
+    if (location.milestone) card.append(el("div", "tf-card-milestone", frameworkMilestoneSentence(location.milestone)));
+    if (membership.description) card.append(el("p", "tf-direction-description", membership.description));
     const tree = this.renderMembershipOutcomeTree(projection, membership, timeFocus);
     if (tree) card.append(tree);
     else card.append(el("div", "tf-membership-card__empty", timeFocus ? "\u5F53\u524D\u65F6\u95F4\u7126\u70B9\u4E0B\u6CA1\u6709\u90E8\u7F72\u6210\u679C" : "\u5C1A\u672A\u5F62\u6210\u9636\u6BB5\u6210\u679C\u7ED3\u6784"));
@@ -5178,7 +4510,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       if (boundary) {
         const evidence = el("div", `tf-overview-tree-boundary is-${boundary.reason}`);
         const labels = {
-          "cross-membership": "\u4E0A\u7EA7\u4F4D\u4E8E\u5176\u4ED6\u4E3B\u952E",
+          "cross-membership": "\u4E0A\u7EA7\u4F4D\u4E8E\u5176\u4ED6\u65B9\u5411",
           "cross-framework": "\u4E0A\u7EA7\u4F4D\u4E8E\u5176\u4ED6\u6846\u67B6",
           archived: "\u4E0A\u7EA7\u5DF2\u505C\u7528",
           missing: "\u4E0A\u7EA7\u7F3A\u5931",
@@ -5195,10 +4527,6 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
         anchorKey: `${treeInstanceKey}:${outcomeId}`
       });
       nodeWrap.append(outcomeCard);
-      if (options.relationsByOutcomeId) {
-        const relationRow = this.renderTimeOutcomeRelations(projection, outcomeId, options.relationsByOutcomeId);
-        if (relationRow) nodeWrap.append(relationRow);
-      }
       branch.append(nodeWrap);
       if (childIds.length) {
         const children = el("div", "tf-overview-tree-children");
@@ -5282,10 +4610,10 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
   renderFrameworkItemSection(framework, projection, item, memberships, timeFocus) {
     const section = el("section", `tf-framework-item-section ${item ? "" : "is-unassigned"}`.trim());
     section.dataset.frameworkItemId = item?.id || "unassigned";
-    section.setAttribute("aria-label", item ? `\u6846\u67B6\u6761\u76EE\uFF1A${item.title}` : "\u672A\u5F52\u5C5E\u76EE\u6807\u4E0E\u9879\u76EE");
+    section.setAttribute("aria-label", item ? `\u6846\u67B6\u6761\u76EE\uFF1A${item.title}` : "\u672A\u5F52\u5C5E\u4E0A\u5C42\u7EA7\u65B9\u5411");
     const header = el("header", "tf-framework-item-section__header");
     const identity = el("div", "tf-framework-item-section__identity");
-    identity.append(el("span", "tf-framework-item-badge", item ? "\u6846\u67B6\u6761\u76EE" : "\u672A\u5F52\u5C5E"), el("h2", "tf-framework-item-section__title", item?.title || "\u672A\u5F52\u5C5E\u76EE\u6807\u4E0E\u9879\u76EE"));
+    identity.append(el("span", "tf-framework-item-badge", item ? "\u6846\u67B6\u6761\u76EE" : "\u672A\u5F52\u5C5E"), el("h2", "tf-framework-item-section__title", item?.title || "\u672A\u5F52\u5C5E\u4E0A\u5C42\u7EA7\u65B9\u5411"));
     if (item?.description) identity.append(el("p", "tf-framework-item-section__description", item.description));
     header.append(identity);
     if (item) {
@@ -5295,6 +4623,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       actions.append(iconButton("\u505C\u7528\u6846\u67B6\u6761\u76EE", "archive", () => this.plugin.openArchiveFrameworkItemModal(item)));
       header.append(actions);
     }
+    header.append(button("\u65B0\u589E\u4E0A\u5C42\u7EA7\u65B9\u5411", "plus", () => this.plugin.openDirectionModal(framework.id, null, item?.id || null)));
     section.append(header);
     if (item) {
       const milestones = activeValues2(projection.frameworkMilestonesById).filter((milestone) => milestone.frameworkItemId === item.id).sort((a, b) => compareDate(a.targetDate, b.targetDate));
@@ -5305,7 +4634,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     }
     const dropzone = el("div", "tf-framework-item-dropzone");
     dropzone.tabIndex = 0;
-    dropzone.setAttribute("aria-label", `\u628A\u76EE\u6807\u6216\u9879\u76EE\u5F52\u5C5E\u5230${item?.title || "\u672A\u5F52\u5C5E\u533A"}`);
+    dropzone.setAttribute("aria-label", `\u628A\u4E0A\u5C42\u7EA7\u65B9\u5411\u5F52\u5C5E\u5230${item?.title || "\u672A\u5F52\u5C5E\u533A"}`);
     dropzone.addEventListener("dragover", (event) => {
       event.preventDefault();
       dropzone.classList.add("is-drag-over");
@@ -5320,7 +4649,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     });
     const grid = el("div", "tf-membership-grid");
     for (const membership of memberships) grid.append(this.renderMembershipCard(framework, projection, membership, timeFocus));
-    if (!memberships.length) grid.append(el("div", "tf-framework-item-drop-hint", item ? "\u62D6\u5165\u76EE\u6807\u6216\u9879\u76EE\uFF0C\u6216\u4F7F\u7528\u4E3B\u952E\u4E0A\u7684\u201C\u8C03\u6574\u5F52\u5C5E\u201D" : "\u5C1A\u65E0\u672A\u5F52\u5C5E\u76EE\u6807\u6216\u9879\u76EE"));
+    if (!memberships.length) grid.append(el("div", "tf-framework-item-drop-hint", item ? "\u62D6\u5165\u4E0A\u5C42\u7EA7\u65B9\u5411\uFF0C\u6216\u4F7F\u7528\u65B9\u5411\u4E0A\u7684\u201C\u8C03\u6574\u5F52\u5C5E\u201D" : "\u5C1A\u65E0\u672A\u5F52\u5C5E\u4E0A\u5C42\u7EA7\u65B9\u5411"));
     dropzone.append(grid);
     section.append(dropzone);
     return section;
@@ -5397,9 +4726,9 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
         const item = el("button", `tf-outcome-toc__item ${child ? "is-membership" : "is-framework"}`);
         item.type = "button";
         item.title = entry.label;
-        item.setAttribute("aria-label", child ? `\u8F6C\u5230${entry.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"}\u4E3B\u952E\u201C${entry.label}\u201D` : `\u8F6C\u5230\u6846\u67B6\u6761\u76EE\u201C${entry.label}\u201D\uFF0C${entry.membershipCount} \u4E2A\u4E3B\u952E`);
+        item.setAttribute("aria-label", child ? `\u8F6C\u5230\u4E0A\u5C42\u7EA7\u65B9\u5411\u201C${entry.label}\u201D` : `\u8F6C\u5230\u6846\u67B6\u6761\u76EE\u201C${entry.label}\u201D\uFF0C${entry.membershipCount} \u4E2A\u65B9\u5411`);
         item.append(el("span", "tf-outcome-toc__marker", "\u25CB"), el("span", "tf-outcome-toc__label", entry.label));
-        item.append(el("span", "tf-outcome-toc__count", child ? entry.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE" : String(entry.membershipCount)));
+        item.append(el("span", "tf-outcome-toc__count", child ? "\u65B9\u5411" : String(entry.membershipCount)));
         item.addEventListener("click", () => {
           if (!entry.target.isConnected) return;
           const root = this.contentEl.getBoundingClientRect();
@@ -5450,10 +4779,10 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
         const membership = group.membership;
         const membershipGroup = el("section", "tf-milestone-context-group");
         const membershipHeader = el("div", "tf-milestone-context-group__header");
-        membershipHeader.append(el("span", `tf-source-badge is-${membership?.primaryRef?.domain || "unknown"}`, membership?.primaryRef?.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"));
-        membershipHeader.append(el("strong", "", membership?.lastKnownLabel || "\u5931\u8054\u4E3B\u952E"));
-        if (group.membershipBinding) membershipHeader.append(el("span", "tf-kind-badge", "\u4E3B\u952E\u76F4\u63A5\u5B9A\u4F4D"));
-        if (!options.compact && group.membershipBinding) membershipHeader.append(iconButton("\u89E3\u9664\u4E3B\u952E\u91CC\u7A0B\u7891\u5173\u8054", "unlink", () => this.plugin.openUnbindMilestoneModal(group.membershipBinding)));
+        membershipHeader.append(el("span", `tf-source-badge is-${"direction"}`, "\u4E0A\u5C42\u7EA7\u65B9\u5411"));
+        membershipHeader.append(el("strong", "", membership?.lastKnownLabel || "\u672A\u77E5\u65B9\u5411"));
+        if (group.membershipBinding) membershipHeader.append(el("span", "tf-kind-badge", "\u65B9\u5411\u76F4\u63A5\u5B9A\u4F4D"));
+        if (!options.compact && group.membershipBinding) membershipHeader.append(iconButton("\u89E3\u9664\u65B9\u5411\u91CC\u7A0B\u7891\u5173\u8054", "unlink", () => this.plugin.openUnbindMilestoneModal(group.membershipBinding)));
         membershipGroup.append(membershipHeader);
         const forest = el("div", "tf-milestone-context-forest");
         const renderContextNode = (outcomeId, depth = 0) => {
@@ -5465,7 +4794,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
           target.setAttribute("aria-label", `${node.directlyBound ? "\u76F4\u63A5\u5173\u8054\u6210\u679C" : "\u4E0A\u4E0B\u6587\u6210\u679C"}\uFF1A${node.outcome.title}\uFF1B\u70B9\u51FB\u5728\u6210\u679C\u6811\u4E2D\u6253\u5F00`);
           wrap.append(target);
           const externalParent = group.externalParentsByOutcomeId[outcomeId];
-          if (externalParent) wrap.append(button("\u7236\u6210\u679C\u4F4D\u4E8E\u5176\u4ED6\u4E3B\u952E", "external-link", () => this.openOutcome(externalParent.id, projection), "is-link tf-milestone-external-parent"));
+          if (externalParent) wrap.append(button("\u7236\u6210\u679C\u4F4D\u4E8E\u5176\u4ED6\u65B9\u5411", "external-link", () => this.openOutcome(externalParent.id, projection), "is-link tf-milestone-external-parent"));
           if (node.directlyBound) {
             wrap.append(el("span", "tf-milestone-context-node__badge", "\u76F4\u63A5\u5173\u8054"));
             if (!options.compact && node.binding) wrap.append(iconButton(`\u89E3\u9664\u6210\u679C\u201C${node.outcome.title}\u201D\u7684\u91CC\u7A0B\u7891\u5173\u8054`, "unlink", () => this.plugin.openUnbindMilestoneModal(node.binding)));
@@ -5489,7 +4818,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     }
     if (!options.compact) {
       const actions = el("div", "tf-framework-milestone__actions");
-      actions.append(iconButton("\u5173\u8054\u76EE\u6807\u3001\u9879\u76EE\u6216\u6210\u679C", "link-2", () => this.plugin.openMilestoneBindingModal(milestone.frameworkId, null, null, milestone.id)));
+      actions.append(iconButton("\u5173\u8054\u65B9\u5411\u6216\u6210\u679C", "link-2", () => this.plugin.openMilestoneBindingModal(milestone.frameworkId, null, null, milestone.id)));
       actions.append(iconButton("\u7F16\u8F91\u6846\u67B6\u91CC\u7A0B\u7891", "pencil", () => this.plugin.openFrameworkMilestoneModal(milestone.frameworkItemId, milestone)));
       actions.append(iconButton("\u505C\u7528\u6846\u67B6\u91CC\u7A0B\u7891", "archive", () => this.plugin.openArchiveFrameworkMilestoneModal(milestone)));
       row.append(actions);
@@ -5514,7 +4843,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       wrap.append(line);
       return wrap;
     }
-    const sourceLabel = location.source === "outcome-milestone" ? "\u6210\u679C\u76F4\u63A5\u5B9A\u4F4D" : location.source === "membership-milestone" ? "\u4E3B\u952E\u76F4\u63A5\u5B9A\u4F4D" : "\u6846\u67B6\u6761\u76EE\u5F52\u5C5E";
+    const sourceLabel = location.source === "outcome-milestone" ? "\u6210\u679C\u76F4\u63A5\u5B9A\u4F4D" : location.source === "membership-milestone" ? "\u65B9\u5411\u76F4\u63A5\u5B9A\u4F4D" : "\u6846\u67B6\u6761\u76EE\u5F52\u5C5E";
     wrap.append(el("div", "tf-framework-meaning__line", milestone ? `${sourceLabel} \xB7 ${item.title} \u2192 ${frameworkMilestoneSentence(milestone)}` : `${sourceLabel} \xB7 ${item.title}`));
     return wrap;
   }
@@ -5713,29 +5042,21 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const membership = projection.membershipsById[outcome.membershipId];
     const heading = el("header", "tf-outcome-detail__header");
     const title = el("div", "tf-outcome-detail__identity");
-    title.append(el("span", "tf-eyebrow", outcome.outcomeKind === "stage_gate" ? "\u9636\u6BB5\u5173\u53E3" : "\u9636\u6BB5\u6210\u679C"));
+    title.append(el("span", "tf-eyebrow", "\u9636\u6BB5\u6210\u679C"));
     title.append(el("h2", "", outcome.title));
     if (outcome.acceptance) title.append(el("p", "", outcome.acceptance));
     heading.append(title);
     const actions = el("div", "tf-outcome-detail__actions");
-    actions.append(button("\u6240\u5C5E\u4E3B\u952E Ontology", "table-properties", () => this.plugin.openMembershipOntology(membership)));
     actions.append(button("\u5B50\u6210\u679C", "git-branch-plus", () => this.plugin.openOutcomeModal(framework.id, { membershipId: outcome.membershipId, parentId: outcome.id }), "is-primary"));
-    actions.append(button("\u5173\u7CFB", "waypoints", () => this.plugin.openRelationModal(outcome, projection)));
-    if (outcome.outcomeKind === "stage_gate") actions.append(button("\u5173\u53E3\u7B56\u7565", "list-checks", () => this.plugin.openGatePolicyModal(outcome, projection)));
     actions.append(button(placement ? "\u8C03\u6574\u5B89\u6392" : "\u5B89\u6392\u65F6\u95F4", "calendar-clock", () => this.plugin.openPlacementModal(framework.id, { outcomeId: outcome.id })));
     actions.append(button(effective ? "\u9000\u51FA\u6B63\u5728\u751F\u6548" : "\u8FDB\u5165\u6B63\u5728\u751F\u6548", effective ? "circle-check-big" : "activity", () => this.plugin.toggleOutcomeEffectiveness(outcome, !effective, this.renderRevision), effective ? "is-effective" : ""));
-    actions.append(button(completion?.painted ? "\u53D6\u6D88\u6D82\u8272" : "\u5B8C\u6210\u6D82\u8272", completion?.painted ? "eraser" : "paintbrush", () => completion?.painted ? this.plugin.openUnpaintModal(outcome) : this.plugin.openPaintModal(outcome)));
+    actions.append(button("\u5B8C\u6210\u5E76\u79FB\u9664", "check", () => this.plugin.confirmCompleteOutcome(outcome, this.renderRevision)));
     actions.append(iconButton("\u7F16\u8F91\u6210\u679C", "pencil", () => this.plugin.openReviseOutcomeModal(outcome)));
     heading.append(actions);
     wrap.append(heading);
     const facts = el("div", "tf-fact-strip");
     facts.append(el("span", "tf-fact", placement ? dateRange(placement.startDate, placement.endDateExclusive) : "\u5C1A\u672A\u5B89\u6392\u65F6\u95F4"));
-    facts.append(el("span", `tf-fact ${completion?.painted ? "is-complete" : ""}`, completion?.painted ? `\u5DF2\u4E8E ${completion.completedOn} \u5B8C\u6210` : "\u5C1A\u672A\u624B\u5DE5\u786E\u8BA4\u5B8C\u6210"));
     facts.append(el("span", `tf-fact ${effective ? "is-effective" : ""}`, effective ? "\u4EBA\u5DE5\u786E\u8BA4\uFF1A\u6B63\u5728\u751F\u6548" : "\u672A\u8FDB\u5165\u6B63\u5728\u751F\u6548"));
-    if (outcome.outcomeKind === "stage_gate") {
-      const readiness = outcomeReadiness(projection, outcome.id);
-      facts.append(el("span", `tf-fact ${readiness.ready ? "is-ready" : ""}`, readiness.ready ? "\u5173\u53E3\u6761\u4EF6\u5DF2\u5C31\u7EEA" : `\u5173\u53E3\u6761\u4EF6 ${readiness.completed}/${readiness.total}`));
-    }
     const timeFocus = this.environment.timePath.at(-1);
     if (timeFocus) {
       const inScope = placement ? placementOverlapsBox(placement, timeFocus) : false;
@@ -5745,16 +5066,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const frameworkMeaning = this.renderFrameworkMeaning(projection, "outcome", outcome.id, { includeMembership: true });
     if (frameworkMeaning) wrap.append(frameworkMeaning);
     if (membership?.frameworkItemId) wrap.append(button("\u5173\u8054\u6846\u67B6\u91CC\u7A0B\u7891", "flag", () => this.plugin.openMilestoneBindingModal(framework.id, "outcome", outcome.id)));
-    const lens = el("div", "tf-relation-lens");
-    lens.append(el("span", "tf-relation-lens__label", "\u5173\u7CFB\u900F\u955C"));
-    for (const [key, label] of [["none", "\u5173\u95ED"], ["precedes", "\u5148\u540E"], ["requires", "\u524D\u7F6E"], ["contributes_to", "\u6C47\u805A"]]) {
-      lens.append(button(label, "", () => {
-        this.environment.relationLens = key;
-        this.render();
-      }, this.environment.relationLens === key ? "is-active" : ""));
-    }
-    wrap.append(lens);
-    if (this.environment.relationLens !== "none") wrap.append(this.renderRelationPanel(projection, outcome));
+    wrap.append(this.renderOutcomeKeywords(outcome));
     const allChildren = outcomeRelationSummary(projection, outcome.id).children;
     const children = timeFocus ? allChildren.filter((child) => this.outcomeIntersectsTimeBox(projection, child.id, timeFocus)) : allChildren;
     const childSection = el("section", "tf-child-section");
@@ -5769,25 +5081,10 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     wrap.append(childSection);
     return wrap;
   }
-  renderRelationPanel(projection, outcome) {
-    const panel = el("section", "tf-relation-panel");
-    const relations = activeValues2(projection.relationsById).filter((relation) => relation.relationType === this.environment.relationLens && (relation.sourceOutcomeId === outcome.id || relation.targetOutcomeId === outcome.id));
-    if (!relations.length) return el("div", "tf-inline-empty", "\u5F53\u524D\u900F\u955C\u4E0B\u6CA1\u6709\u5173\u7CFB");
-    for (const relation of relations) {
-      const outgoing = relation.sourceOutcomeId === outcome.id;
-      const peer = projection.outcomesById[outgoing ? relation.targetOutcomeId : relation.sourceOutcomeId];
-      const row = el("div", "tf-relation-row");
-      row.append(el("span", "tf-relation-row__direction", outgoing ? "\u2192" : "\u2190"));
-      row.append(button(peer?.title || "\u5931\u8054\u6210\u679C", "", () => peer && this.openOutcome(peer.id, projection), "is-link"));
-      row.append(el("span", "tf-relation-row__type", RELATION_LABELS[relation.relationType]));
-      row.append(iconButton("\u64A4\u9500\u5173\u7CFB", "unlink", () => this.plugin.openRevokeRelationModal(relation)));
-      panel.append(row);
-    }
-    return panel;
-  }
 };
 var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   async onload() {
+    this.disposed = false;
     const adapter = this.app.vault.adapter;
     if (typeof adapter.getBasePath !== "function") throw new Error("\u65F6\u95F4\u6846\u67B6\u9700\u8981\u684C\u9762\u6587\u4EF6\u7CFB\u7EDF\u9002\u914D\u5668");
     this.directory = import_node_path3.default.join(adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id);
@@ -5799,9 +5096,54 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     this.addRibbonIcon("calendar-range", "\u6253\u5F00\u65F6\u95F4\u6846\u67B6", () => this.activateView());
     this.addCommand({ id: "open-temporal-framework", name: "\u6253\u5F00\u65F6\u95F4\u6846\u67B6", callback: () => this.activateView() });
     this.installPublicApi();
+    this.keywordBridge = new TemporalKeywordBridge({
+      store: this.store,
+      notePath: `${this.app.vault.configDir}/plugins/${this.manifest.id}/Temporal_Framework.json`,
+      getEva: () => window.evaCrossViewRelations,
+      reveal: async (id) => {
+        const projection = projectLocalDirections(await this.store.read());
+        const outcome = projection.outcomesById[id];
+        if (this.disposed || outcome?.status !== "active") return false;
+        const view = await this.activateView();
+        if (this.disposed) return false;
+        view.environment.frameworkId = outcome.frameworkId;
+        view.openOutcome(id, projection);
+        return true;
+      },
+      report: (event, fields) => console.debug(`[TemporalFramework][keywords.${event}]`, fields)
+    });
+    this.register(this.store.onDirty(() => {
+      void this.keywordBridge.refresh().catch((error) => console.warn("[TemporalFramework][keywords.refresh-failed]", error.message));
+    }));
+    this.app.workspace.onLayoutReady(() => {
+      if (!this.disposed) void this.keywordBridge.refresh().catch((error) => console.warn("[TemporalFramework][keywords.register-failed]", error.message));
+    });
+    const refreshViews = () => {
+      this.refreshKeywordProvider();
+      if (this.disposed || this.keywordRenderPending) return;
+      this.keywordRenderPending = true;
+      requestAnimationFrame(() => {
+        this.keywordRenderPending = false;
+        if (!this.disposed) for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE)) void leaf.view.renderPreservingView?.();
+      });
+    };
+    this.registerDomEvent(window, "eva-cross-view-relations:changed", refreshViews);
+    this.registerDomEvent(window, "eva-cross-view-relations:meta-capture-changed", refreshViews);
+    this.registerDomEvent(window, "focus", () => this.refreshKeywordProvider());
+    this.registerEvent(this.app.workspace.on("layout-change", () => this.refreshKeywordProvider()));
+    this.addCommand({ id: "view-retained-drafts", name: "\u67E5\u770B\u4FDD\u7559\u7684\u8F93\u5165\u8349\u7A3F", callback: () => this.openRetainedDrafts() });
+    this.addCommand({ id: "view-removed-outcomes", name: "\u67E5\u770B\u4E0E\u6062\u590D\u5DF2\u79FB\u9664\u6210\u679C", callback: () => this.openRemovedOutcomes() });
+    this.addCommand({ id: "migrate-local-directions", name: "\u5C06\u73B0\u6709\u76EE\u6807\u4E0E\u9879\u76EE\u8FC1\u4E3A\u4E0A\u5C42\u7EA7\u65B9\u5411", callback: async () => {
+      const store = await this.store.read();
+      if (store.schemaVersion === 3) return new import_obsidian.Notice("\u5DF2\u7ECF\u4F7F\u7528\u4E0A\u5C42\u7EA7\u65B9\u5411");
+      new ConfirmationModal(this, "\u8FC1\u4E3A\u4E0A\u5C42\u7EA7\u65B9\u5411", "\u4FDD\u7559\u6240\u6709\u6210\u679C\u3001\u5B50\u6210\u679C\u3001\u65F6\u95F4\u548C\u91CC\u7A0B\u7891\uFF0C\u89E3\u9664\u5BF9\u5916\u90E8\u4E3B\u952E\u7684\u4F9D\u8D56\u3002", () => this.mutate("direction-migration", () => {
+      }, { expectedRevision: store.revision })).open();
+    } });
     if (status.profile === "read-only") new import_obsidian.Notice(`\u65F6\u95F4\u6846\u67B6\u4EE5\u53EA\u8BFB\u6062\u590D\u6A21\u5F0F\u542F\u52A8\uFF1A${status.reason}`, 1e4);
   }
   async onunload() {
+    this.disposed = true;
+    this.keywordBridge?.dispose();
     try {
       this.drafts?.unloadSync();
     } catch (error) {
@@ -5815,7 +5157,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async loadUiState() {
     const data = await this.loadData() || {};
-    const projection = reduceTemporalStore(await this.store.read());
+    const projection = projectLocalDirections(await this.store.read());
     const valid = {};
     for (const [key, value] of Object.entries(data.uiState?.outcomeExpansionDepthById || {})) {
       if (!Number.isInteger(value) || value < 0 || value > MAX_OUTCOME_EXPANSION_DEPTH) continue;
@@ -5870,9 +5212,9 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       },
       getFrameworkSnapshot: async (options = {}) => {
         const store = await this.store.read();
-        const projection = reduceTemporalStore(store);
+        const projection = projectLocalDirections(store);
         const frameworkId = options.frameworkId || Object.keys(projection.frameworksById)[0] || null;
-        return { ok: true, schemaVersion: 2, revision: store.revision, frameworkId, projection: structuredClone(projection) };
+        return { ok: true, schemaVersion: 3, storedSchemaVersion: store.schemaVersion, revision: store.revision, frameworkId, projection: structuredClone(projection) };
       }
     };
     if (typeof window !== "undefined") window[API_KEY] = api;
@@ -5890,30 +5232,136 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     this.app.workspace.revealLeaf(leaf);
     return leaf.view;
   }
-  mandalaApi() {
-    return typeof window !== "undefined" ? window.__mandalaTimeBlocksPluginApi : null;
+  async openDirectionModal(frameworkId, direction = null, frameworkItemId = null) {
+    const { store, projection } = await this.projectionFor(frameworkId);
+    if (direction) direction = projection.membershipsById[direction.id];
+    const items = activeValues2(projection.frameworkItemsById).filter((item) => item.frameworkId === frameworkId);
+    new TemporalFormModal(this, {
+      title: direction ? "\u7F16\u8F91\u4E0A\u5C42\u7EA7\u65B9\u5411" : "\u65B0\u589E\u4E0A\u5C42\u7EA7\u65B9\u5411",
+      message: "\u5728\u8FD9\u91CC\u63CF\u8FF0\u613F\u666F\u3001\u5B97\u65E8\u6216\u957F\u671F\u65B9\u5411\u3002",
+      recordType: direction ? "direction-revise" : "direction-create",
+      recordId: direction?.id || `${frameworkId}:${frameworkItemId || "unassigned"}`,
+      baseRevision: store.revision,
+      baseHash: hashValue(direction || { frameworkId, frameworkItemId }),
+      initial: { title: direction?.lastKnownLabel || "", description: direction?.description || "", frameworkItemId: direction?.frameworkItemId || frameworkItemId || "" },
+      fields: [
+        { key: "title", label: "\u4E0A\u5C42\u7EA7\u65B9\u5411", wide: true },
+        { key: "description", label: "\u8BF4\u660E", type: "textarea", rows: 4, wide: true },
+        { key: "frameworkItemId", label: "\u6846\u67B6\u6761\u76EE", type: "select", wide: true, options: [["", "\u6682\u4E0D\u5F52\u5C5E"], ...items.map((item) => [item.id, item.title])] }
+      ],
+      validate: (value) => ({ valid: Boolean(value.title.trim()), message: value.title.trim() ? "\u53EF\u4EE5\u4FDD\u5B58" : "\u8BF7\u586B\u5199\u4E0A\u5C42\u7EA7\u65B9\u5411\u540D\u79F0" }),
+      onSubmit: (value, session) => this.mutate(direction ? "direction-revise" : "direction-create", (draft) => {
+        if (!direction) createDirection(draft, { frameworkId, ...value, frameworkItemId: value.frameworkItemId || null });
+        else {
+          reviseDirection(draft, { membershipId: direction.id, ...value });
+          if ((value.frameworkItemId || null) !== (direction.frameworkItemId || null)) assignMembershipFrameworkItem(draft, { membershipId: direction.id, frameworkItemId: value.frameworkItemId || null });
+        }
+      }, { expectedRevision: session.identity.baseRevision })
+    }).open();
   }
-  primaryRefFromTarget(target) {
-    return {
-      providerId: target.sourcePlugin || "mandala-time-blocks",
-      domain: target.domain || target.sourceType,
-      sourceScope: target.sourceScope || target.sourceNotePath,
-      sourceKey: target.sourceKey || target.sourceId || target.nodeId,
-      identityVersion: Number(target.identityVersion || 1)
-    };
+  async confirmCompleteOutcome(outcome, expectedRevision) {
+    const projection = projectLocalDirections(await this.store.read());
+    const count = activeValues2(projection.outcomesById).filter((item) => item.outlineParentId === outcome.id).length;
+    new ConfirmationModal(this, "\u5B8C\u6210\u5E76\u79FB\u9664\u6210\u679C", `\u786E\u8BA4\u5B8C\u6210\u5E76\u79FB\u9664\u201C${outcome.title}\u201D\uFF1F${count ? ` ${count} \u4E2A\u5B50\u6210\u679C\u4F1A\u4FDD\u7559\u3002` : ""}`, async () => {
+      await this.mutate("outcome-complete-remove", (draft) => completeAndRemoveOutcome(draft, { outcomeId: outcome.id }), { expectedRevision });
+      new import_obsidian.Notice("\u6210\u679C\u5DF2\u79FB\u9664");
+    }).open();
   }
-  async openMembershipOntology(membership) {
-    if (!membership?.primaryRef) return new import_obsidian.Notice("\u627E\u4E0D\u5230\u9636\u6BB5\u6210\u679C\u6240\u5C5E\u7684\u76EE\u6807\u6216\u9879\u76EE\u4E3B\u952E", 9e3);
+  async openRemovedOutcomes() {
+    const store = await this.store.read();
+    const projection = projectLocalDirections(store);
+    new ReadOnlyListModal(this, "\u5DF2\u79FB\u9664\u6210\u679C", (modal) => {
+      modal.contentEl.append(el("p", "", "\u6062\u590D\u540E\u53EF\u91CD\u65B0\u5B89\u6392\u65F6\u95F4\u3002\u5B50\u6210\u679C\u3001\u5173\u952E\u8BCD\u548C\u7B14\u8BB0\u4E0D\u4F1A\u88AB\u5220\u9664\u3002"));
+      const items = Object.values(projection.outcomesById).filter((item) => item.status === "archived");
+      if (!items.length) modal.contentEl.append(el("p", "", "\u6CA1\u6709\u5DF2\u79FB\u9664\u6210\u679C"));
+      for (const outcome of items) {
+        const row = el("div", "tf-recovery-row");
+        row.append(el("strong", "", outcome.title), el("small", "", projection.membershipsById[outcome.membershipId]?.lastKnownLabel || ""));
+        if (outcome.acceptance) row.append(el("p", "", outcome.acceptance));
+        const restore = button("\u6062\u590D\u6210\u679C", "undo-2", async () => {
+          restore.disabled = true;
+          try {
+            await this.mutate("outcome-restore", (draft) => restoreRemovedOutcome(draft, { outcomeId: outcome.id }), { expectedRevision: store.revision });
+            modal.close();
+          } catch (error) {
+            new import_obsidian.Notice(error.message, 9e3);
+            restore.disabled = false;
+          }
+        });
+        row.append(restore);
+        modal.contentEl.append(row);
+      }
+    }).open();
+  }
+  openRetainedDrafts() {
     try {
-      await openPlanningTargetOntology(this.mandalaApi(), membership.primaryRef);
+      const drafts = Object.values(this.drafts.readFile().draftsBySessionId);
+      new ReadOnlyListModal(this, "\u4FDD\u7559\u7684\u8F93\u5165\u8349\u7A3F", (modal) => {
+        modal.contentEl.append(el("p", "", "\u65E7\u8349\u7A3F\u539F\u6587\u4FDD\u7559\u5728\u8FD9\u91CC\u3002\u53EF\u4EE5\u590D\u5236\u5185\u5BB9\uFF0C\u5728\u5F53\u524D\u7F16\u8F91\u7A97\u53E3\u6062\u590D\uFF1B\u65E7\u5173\u7CFB\u8349\u7A3F\u4E0D\u4F1A\u518D\u63D0\u4EA4\u5173\u7CFB\u3002"));
+        if (!drafts.length) modal.contentEl.append(el("p", "", "\u6CA1\u6709\u4FDD\u7559\u7684\u8349\u7A3F"));
+        for (const draft of drafts) {
+          const row = el("details", "tf-recovery-row");
+          row.append(el("summary", "", `${draft.value?.title || draft.recordType} \xB7 ${draft.savedAt || ""}`));
+          const content = el("textarea", "tf-retained-draft");
+          content.readOnly = true;
+          content.value = JSON.stringify(draft.value, null, 2);
+          row.append(content, button("\u590D\u5236\u8349\u7A3F", "copy", () => navigator.clipboard.writeText(content.value).catch((error) => new import_obsidian.Notice(error.message))));
+          modal.contentEl.append(row);
+        }
+      }).open();
     } catch (error) {
-      console.warn("[TemporalFramework][membership.ontology-open-failed]", {
-        membershipId: membership.id,
-        primaryRef: membership.primaryRef,
-        message: error.message
-      });
+      new import_obsidian.Notice(`\u8349\u7A3F\u8BFB\u53D6\u5931\u8D25\uFF1A${error.message}`, 9e3);
+    }
+  }
+  async startKeywordMount(outcome) {
+    try {
+      await this.keywordBridge.startMount(outcome.id);
+      new import_obsidian.Notice("\u5DF2\u9009\u4E2D\u6210\u679C\uFF0C\u8BF7\u5728 Keyword Index \u70B9\u51FB\u8981\u6302\u8F7D\u7684\u5173\u952E\u8BCD");
+    } catch (error) {
       new import_obsidian.Notice(error.message, 9e3);
     }
+  }
+  refreshKeywordProvider() {
+    if (this.disposed || !this.keywordBridge || !window.evaCrossViewRelations || this.keywordBridge.eva === window.evaCrossViewRelations) return;
+    void this.keywordBridge.refresh().catch((error) => console.warn("[TemporalFramework][keywords.provider-failed]", error.message));
+  }
+  async openMountedKeyword(mount) {
+    try {
+      const api = window.evaCrossViewRelations;
+      if (!api?.openNode) throw new Error("\u8BF7\u5148\u542F\u7528 EVA Cross Relations");
+      if (await api.openNode(mount.targetNodeKey) === false) throw new Error("\u6765\u6E90\u6682\u4E0D\u53EF\u7528");
+    } catch (error) {
+      new import_obsidian.Notice(error.message, 9e3);
+    }
+  }
+  openMountedNotes(mount, sourceLeaf) {
+    const api = window.__keywordIndexPluginApi;
+    if (!api?.getKeywordNotesForNode || !api?.openKeywordNoteAtTabEnd) return new import_obsidian.Notice("Keyword Index \u7684 Note \u63A5\u53E3\u5C1A\u672A\u5C31\u7EEA");
+    new ReadOnlyListModal(this, "\u6253\u5F00\u5BF9\u5E94 Note", (modal) => {
+      const status = el("p", "", "\u6B63\u5728\u8BFB\u53D6\u5BF9\u5E94\u7B14\u8BB0\u2026");
+      modal.contentEl.append(status);
+      const current = () => modal.alive && !this.disposed && window.__keywordIndexPluginApi === api;
+      const open = async (note) => {
+        if (!current()) return;
+        try {
+          const result = await api.openKeywordNoteAtTabEnd(note.path, sourceLeaf);
+          if (!current()) return;
+          if (result !== true) throw new Error("Note \u5DF2\u79FB\u52A8\u6216\u6682\u65F6\u65E0\u6CD5\u6253\u5F00");
+          modal.close();
+        } catch (error) {
+          if (current()) new import_obsidian.Notice(error.message, 9e3);
+        }
+      };
+      Promise.resolve().then(() => api.getKeywordNotesForNode(mount.targetNodeKey)).then((result) => {
+        if (!current()) return;
+        const notes = uniqueKeywordNotes(result);
+        status.textContent = notes.length ? "\u8BF7\u9009\u62E9\u8981\u6253\u5F00\u7684 Note" : "\u8FD9\u4E2A\u5173\u952E\u8BCD\u6682\u65E0\u5BF9\u5E94 Note";
+        if (notes.length === 1) return open(notes[0]);
+        for (const note of notes) modal.contentEl.append(button(`${note.name || note.basename || note.path} \u2014 ${note.path}`, "file-text", () => open(note)));
+      }).catch((error) => {
+        if (current()) status.textContent = `\u8BFB\u53D6\u5931\u8D25\uFF1A${error.message}`;
+      });
+    }).open();
   }
   async toggleOutcomeEffectiveness(outcome, effective, expectedRevision) {
     const verb = effective ? "\u8FDB\u5165" : "\u9000\u51FA";
@@ -5931,7 +5379,10 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async mutate(reason, mutator, options = {}) {
     try {
-      return await this.store.save(mutator, reason, options);
+      return await this.store.save((draft) => {
+        migrateLocalDirections(draft);
+        return mutator(draft);
+      }, reason, options);
     } catch (error) {
       console.error("[TemporalFramework][mutation.rejected]", { reason, message: error.message, stack: error.stack });
       throw error;
@@ -5953,73 +5404,6 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       new import_obsidian.Notice(error.message === "\u6570\u636E\u5DF2\u53D8\u5316" ? "\u6570\u636E\u5DF2\u53D8\u5316\uFF0C\u5DF2\u53D6\u6D88\u672C\u6B21\u62D6\u52A8" : error.message, 9e3);
       await this.getActiveView()?.renderPreservingView();
     }
-  }
-  openRelationConflictList(framework, projection, diagnostics) {
-    if (!diagnostics.length) return new import_obsidian.Notice("\u5F53\u524D\u6CA1\u6709\u5173\u7CFB\u65F6\u95F4\u51B2\u7A81");
-    new RelationConflictModal(this, framework, projection, diagnostics).open();
-  }
-  async openJointRelationAdjustment(frameworkId, relationId) {
-    const { store, projection, framework } = await this.projectionFor(frameworkId);
-    const relation = projection.relationsById[relationId];
-    if (!framework || framework.status !== "active") return new import_obsidian.Notice("\u65F6\u95F4\u6846\u67B6\u5DF2\u7ECF\u505C\u7528\u6216\u4E0D\u5B58\u5728");
-    if (!relation || relation.status !== "active") return new import_obsidian.Notice("\u6210\u679C\u5173\u7CFB\u5DF2\u7ECF\u64A4\u9500\u6216\u4E0D\u5B58\u5728");
-    if (!outcomePlacement(projection, relation.sourceOutcomeId) || !outcomePlacement(projection, relation.targetOutcomeId)) {
-      return new import_obsidian.Notice("\u5173\u7CFB\u4E24\u7AEF\u90FD\u5FC5\u987B\u5148\u6709\u6709\u6548\u65F6\u95F4\u5B89\u6392");
-    }
-    new JointRelationAdjustmentModal(this, framework, projection, relation, store, store.revision).open();
-  }
-  openNewRelationJointAdjustment(store, relation, onCommitted) {
-    const projection = reduceTemporalStore(store);
-    const framework = projection.frameworksById[relation.frameworkId];
-    if (!framework || framework.status !== "active") throw new Error("\u65F6\u95F4\u6846\u67B6\u5DF2\u7ECF\u505C\u7528\u6216\u4E0D\u5B58\u5728");
-    const source = projection.outcomesById[relation.sourceOutcomeId];
-    const target = projection.outcomesById[relation.targetOutcomeId];
-    const missing = [];
-    if (!outcomePlacement(projection, relation.sourceOutcomeId)) missing.push(`\u8D77\u70B9\u6210\u679C\u201C${source?.title || relation.sourceOutcomeId}\u201D`);
-    if (!outcomePlacement(projection, relation.targetOutcomeId)) missing.push(`\u6307\u5411\u6210\u679C\u201C${target?.title || relation.targetOutcomeId}\u201D`);
-    if (missing.length) throw new Error(`${missing.join("\u3001")}\u5C1A\u672A\u5B89\u6392\u65F6\u95F4\uFF0C\u4E0D\u80FD\u8FDB\u5165\u8054\u5408\u8C03\u6574\u65F6\u95F4\u8F68`);
-    new JointRelationAdjustmentModal(this, framework, projection, relation, store, store.revision, {
-      mode: "create",
-      onCommitted
-    }).open();
-  }
-  async commitJointRelationAdjustment(framework, relation, placementInputs, expectedRevision) {
-    const inputFor = (placement) => ({
-      frameworkId: framework.id,
-      outcomeId: placement.outcomeId,
-      mode: "interval",
-      startDate: placement.startDate,
-      endDateExclusive: placement.endDateExclusive,
-      dueOn: effectiveDueOn(placement),
-      declaredScale: placement.declaredScale,
-      homeTimeBoxRef: canonicalTimeBox(placement.declaredScale, placement.startDate, framework),
-      reason: "\u5173\u7CFB\u65F6\u95F4\u51B2\u7A81\u8054\u5408\u8C03\u6574"
-    });
-    await this.mutate("relation-joint-placement-adjust", (draft) => {
-      moveRelatedOutcomePlacementSet(draft, relation.id, placementInputs.map(inputFor));
-    }, { expectedRevision });
-  }
-  async commitNewRelationJointAdjustment(framework, relation, placementInputs, expectedRevision) {
-    const inputFor = (placement) => ({
-      frameworkId: framework.id,
-      outcomeId: placement.outcomeId,
-      mode: "interval",
-      startDate: placement.startDate,
-      endDateExclusive: placement.endDateExclusive,
-      dueOn: effectiveDueOn(placement),
-      declaredScale: placement.declaredScale,
-      homeTimeBoxRef: canonicalTimeBox(placement.declaredScale, placement.startDate, framework),
-      reason: "\u5EFA\u7ACB\u5173\u7CFB\u5E76\u8054\u5408\u8C03\u6574\u65F6\u95F4"
-    });
-    await this.mutate("relation-create-joint-placement-adjust", (draft) => {
-      addOutcomeRelationWithJointPlacementSet(draft, {
-        frameworkId: relation.frameworkId,
-        sourceOutcomeId: relation.sourceOutcomeId,
-        targetOutcomeId: relation.targetOutcomeId,
-        relationType: relation.relationType,
-        supersedesRelationId: relation.supersedesRelationId || null
-      }, placementInputs.map(inputFor), { relationId: relation.id });
-    }, { expectedRevision });
   }
   async openFrameworkModal() {
     const dates = defaultFrameworkDates();
@@ -6085,7 +5469,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async openFrameworkBoundaryModal(frameworkId) {
     const store = await this.store.read();
-    const projection = reduceTemporalStore(store);
+    const projection = projectLocalDirections(store);
     const framework = projection.frameworksById[frameworkId];
     if (!framework || framework.status !== "active") return new import_obsidian.Notice("\u627E\u4E0D\u5230\u53EF\u8C03\u6574\u7684\u65F6\u95F4\u6846\u67B6", 9e3);
     new TemporalFormModal(this, {
@@ -6111,49 +5495,6 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       }
     }).open();
   }
-  async openImportModal(frameworkId) {
-    try {
-      const api = this.mandalaApi();
-      if (typeof api?.listEffectiveOperationalContextKeys !== "function") throw new Error("Mandala \u6709\u6548\u64CD\u4F5C\u4E0A\u4E0B\u6587\u4E3B\u952E API \u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u542F\u7528\u6216\u91CD\u542F\u76F8\u5173\u63D2\u4EF6");
-      if (typeof api?.listEffectiveGoalOperationalContextKeys !== "function") throw new Error("Mandala \u6709\u6548\u76EE\u6807\u64CD\u4F5C\u4E0A\u4E0B\u6587\u4E3B\u952E API \u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u542F\u7528\u6216\u91CD\u542F\u76F8\u5173\u63D2\u4EF6");
-      const [projectSnapshot, goalSnapshot] = await Promise.all([
-        api.listEffectiveOperationalContextKeys({ consumer: "temporal-framework" }),
-        api.listEffectiveGoalOperationalContextKeys({ consumer: "temporal-framework" })
-      ]);
-      const usableTargets = validateEffectiveOperationalContextSnapshots(projectSnapshot, goalSnapshot);
-      const store = await this.store.read();
-      const projection = reduceTemporalStore(store);
-      const framework = projection.frameworksById[frameworkId];
-      const existingKeys = new Set(activeValues2(projection.membershipsById).filter((item) => item.frameworkId === frameworkId).map((item) => primaryRefKey(item.primaryRef)));
-      new ImportTargetsModal(this, framework, usableTargets, existingKeys, async (targets) => {
-        await this.mutate("membership-import", (draft) => {
-          for (const target of targets) {
-            const targetRef = this.primaryRefFromTarget(target);
-            const currentProjection = reduceTemporalStore(draft);
-            const lifetimeMatch = Object.values(currentProjection.membershipsById).find((item) => item.frameworkId === frameworkId && primaryRefKey(item.primaryRef) === primaryRefKey(targetRef));
-            if (lifetimeMatch?.status === "exited") reinstateMembership(draft, {
-              membershipId: lifetimeMatch.id,
-              lastKnownLabel: target.label,
-              sourceState: "fresh",
-              planningStart: framework.startDate,
-              planningEndDateExclusive: framework.endDateExclusive
-            });
-            else admitMembership(draft, {
-              frameworkId,
-              primaryRef: targetRef,
-              labelAtCreation: target.label,
-              lastKnownLabel: target.label,
-              planningStart: framework.startDate,
-              planningEndDateExclusive: framework.endDateExclusive
-            });
-          }
-        }, { expectedRevision: store.revision });
-      }).open();
-    } catch (error) {
-      console.warn("[TemporalFramework][mandala.targets-unavailable]", error);
-      new import_obsidian.Notice(error.message, 9e3);
-    }
-  }
   async openMembershipExitModal(frameworkId, membershipId) {
     const { store, projection } = await this.projectionFor(frameworkId);
     const membership = projection.membershipsById[membershipId];
@@ -6161,7 +5502,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     if (blockers.length) return new import_obsidian.Notice(blockers.map((blocker) => blocker.message).join("\uFF1B"), 9e3);
     new TemporalFormModal(this, {
       title: "\u79FB\u51FA\u65F6\u95F4\u6846\u67B6",
-      message: `\u201C${membership.lastKnownLabel}\u201D\u5C06\u53EA\u4ECE\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u79FB\u51FA\u3002Mandala \u4E2D\u7684\u76EE\u6807\u6216\u9879\u76EE\u4E0D\u4F1A\u5220\u9664\uFF0C\u5386\u53F2\u4E8B\u4EF6\u4ECD\u4F1A\u4FDD\u7559\u3002`,
+      message: `\u201C${membership.lastKnownLabel}\u201D\u5C06\u4ECE\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u79FB\u51FA\uFF0C\u5386\u53F2\u4E8B\u4EF6\u4ECD\u4F1A\u4FDD\u7559\u3002`,
       recordType: "membership-exit",
       recordId: membershipId,
       baseRevision: store.revision,
@@ -6172,7 +5513,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       submitIcon: "trash-2",
       validate: (value) => ({ valid: Boolean(String(value.reason || "").trim()), message: String(value.reason || "").trim() ? "\u53EF\u4EE5\u79FB\u51FA" : "\u8BF7\u586B\u5199\u79FB\u51FA\u539F\u56E0" }),
       onSubmit: async (value, session) => {
-        if (!window.confirm("\u786E\u8BA4\u53EA\u628A\u8BE5\u76EE\u6807\u6216\u9879\u76EE\u79FB\u51FA\u5F53\u524D\u65F6\u95F4\u6846\u67B6\uFF1FMandala \u4E3B\u952E\u4E0D\u4F1A\u5220\u9664\uFF0C\u5386\u53F2\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002")) throw new Error("\u5DF2\u53D6\u6D88\u79FB\u51FA\u65F6\u95F4\u6846\u67B6");
+        if (!window.confirm("\u786E\u8BA4\u79FB\u51FA\u8BE5\u4E0A\u5C42\u7EA7\u65B9\u5411\uFF1F\u5386\u53F2\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002")) throw new Error("\u5DF2\u53D6\u6D88\u79FB\u51FA\u65F6\u95F4\u6846\u67B6");
         await this.mutate("membership-exit", (draft) => exitMembership(draft, { membershipId, reason: value.reason }), { expectedRevision: session.identity.baseRevision });
       }
     }).open();
@@ -6207,7 +5548,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     const store = await this.store.read();
     new TemporalFormModal(this, {
       title: "\u505C\u7528\u6846\u67B6\u6761\u76EE",
-      message: `\u53EA\u6709\u4E0D\u518D\u5305\u542B\u6709\u6548\u76EE\u6807\u3001\u9879\u76EE\u6216\u91CC\u7A0B\u7891\u7684\u201C${item.title}\u201D\u624D\u80FD\u505C\u7528\u3002\u5386\u53F2\u4E0D\u4F1A\u5220\u9664\u3002`,
+      message: `\u53EA\u6709\u4E0D\u518D\u5305\u542B\u6709\u6548\u65B9\u5411\u6216\u91CC\u7A0B\u7891\u7684\u201C${item.title}\u201D\u624D\u80FD\u505C\u7528\u3002\u5386\u53F2\u4E0D\u4F1A\u5220\u9664\u3002`,
       recordType: "framework-item-archive",
       recordId: item.id,
       baseRevision: store.revision,
@@ -6225,7 +5566,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async openFrameworkMilestoneModal(frameworkItemId, milestone = null) {
     const store = await this.store.read();
-    const projection = reduceTemporalStore(store);
+    const projection = projectLocalDirections(store);
     const item = projection.frameworkItemsById[frameworkItemId];
     if (!item || item.status !== "active") return new import_obsidian.Notice("\u6846\u67B6\u6761\u76EE\u5DF2\u7ECF\u505C\u7528\u6216\u4E0D\u5B58\u5728", 9e3);
     const framework = projection.frameworksById[item.frameworkId];
@@ -6278,17 +5619,17 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   async openMembershipAssignmentModal(frameworkId, membershipId) {
     const { store, projection } = await this.projectionFor(frameworkId);
     const membership = projection.membershipsById[membershipId];
-    if (!membership || membership.status !== "active") return new import_obsidian.Notice("\u76EE\u6807\u6216\u9879\u76EE\u4E0D\u5728\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u4E2D", 9e3);
+    if (!membership || membership.status !== "active") return new import_obsidian.Notice("\u4E0A\u5C42\u7EA7\u65B9\u5411\u4E0D\u5728\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u4E2D", 9e3);
     const items = activeValues2(projection.frameworkItemsById).filter((item) => item.frameworkId === frameworkId);
     new TemporalFormModal(this, {
       title: "\u8C03\u6574\u6846\u67B6\u6761\u76EE\u5F52\u5C5E",
-      message: "\u5F52\u5C5E\u6539\u53D8\u4E0D\u4F1A\u79FB\u52A8\u6216\u590D\u5236\u6210\u679C\u3002\u82E5\u4E3B\u952E\u6216\u5176\u6210\u679C\u4ECD\u6709\u5173\u8054\u7684\u6846\u67B6\u91CC\u7A0B\u7891\uFF0C\u5FC5\u987B\u5148\u89E3\u9664\uFF0C\u907F\u514D\u4EA7\u751F\u8DE8\u6846\u67B6\u542B\u4E49\u3002",
+      message: "\u5F52\u5C5E\u6539\u53D8\u4E0D\u4F1A\u79FB\u52A8\u6216\u590D\u5236\u6210\u679C\u3002\u82E5\u65B9\u5411\u6216\u5176\u6210\u679C\u4ECD\u6709\u5173\u8054\u7684\u6846\u67B6\u91CC\u7A0B\u7891\uFF0C\u5FC5\u987B\u5148\u89E3\u9664\uFF0C\u907F\u514D\u4EA7\u751F\u8DE8\u6846\u67B6\u542B\u4E49\u3002",
       recordType: "membership-framework-item-assign",
       recordId: membership.id,
       baseRevision: store.revision,
       baseHash: hashValue(membership),
       initial: { frameworkItemId: membership.frameworkItemId || "" },
-      fields: [{ key: "frameworkItemId", label: "\u6846\u67B6\u6761\u76EE", type: "select", wide: true, options: [["", "\u672A\u5F52\u5C5E\u76EE\u6807\u4E0E\u9879\u76EE"], ...items.map((item) => [item.id, item.title])] }],
+      fields: [{ key: "frameworkItemId", label: "\u6846\u67B6\u6761\u76EE", type: "select", wide: true, options: [["", "\u672A\u5F52\u5C5E\u4E0A\u5C42\u7EA7\u65B9\u5411"], ...items.map((item) => [item.id, item.title])] }],
       validate: (value) => ({ valid: (value.frameworkItemId || null) !== (membership.frameworkItemId || null), message: (value.frameworkItemId || null) !== (membership.frameworkItemId || null) ? "\u53EF\u4EE5\u8C03\u6574" : "\u5F52\u5C5E\u6CA1\u6709\u53D8\u5316" }),
       onSubmit: async (value, session) => this.commitMembershipAssignment(frameworkId, membership.id, value.frameworkItemId || null, session.identity.baseRevision)
     }).open();
@@ -6306,7 +5647,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   bindingTargetLabel(projection, targetType, targetId) {
     if (targetType === "outcome") return `\u6210\u679C \xB7 ${projection.outcomesById[targetId]?.title || "\u5931\u8054\u6210\u679C"}`;
     const membership = projection.membershipsById[targetId];
-    return `${membership?.primaryRef?.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"} \xB7 ${membership?.lastKnownLabel || "\u5931\u8054\u4E3B\u952E"}`;
+    return `${"\u4E0A\u5C42\u7EA7\u65B9\u5411"} \xB7 ${membership?.lastKnownLabel || "\u672A\u77E5\u65B9\u5411"}`;
   }
   async openMilestoneBindingModal(frameworkId, fixedTargetType = null, fixedTargetId = null, fixedMilestoneId = null) {
     const { store, projection } = await this.projectionFor(frameworkId);
@@ -6314,19 +5655,19 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     const fixedTarget = fixedTargetType === "outcome" ? projection.outcomesById[fixedTargetId] : fixedTargetType === "membership" ? projection.membershipsById[fixedTargetId] : null;
     const membership = fixedTargetType === "outcome" ? projection.membershipsById[fixedTarget?.membershipId] : fixedTargetType === "membership" ? fixedTarget : null;
     const frameworkItemId = fixedMilestone?.frameworkItemId || membership?.frameworkItemId || null;
-    if (!frameworkItemId) return new import_obsidian.Notice("\u8BF7\u5148\u628A\u6240\u5C5E\u76EE\u6807\u6216\u9879\u76EE\u5F52\u5230\u4E00\u4E2A\u6846\u67B6\u6761\u76EE\uFF0C\u518D\u5173\u8054\u91CC\u7A0B\u7891", 9e3);
+    if (!frameworkItemId) return new import_obsidian.Notice("\u8BF7\u5148\u628A\u6240\u5C5E\u4E0A\u5C42\u7EA7\u65B9\u5411\u5F52\u5230\u4E00\u4E2A\u6846\u67B6\u6761\u76EE\uFF0C\u518D\u5173\u8054\u91CC\u7A0B\u7891", 9e3);
     const milestones = activeValues2(projection.frameworkMilestonesById).filter((item) => item.frameworkItemId === frameworkItemId);
     if (!milestones.length) return new import_obsidian.Notice("\u8BE5\u6846\u67B6\u6761\u76EE\u8FD8\u6CA1\u6709\u53EF\u5173\u8054\u7684\u91CC\u7A0B\u7891", 9e3);
     const assignedMemberships = activeValues2(projection.membershipsById).filter((item) => item.frameworkId === frameworkId && item.frameworkItemId === frameworkItemId);
     const targetOptions = [];
     for (const item of assignedMemberships) {
-      targetOptions.push([`membership:${item.id}`, `${item.primaryRef?.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"} \xB7 ${item.lastKnownLabel}`]);
+      targetOptions.push([`membership:${item.id}`, `${"\u4E0A\u5C42\u7EA7\u65B9\u5411"} \xB7 ${item.lastKnownLabel}`]);
       for (const outcome of activeValues2(projection.outcomesById).filter((candidate) => candidate.membershipId === item.id)) targetOptions.push([`outcome:${outcome.id}`, `  \u6210\u679C \xB7 ${outcome.title}`]);
     }
     const initialTargetKey = fixedTargetType && fixedTargetId ? `${fixedTargetType}:${fixedTargetId}` : targetOptions[0]?.[0] || "";
     new TemporalFormModal(this, {
       title: "\u5173\u8054\u6846\u67B6\u91CC\u7A0B\u7891",
-      message: "\u6BCF\u4E2A\u76EE\u6807\u3001\u9879\u76EE\u6216\u6210\u679C\u6700\u591A\u53EA\u6709\u4E00\u5219\u6709\u6548\u91CC\u7A0B\u7891\u4F4D\u7F6E\u3002\u6210\u679C\u4E0D\u590D\u5236\uFF0C\u6267\u884C\u7236\u5B50\u6811\u4E5F\u4E0D\u4F1A\u6539\u53D8\u3002",
+      message: "\u6BCF\u4E2A\u65B9\u5411\u6216\u6210\u679C\u6700\u591A\u53EA\u6709\u4E00\u5219\u6709\u6548\u91CC\u7A0B\u7891\u4F4D\u7F6E\u3002\u6210\u679C\u4E0D\u590D\u5236\uFF0C\u6267\u884C\u7236\u5B50\u6811\u4E5F\u4E0D\u4F1A\u6539\u53D8\u3002",
       recordType: "framework-milestone-bind",
       recordId: fixedTargetId || fixedMilestoneId || frameworkItemId,
       baseRevision: store.revision,
@@ -6348,7 +5689,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async openUnbindMilestoneModal(binding) {
     const store = await this.store.read();
-    const projection = reduceTemporalStore(store);
+    const projection = projectLocalDirections(store);
     const milestone = projection.frameworkMilestonesById[binding.milestoneId];
     new TemporalFormModal(this, {
       title: "\u89E3\u9664\u6846\u67B6\u91CC\u7A0B\u7891\u5173\u8054",
@@ -6370,13 +5711,13 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async projectionFor(frameworkId) {
     const store = await this.store.read();
-    const projection = reduceTemporalStore(store);
+    const projection = projectLocalDirections(store);
     return { store, projection, framework: projection.frameworksById[frameworkId] };
   }
   async openOutcomeModal(frameworkId, context = {}) {
     const { store, projection, framework } = await this.projectionFor(frameworkId);
     const memberships = activeValues2(projection.membershipsById).filter((item) => item.frameworkId === frameworkId);
-    if (!memberships.length) return new import_obsidian.Notice("\u8BF7\u5148\u628A\u76EE\u6807\u6216\u9879\u76EE\u4E3B\u952E\u7EB3\u5165\u5F53\u524D\u6846\u67B6");
+    if (!memberships.length) return new import_obsidian.Notice("\u8BF7\u5148\u5728\u5F53\u524D\u6846\u67B6\u65B0\u589E\u4E0A\u5C42\u7EA7\u65B9\u5411");
     const membershipId = context.membershipId || memberships[0].id;
     const box = context.box || null;
     const parent = context.parentId ? projection.outcomesById[context.parentId] : null;
@@ -6401,19 +5742,10 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       baseRevision: store.revision,
       baseHash: hashValue({ frameworkId, membershipId, parentId: context.parentId || null, boxId: box?.id || null }),
       initial,
-      leadingActions: [{
-        label: "\u6240\u5C5E\u4E3B\u952E Ontology",
-        icon: "table-properties",
-        onClick: (modal) => {
-          const selectedMembershipId = context.membershipId || modal.value.membershipId;
-          return this.openMembershipOntology(projection.membershipsById[selectedMembershipId]);
-        }
-      }],
       fields: [
-        ...context.membershipId ? [] : [{ key: "membershipId", label: "\u6240\u5C5E\u4E3B\u952E", type: "select", wide: true, options: memberships.map((item) => [item.id, `${item.primaryRef.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"} \xB7 ${item.lastKnownLabel}`]) }],
+        ...context.membershipId ? [] : [{ key: "membershipId", label: "\u6240\u5C5E\u65B9\u5411", type: "select", wide: true, options: memberships.map((item) => [item.id, `${"\u4E0A\u5C42\u7EA7\u65B9\u5411"} \xB7 ${item.lastKnownLabel}`]) }],
         { key: "title", label: "\u9636\u6BB5\u6210\u679C", wide: true, placeholder: "\u7528\u53EF\u9A8C\u6536\u7684\u7ED3\u679C\u63CF\u8FF0" },
         { key: "acceptance", label: "\u9A8C\u6536\u6761\u4EF6", type: "textarea", rows: 3, wide: true },
-        { key: "outcomeKind", label: "\u6210\u679C\u7C7B\u578B", type: "select", options: [["outcome", "\u666E\u901A\u6210\u679C"], ["stage_gate", "\u9636\u6BB5\u5173\u53E3"]] },
         ...context.parentId ? [] : [
           { key: "declaredScale", label: "\u5B9A\u951A\u5C3A\u5EA6", type: "select", options: TIME_SCALES.map((scale) => [scale, SCALE_LABELS[scale]]) },
           { key: "startDate", label: "\u5F00\u59CB\u65E5\u671F", type: "date" },
@@ -6497,7 +5829,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       if (item.frameworkId !== frameworkId || coverageDecisionFor(projection, frameworkId, item.id, box)) return false;
       return !activeValues2(projection.placementsById).some((placement) => projection.outcomesById[placement.outcomeId]?.membershipId === item.id && placementOverlapsBox(placement, box));
     });
-    if (!memberships.length) return new import_obsidian.Notice("\u6240\u6709\u4E3B\u952E\u90FD\u5DF2\u6709\u672C\u9636\u6BB5\u8986\u76D6\u51B3\u5B9A");
+    if (!memberships.length) return new import_obsidian.Notice("\u6240\u6709\u65B9\u5411\u90FD\u5DF2\u6709\u672C\u9636\u6BB5\u8986\u76D6\u51B3\u5B9A");
     new TemporalFormModal(this, {
       title: "\u58F0\u660E\u672C\u9636\u6BB5\u65E0\u90E8\u7F72",
       message: `${box.label} \xB7 \u8FD9\u662F\u663E\u5F0F\u8986\u76D6\u51B3\u5B9A\uFF0C\u4E0D\u4F1A\u5220\u9664\u4EFB\u4F55\u6210\u679C\u3002`,
@@ -6507,7 +5839,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       baseHash: hashValue({ frameworkId, boxId: box.id, membershipIds: memberships.map((item) => item.id) }),
       initial: { membershipId: memberships[0].id, reason: "" },
       fields: [
-        { key: "membershipId", label: "\u4E3B\u952E", type: "select", wide: true, options: memberships.map((item) => [item.id, item.lastKnownLabel]) },
+        { key: "membershipId", label: "\u4E0A\u5C42\u7EA7\u65B9\u5411", type: "select", wide: true, options: memberships.map((item) => [item.id, item.lastKnownLabel]) },
         { key: "reason", label: "\u65E0\u90E8\u7F72\u539F\u56E0", type: "textarea", rows: 3, wide: true }
       ],
       onSubmit: async (value, session) => this.mutate("coverage-no-deployment", (draft) => decideNoDeployment(draft, {
@@ -6536,196 +5868,9 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
       }), { expectedRevision: session.identity.baseRevision })
     }).open();
   }
-  outcomeHierarchyGroups(projection, frameworkId, excludedOutcomeId) {
-    const memberships = activeValues2(projection.membershipsById).filter((item) => item.frameworkId === frameworkId).sort((left, right) => left.lastKnownLabel.localeCompare(right.lastKnownLabel, "zh-CN"));
-    const groups = [];
-    for (const membership of memberships) {
-      const outcomes = activeValues2(projection.outcomesById).filter((item) => item.membershipId === membership.id);
-      const byParent = /* @__PURE__ */ new Map();
-      for (const item of outcomes) {
-        const parentId = outcomes.some((candidate) => candidate.id === item.outlineParentId) ? item.outlineParentId : null;
-        if (!byParent.has(parentId)) byParent.set(parentId, []);
-        byParent.get(parentId).push(item);
-      }
-      for (const items of byParent.values()) items.sort((left, right) => left.title.localeCompare(right.title, "zh-CN"));
-      const options = [];
-      const visited = /* @__PURE__ */ new Set();
-      const visit = (item, path4, depth) => {
-        if (!item || visited.has(item.id)) return;
-        visited.add(item.id);
-        const nextPath = [...path4, item.title];
-        if (item.id !== excludedOutcomeId) {
-          const marker = item.outcomeKind === "stage_gate" ? " [\u5173\u53E3]" : "";
-          options.push([item.id, `${"\u3000".repeat(depth)}${depth ? "\u21B3 " : ""}${nextPath.join(" \u203A ")}${marker}`]);
-        }
-        for (const child of byParent.get(item.id) || []) visit(child, nextPath, depth + 1);
-      };
-      for (const root of byParent.get(null) || []) visit(root, [], 0);
-      for (const orphan of outcomes) if (!visited.has(orphan.id)) visit(orphan, ["\u4E0A\u7EA7\u5931\u8054"], 0);
-      if (options.length) groups.push({
-        label: `${membership.primaryRef.domain === "goal" ? "\u76EE\u6807" : "\u9879\u76EE"} \xB7 ${membership.lastKnownLabel}`,
-        options
-      });
-    }
-    return groups;
-  }
-  async openRelationModal(outcome, projection) {
-    const store = await this.store.read();
-    projection = reduceTemporalStore(store);
-    outcome = projection.outcomesById[outcome.id] || outcome;
-    const groups = this.outcomeHierarchyGroups(projection, outcome.frameworkId, outcome.id);
-    const firstTargetId = groups[0]?.options[0]?.[0];
-    if (!firstTargetId) return new import_obsidian.Notice("\u5F53\u524D\u6846\u67B6\u6CA1\u6709\u53EF\u8FDE\u63A5\u7684\u5176\u4ED6\u6210\u679C");
-    const modal = new TemporalFormModal(this, {
-      title: "\u5EFA\u7ACB\u6210\u679C\u5173\u7CFB",
-      message: `\u4EE5\u201C${outcome.title}\u201D\u4E3A\u5173\u7CFB\u8D77\u70B9\u3002\u5173\u7CFB\u53EA\u5728\u5F00\u542F\u5BF9\u5E94\u900F\u955C\u65F6\u663E\u793A\u3002`,
-      recordType: "relation-create",
-      recordId: outcome.id,
-      baseRevision: store.revision,
-      baseHash: hashValue(outcome),
-      initial: { relationType: "precedes", targetOutcomeId: firstTargetId },
-      fields: [
-        { key: "relationType", label: "\u5173\u7CFB", type: "select", options: RELATION_TYPES.map((type) => [type, RELATION_LABELS[type]]) },
-        { key: "targetOutcomeId", label: "\u6307\u5411\u6210\u679C\uFF08\u6309\u4E3B\u952E\u4E0E\u5C42\u7EA7\uFF09", type: "select", wide: true, groups }
-      ],
-      onSubmit: async (value, session, formModal) => {
-        const current = await this.store.read();
-        if (current.revision !== session.identity.baseRevision) {
-          throw new Error(`\u6570\u636E\u5DF2\u53D8\u5316\uFF1A\u671F\u671B revision ${session.identity.baseRevision}\uFF0C\u5F53\u524D\u4E3A ${current.revision}`);
-        }
-        const input = {
-          frameworkId: outcome.frameworkId,
-          sourceOutcomeId: outcome.id,
-          targetOutcomeId: value.targetOutcomeId,
-          relationType: value.relationType
-        };
-        const diagnostics = outcomeRelationCandidateDiagnostics(current, input);
-        if (diagnostics.structuralViolations.length) throw new Error(diagnostics.structuralViolations.join("\uFF1B"));
-        if (diagnostics.temporalViolation) {
-          this.openNewRelationJointAdjustment(current, diagnostics.relation, () => formModal.completeExternalCommit());
-          return { keepOpen: true };
-        }
-        return this.mutate("relation-create", (draft) => addOutcomeRelation(draft, input, { relationId: diagnostics.relation.id }), {
-          expectedRevision: session.identity.baseRevision
-        });
-      }
-    });
-    modal.open();
-  }
-  async openGatePolicyModal(outcome, projection) {
-    const store = await this.store.read();
-    projection = reduceTemporalStore(store);
-    outcome = projection.outcomesById[outcome.id] || outcome;
-    const contributorCount = activeValues2(projection.relationsById).filter((relation) => relation.relationType === "contributes_to" && relation.targetOutcomeId === outcome.id).length;
-    if (!contributorCount) return new import_obsidian.Notice("\u8BF7\u5148\u5EFA\u7ACB\u81F3\u5C11\u4E00\u6761\u6C47\u805A\u5230\u8BE5\u5173\u53E3\u7684\u5173\u7CFB");
-    const current = projection.gatePoliciesByOutcomeId[outcome.id] || { mode: "all", threshold: contributorCount };
-    new TemporalFormModal(this, {
-      title: "\u8BBE\u7F6E\u9636\u6BB5\u5173\u53E3\u7B56\u7565",
-      message: `\u5F53\u524D\u5171\u6709 ${contributorCount} \u4E2A\u6C47\u805A\u6210\u679C\u3002\u7B56\u7565\u53EA\u5224\u65AD\u5C31\u7EEA\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u6D82\u8272\u3002`,
-      recordType: "gate-policy",
-      recordId: outcome.id,
-      baseRevision: store.revision,
-      baseHash: hashValue({ outcome, policy: current, contributorCount }),
-      initial: { mode: current.mode, threshold: String(current.threshold || contributorCount) },
-      fields: [
-        { key: "mode", label: "\u5C31\u7EEA\u89C4\u5219", type: "select", options: [["all", "\u5168\u90E8\u6C47\u805A\u6210\u679C\u5B8C\u6210"], ["threshold_count", "\u5B8C\u6210\u6307\u5B9A\u6570\u91CF"]] },
-        { key: "threshold", label: "\u6307\u5B9A\u6570\u91CF", type: "number", min: 1, max: contributorCount }
-      ],
-      onSubmit: async (value, session) => this.mutate("gate-policy", (draft) => setGatePolicy(draft, {
-        outcomeId: outcome.id,
-        mode: value.mode,
-        threshold: Number(value.threshold)
-      }), { expectedRevision: session.identity.baseRevision })
-    }).open();
-  }
-  async openRevokeRelationModal(relation) {
-    const store = await this.store.read();
-    new TemporalFormModal(this, {
-      title: "\u64A4\u9500\u6210\u679C\u5173\u7CFB",
-      recordType: "relation-revoke",
-      recordId: relation.id,
-      baseRevision: store.revision,
-      baseHash: hashValue(relation),
-      initial: { reason: "" },
-      fields: [{ key: "reason", label: "\u64A4\u9500\u539F\u56E0", type: "textarea", wide: true }],
-      onSubmit: async (value, session) => this.mutate("relation-revoke", (draft) => revokeOutcomeRelation(draft, { relationId: relation.id, reason: value.reason }), { expectedRevision: session.identity.baseRevision })
-    }).open();
-  }
-  async openPaintModal(outcome) {
-    const store = await this.store.read();
-    new TemporalFormModal(this, {
-      title: "\u624B\u5DE5\u786E\u8BA4\u9636\u6BB5\u6210\u679C\u5B8C\u6210",
-      message: "\u53EA\u6709\u8FD9\u4E00\u6B65\u4F1A\u7ED9\u6210\u679C\u6D82\u8272\u3002\u4F9D\u8D56\u5C31\u7EEA\u548C\u65E5\u671F\u7ECF\u8FC7\u90FD\u4E0D\u4F1A\u81EA\u52A8\u5B8C\u6210\u3002",
-      recordType: "completion-paint",
-      recordId: outcome.id,
-      baseRevision: store.revision,
-      baseHash: hashValue(outcome),
-      initial: { completedOn: localDate(), evidence: "", note: "" },
-      fields: [
-        { key: "completedOn", label: "\u5B8C\u6210\u65E5\u671F", type: "date" },
-        { key: "evidence", label: "\u5B8C\u6210\u8BC1\u636E", wide: true },
-        { key: "note", label: "\u8BF4\u660E", type: "textarea", rows: 3, wide: true }
-      ],
-      onSubmit: async (value, session) => this.mutate("completion-paint", (draft) => paintOutcome(draft, { outcomeId: outcome.id, ...value }), { expectedRevision: session.identity.baseRevision })
-    }).open();
-  }
-  async openUnpaintModal(outcome) {
-    const store = await this.store.read();
-    new TemporalFormModal(this, {
-      title: "\u53D6\u6D88\u5B8C\u6210\u6D82\u8272",
-      message: "\u539F\u5B8C\u6210\u4E8B\u4EF6\u4F1A\u4FDD\u7559\uFF0C\u672C\u64CD\u4F5C\u8FFD\u52A0\u4E00\u6761\u53D6\u6D88\u4E8B\u4EF6\u3002",
-      recordType: "completion-unpaint",
-      recordId: outcome.id,
-      baseRevision: store.revision,
-      baseHash: hashValue({ outcome, completion: reduceTemporalStore(store).completionByOutcomeId[outcome.id] || null }),
-      initial: { reason: "" },
-      fields: [{ key: "reason", label: "\u53D6\u6D88\u539F\u56E0", type: "textarea", wide: true }],
-      onSubmit: async (value, session) => this.mutate("completion-unpaint", (draft) => unpaintOutcome(draft, { outcomeId: outcome.id, reason: value.reason }), { expectedRevision: session.identity.baseRevision })
-    }).open();
-  }
-  async openArchiveOutcomeModal(outcome, onArchived = null) {
-    const store = await this.store.read();
-    const projection = reduceTemporalStore(store);
-    outcome = projection.outcomesById[outcome.id] || outcome;
-    if (outcome.status !== "active") return new import_obsidian.Notice("\u8FD9\u4E2A\u9636\u6BB5\u6210\u679C\u5DF2\u7ECF\u505C\u7528");
-    const children = activeValues2(projection.outcomesById).filter((item) => item.outlineParentId === outcome.id);
-    const relations = activeValues2(projection.relationsById).filter((item) => item.sourceOutcomeId === outcome.id || item.targetOutcomeId === outcome.id);
-    const impact = [];
-    if (children.length) impact.push(`\u5B50\u6210\u679C\u4F1A\u4FDD\u7559\u5E76\u7EE7\u7EED\u53EF\u89C1\uFF1A${children.map((item) => item.title).join("\u3001")}`);
-    if (relations.length) impact.push(`\u5173\u7CFB\u4F1A\u4FDD\u7559\u4E3A\u5386\u53F2\u7ED3\u6784\uFF1A${relations.map((item) => {
-      const outgoing = item.sourceOutcomeId === outcome.id;
-      const peer = projection.outcomesById[outgoing ? item.targetOutcomeId : item.sourceOutcomeId];
-      return `${outgoing ? "\u2192" : "\u2190"}${RELATION_LABELS[item.relationType]} ${peer?.title || "\u5931\u8054\u6210\u679C"}`;
-    }).join("\u3001")}`);
-    if (outcomePlacement(projection, outcome.id)) impact.push("\u5F53\u524D\u65F6\u95F4\u5B89\u6392\u4F1A\u4EE5\u8FFD\u52A0\u4E8B\u4EF6\u89E3\u9664");
-    new TemporalFormModal(this, {
-      title: "\u505C\u7528\u9636\u6BB5\u6210\u679C",
-      modalClass: "is-outcome-modal",
-      message: `\u4E0D\u4F1A\u7269\u7406\u5220\u9664\u201C${outcome.title}\u201D\u53CA\u5386\u53F2\u4E8B\u4EF6\u3002${impact.length ? `\u5F71\u54CD\uFF1A${impact.join("\uFF1B")}\u3002` : "\u8BE5\u6210\u679C\u6CA1\u6709\u6D3B\u52A8\u5B50\u6210\u679C\u6216\u5173\u7CFB\u3002"}`,
-      recordType: "outcome-archive",
-      recordId: outcome.id,
-      baseRevision: store.revision,
-      baseHash: hashValue({ outcome, children: children.map((item) => item.id), relations: relations.map((item) => item.id) }),
-      initial: { reason: "" },
-      fields: [{ key: "reason", label: "\u505C\u7528\u539F\u56E0", type: "textarea", rows: 3, wide: true }],
-      submitLabel: "\u786E\u8BA4\u505C\u7528",
-      submitIcon: "archive",
-      onSubmit: async (value, session) => {
-        if (!value.reason.trim()) throw new Error("\u8BF7\u586B\u5199\u505C\u7528\u539F\u56E0");
-        const detail = impact.length ? `
-
-${impact.join("\uFF1B")}\u3002` : "";
-        if (!window.confirm(`\u786E\u8BA4\u505C\u7528\u201C${outcome.title}\u201D\uFF1F${detail}
-
-\u5386\u53F2\u6570\u636E\u4E0D\u4F1A\u88AB\u5220\u9664\u3002`)) throw new Error("\u5DF2\u53D6\u6D88\u505C\u7528");
-        await this.mutate("outcome-archive", (draft) => archiveOutcome(draft, { outcomeId: outcome.id, reason: value.reason }), { expectedRevision: session.identity.baseRevision });
-        onArchived?.();
-      }
-    }).open();
-  }
   async openReviseOutcomeModal(outcome) {
     const store = await this.store.read();
-    const projection = reduceTemporalStore(store);
+    const projection = projectLocalDirections(store);
     outcome = projection.outcomesById[outcome.id] || outcome;
     const membership = projection.membershipsById[outcome.membershipId];
     new TemporalFormModal(this, {
@@ -6736,23 +5881,6 @@ ${impact.join("\uFF1B")}\u3002` : "";
       baseRevision: store.revision,
       baseHash: hashValue(outcome),
       initial: { title: outcome.title, acceptance: outcome.acceptance || "", reason: "" },
-      leadingActions: [
-        {
-          label: "\u6240\u5C5E\u4E3B\u952E Ontology",
-          icon: "table-properties",
-          onClick: () => this.openMembershipOntology(membership)
-        },
-        {
-          label: "\u505C\u7528\u9636\u6BB5\u6210\u679C",
-          icon: "archive",
-          className: "is-danger",
-          onClick: (modal) => this.openArchiveOutcomeModal(outcome, () => {
-            this.drafts.discard(modal.session);
-            modal.allowClose = true;
-            modal.close();
-          })
-        }
-      ],
       fields: [
         { key: "title", label: "\u9636\u6BB5\u6210\u679C", wide: true },
         { key: "acceptance", label: "\u9A8C\u6536\u6761\u4EF6", type: "textarea", wide: true },
