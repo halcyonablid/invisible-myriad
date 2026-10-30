@@ -4164,6 +4164,14 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     await this.plugin.setOutcomeExpansionDepth(outcome.frameworkId, outcome.id, depth);
     await this.renderPreservingView();
   }
+  renderCardMilestone(projection, location) {
+    const milestone = location?.milestoneId ? projection.frameworkMilestonesById?.[location.milestoneId] : null;
+    if (milestone?.status !== "active") return null;
+    const block = el("div", "tf-card-milestone");
+    block.dataset.milestoneId = milestone.id;
+    block.append(el("span", "tf-card-milestone__badge", "\u91CC\u7A0B\u7891"), el("strong", "tf-card-milestone__text", frameworkMilestoneSentence(milestone)));
+    return block;
+  }
   renderOutcomeCard(projection, outcome, placement = null, placementMode = "", options = {}) {
     const completion = projection.completionByOutcomeId[outcome.id];
     const effective = projection.outcomeEffectivenessByOutcomeId?.[outcome.id]?.effective === true;
@@ -4182,7 +4190,8 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     if (outcome.outlineParentId && projection.outcomesById[outcome.outlineParentId]?.status !== "active") titleLine.append(el("span", "tf-kind-badge is-warning", "\u4E0A\u7EA7\u5DF2\u505C\u7528"));
     main.append(titleLine);
     const location = effectiveOutcomeFrameworkLocation(projection, outcome.id);
-    if (location.milestone) main.append(el("div", "tf-card-milestone", frameworkMilestoneSentence(location.milestone)));
+    const milestoneBlock = this.renderCardMilestone(projection, location);
+    if (milestoneBlock) main.append(milestoneBlock);
     if (placement) main.append(el("div", "tf-outcome-card__date", dateRange(placement.startDate, placement.endDateExclusive)));
     if (overdue) main.append(el("div", "tf-overdue-label", "\u65F6\u95F4\u5DF2\u5230\uFF0C\u5C1A\u672A\u79FB\u9664"));
     card.append(main);
@@ -4446,7 +4455,8 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     header.append(headerActions);
     card.append(header);
     const location = effectiveMembershipFrameworkLocation(projection, membership.id);
-    if (location.milestone) card.append(el("div", "tf-card-milestone", frameworkMilestoneSentence(location.milestone)));
+    const milestoneBlock = this.renderCardMilestone(projection, location);
+    if (milestoneBlock) card.append(milestoneBlock);
     if (membership.description) card.append(el("p", "tf-direction-description", membership.description));
     const tree = this.renderMembershipOutcomeTree(projection, membership, timeFocus);
     if (tree) card.append(tree);

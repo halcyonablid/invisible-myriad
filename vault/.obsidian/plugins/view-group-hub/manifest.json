@@ -1,7 +1,7 @@
 {
   "id": "view-group-hub",
   "name": "View Group Hub",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "minAppVersion": "1.7.2",
   "description": "Group eleven native views into collection, execution and review/planning columns, preserving prewarm, source identity and native leaf switching.",
   "author": "OpenAI Codex",

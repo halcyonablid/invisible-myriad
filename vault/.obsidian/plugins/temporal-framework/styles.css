@@ -16,7 +16,9 @@
 .tf-outcome-keywords { grid-column: 1 / -1; min-width: 0; display: grid; gap: 6px; padding: 8px; border-top: 1px solid var(--tf-border); }
 .tf-keyword-heading, .tf-keyword-mount { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .tf-keyword-label { flex: 1 1 100px; overflow-wrap: anywhere; font-size: 12px; }
-.tf-card-milestone { margin: 4px 0; padding: 4px 6px; border-left: 2px solid var(--tf-amber); color: var(--text-muted); font-size: 11px; overflow-wrap: anywhere; }
+.tf-card-milestone { min-width: 0; margin: 5px 0; padding: 5px 7px; border: 1px solid color-mix(in srgb, var(--tf-amber) 40%, var(--tf-border)); border-left: 3px solid var(--tf-amber); border-radius: 4px; background: color-mix(in srgb, var(--tf-amber) 12%, var(--background-primary)); color: var(--text-normal); font-size: 11px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+.tf-card-milestone__badge { display: inline-block; margin-right: 6px; color: var(--tf-amber); font-size: 9px; font-weight: 700; }
+.tf-card-milestone__text { font-size: 11px; white-space: normal; overflow-wrap: anywhere; }
 .tf-direction-description { margin: 4px 10px; color: var(--text-muted); white-space: pre-wrap; }
 .tf-recovery-row { margin: 8px 0; padding: 10px; border: 1px solid var(--tf-border); border-radius: 6px; }
 .tf-recovery-row small { display: block; }
@@ -143,7 +145,7 @@
 .tf-outcome-card.is-overdue { border-color: color-mix(in srgb, var(--tf-red) 65%, var(--tf-border)); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--tf-red) 8%, var(--background-primary)) 0 8px, var(--background-primary) 8px 16px); }
 .tf-outcome-card.is-search-target { outline: 3px solid var(--interactive-accent); outline-offset: 3px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--interactive-accent) 16%, transparent); }
 .tf-search-target-badge { flex: none; padding: 1px 5px; border: 1px solid var(--interactive-accent); border-radius: 4px; background: color-mix(in srgb, var(--interactive-accent) 12%, var(--background-primary)); color: var(--text-normal); font-size: 9px; font-weight: 800; }
-.tf-outcome-card__main { min-width: 0; min-height: 0; display: block; overflow: visible; border: 0; background: transparent; color: inherit; text-align: left; padding: 8px 9px; cursor: pointer; }
+.tf-outcome-card__main { min-width: 0; min-height: 0; height: auto; display: block; overflow: visible; border: 0; background: transparent; color: inherit; text-align: left; padding: 8px 9px; cursor: pointer; white-space: normal; }
 .tf-outcome-card__title-line { display: flex; align-items: flex-start; gap: 6px; }
 .tf-outcome-card__title { min-width: 0; overflow-wrap: anywhere; font-size: 12px; letter-spacing: 0; }
 .tf-completion-mark { color: var(--text-muted); font-weight: 800; }

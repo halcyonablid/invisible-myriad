@@ -1,7 +1,7 @@
 {
   "id": "temporal-framework",
   "name": "时间框架",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "minAppVersion": "1.6.0",
   "description": "以框架条目、上层级方向和可分解成果，自上而下设计时间部署。",
   "author": "h0414",

@@ -4144,13 +4144,9 @@ class PickerModal extends Modal {
         const bg = make(cell, "div", { cls: "mtb-manage-cell-bg" });
         bg.style.backgroundImage = `url("${imageUrl}")`;
       }
-      const typeCfg = this.plugin.getTypeConfig(this.mandala.types, node.type || "default");
-      cell.style.borderColor = isCore ? "var(--interactive-accent)" : typeCfg.color;
-      if (!isCore && typeCfg.color) cell.style.boxShadow = `inset 0 0 0 1px ${typeCfg.color}33`;
-      const badge = make(cell, "div", { cls: "mtb-manage-cell-type", text: `${typeCfg.icon}` });
-      badge.style.background = typeCfg.color;
+      cell.style.borderColor = isCore ? "var(--interactive-accent)" : "var(--background-modifier-border)";
       if (isLeaf) {
-        decorateLeafTerminalCell(cell, typeCfg.color, isCore);
+        decorateLeafTerminalCell(cell, "", isCore);
         make(cell, "div", { cls: "mtb-manage-cell-terminal", text: "✦ 终点" });
       }
       const title = make(cell, "div", { cls: "mtb-manage-cell-title", text: node.title || "未命名" });
@@ -10749,6 +10745,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
     await this.loadSettings();
     ensureRuntimeStyles();
     this.dailyStoreEvidence = new WeakMap();
+    this.registerView(__MandalaNativeGrid.TYPE, leaf => new __MandalaNativeGrid.GridView(leaf, this));
+    this.addCommand({ id: "open-mandala-grid-tab", name: "打开九宫格（独立标签页）", callback: () => __MandalaNativeGrid.open(this) });
     this.registerView(VIEW_TYPE_WEEKLY_TRACKING, leaf => new WeeklyTrackingView(leaf, this));
     this.addCommand({ id: "open-weekly-tracking-tab", name: "打开周追踪（独立标签页）", callback: () => this.openWeeklyTrackingView() });
     this.registerView(VIEW_TYPE_DAILY_LESSONS, leaf => new DailyLessonsView(leaf, this));
@@ -10769,6 +10767,9 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   async onunload() {
+    const nativeGridViews = Array.from(this.mandalaGridViews || []);
+    for (const view of nativeGridViews) view.accepting = false;
+    for (const view of nativeGridViews) await view.onClose();
     this.relationRegistrationClosed = true;
     this.unregisterRelationAdapter();
     this.trackingRevisionHost?.close();
@@ -12978,6 +12979,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
     }
   }
 
+  getMandalaKeywordMountController() {
+    if (!this.mandalaKeywordMountController) this.mandalaKeywordMountController = __MandalaKeywordMount.createController(this, require("obsidian"), parseJumpNodeKey, logMTB);
+    return this.mandalaKeywordMountController;
+  }
+
   getMandalaKeywordUiHost() {
     if (!this.mandalaKeywordUiHost || (this.mandalaKeywordUiHost.closed && !this.isUnloading)) {
       this.mandalaKeywordUiHost = __MandalaKeywordUI.createHost(this, { window, document });
@@ -13089,12 +13095,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
       .sort((a, b) => mandala.getPath(a.id).localeCompare(mandala.getPath(b.id), "zh-CN", { numeric: true, sensitivity: "base" }))
       .map((node) => {
         const pathLabel = this.buildMandalaNodeRelationPathLabel(node.id, mandala);
-        const typeLabels = this.getNodeTypeIds(node, mandala.types)
-          .map((typeId) => {
-            const cfg = this.getTypeConfig(mandala.types, typeId);
-            return `${cfg.icon || "🏷️"} ${cfg.name || typeId}`;
-          })
-          .join("、");
         const boundNote = getBindingLabel(node.noteBinding);
         const nodeKeywords = normalizeMandalaKeywords(node.keywords || []);
         const keywordText = nodeKeywords.join(" ");
@@ -13108,7 +13108,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
             node.comment,
             keywordText,
             pathLabel,
-            typeLabels,
             boundNote,
             "九宫格",
             "节点",
@@ -13117,7 +13116,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
           metaFields: [
             { label: "节点路径", value: pathLabel },
             { label: "关键词", value: nodeKeywords.length ? nodeKeywords.join("、") : "无" },
-            { label: "类型", value: typeLabels || "普通" },
             { label: "绑定笔记", value: boundNote || "未绑定" },
             { label: "Note", value: notePath },
           ],
@@ -13518,10 +13516,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
   getDashboardState() {
     this.dashboardState = Object.assign({}, DEFAULT_DASHBOARD_STATE, this.dashboardState || {});
-    const currentTypeFilterIds = uniqueTextList(this.dashboardState.typeFilterIds);
-    this.dashboardState.typeFilterIds = currentTypeFilterIds.length
-      ? currentTypeFilterIds
-      : (this.dashboardState.typeFilter && this.dashboardState.typeFilter !== "all" ? [this.dashboardState.typeFilter] : []);
+    // Retired type filters are environment-only; old links still open the node directory.
+    if (["filter", "types"].includes(this.dashboardState.manageView)) this.dashboardState.manageView = "nodes";
+    if (!["grid", "nodes", "keywords"].includes(this.dashboardState.manageView)) this.dashboardState.manageView = "grid";
+    this.dashboardState.typeFilter = "all";
+    this.dashboardState.typeFilterIds = [];
     this.dashboardState.collapsedNodeIds = uniqueTextList(this.dashboardState.collapsedNodeIds);
     this.dashboardState.contentScrollTop = Math.max(0, Number(this.dashboardState.contentScrollTop) || 0);
     if (!["node", "summary", "goalPlan", "projectPlan", "workspaceNode", "workspaceSummary"].includes(text(this.dashboardState.weeklyTrackingTab))) {
@@ -21151,7 +21150,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const nodeById = {};
     Object.values(db || {}).forEach((node) => {
       if (!node || !node.id) return;
-      syncNodeTypeFields(node, normalizeNodeTypeIds(node, types), types);
       node.comment = typeof node.comment === "string" ? node.comment : "";
       node.image = typeof node.image === "string" ? node.image : "";
       node.shortcuts = normalizeNodeShortcutEntries(node.shortcuts || []);
@@ -22819,164 +22817,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
     return normalizeMandalaKeywordStore(store);
   }
 
-  getTypeUsageCount(db, typeId, types = {}, includeDescendants = true) {
-    const targetIds = includeDescendants ? this.getTypeFilterClosure([typeId], types) : new Set([typeId]);
-    return Object.values(db || {})
-      .filter((node) => node?.id && node.id !== "root")
-      .filter((node) => this.getNodeTypeIds(node, types).some((nodeTypeId) => targetIds.has(nodeTypeId))).length;
-  }
-
-  wouldCreateTypeCycle(types, draggedId, nextParentId) {
-    const dragged = text(draggedId);
-    let cursor = text(nextParentId);
-    const seen = new Set([dragged]);
-    while (cursor) {
-      if (seen.has(cursor)) return true;
-      seen.add(cursor);
-      cursor = text(types?.[cursor]?.parentId);
-    }
-    return false;
-  }
-
-  normalizeSiblingTypeOrders(types, parentId) {
-    this.getSortedTypeIdsByParent(types, parentId).forEach((typeId, index) => {
-      if (types[typeId]) types[typeId].order = index * 10;
-    });
-  }
-
-  async openTypeConfigModal(options = {}) {
-    const modal = new TypeConfigModal(this.app, options);
-    return await modal.waitForResult();
-  }
-
-  async addMandalaType(state, context = {}) {
-    const parentId = context.kind === "child" ? text(context.typeId) : text(state.mandala.types?.[context.typeId]?.parentId || "");
-    const afterId = context.kind === "sibling" ? text(context.typeId) : "";
-    const result = await this.openTypeConfigModal({
-      title: context.kind === "child" ? "新增子类型" : "新增同级类型",
-      description: parentId ? `父类型：${state.mandala.types[parentId]?.name || parentId}` : "顶层类型",
-      icon: "🏷️",
-      color: "#3b82f6",
-    });
-    if (!result) return;
-    const txId = gid();
-    const types = mergeTypeConfigs(state.mandala.types);
-    const typeId = this.ensureUniqueTypeId(toTypeId(result.name), types);
-    types[typeId] = {
-      name: result.name,
-      icon: result.icon,
-      color: result.color,
-      parentId,
-      order: 9999,
-    };
-    const siblings = this.getSortedTypeIdsByParent(types, parentId).filter((id) => id !== typeId);
-    const insertIndex = afterId ? Math.max(0, siblings.indexOf(afterId) + 1) : siblings.length;
-    siblings.splice(insertIndex, 0, typeId);
-    siblings.forEach((id, index) => {
-      if (types[id]) types[id].order = index * 10;
-    });
-    await this.saveMandalaTypes(types);
-    logMTB("type-tree", txId, "type.create", { status: "PASS", reasonCodes: [], typeId, parentId, afterId });
-    new Notice("✅ 类型已新增");
-    await this.renderWidget(false, false, gid());
-  }
-
-  async editMandalaType(state, typeId) {
-    const id = text(typeId);
-    const cfg = state.mandala.types?.[id];
-    if (!cfg) return new Notice("类型不存在");
-    const result = await this.openTypeConfigModal({
-      title: `编辑类型：${cfg.name || id}`,
-      name: cfg.name || id,
-      icon: cfg.icon || "🏷️",
-      color: cfg.color || "#9ca3af",
-    });
-    if (!result) return;
-    const txId = gid();
-    const types = mergeTypeConfigs(state.mandala.types);
-    types[id] = {
-      ...types[id],
-      name: result.name,
-      icon: result.icon,
-      color: result.color,
-    };
-    await this.saveMandalaTypes(types);
-    logMTB("type-tree", txId, "type.update", { status: "PASS", reasonCodes: [], typeId: id });
-    new Notice("✅ 类型已保存");
-    await this.renderWidget(false, false, gid());
-  }
-
-  async deleteMandalaType(state, typeId) {
-    const id = text(typeId);
-    const cfg = state.mandala.types?.[id];
-    if (!cfg) return new Notice("类型不存在");
-    if (DEFAULT_TYPES[id]) return new Notice("默认类型不可删除");
-    if (this.getSortedTypeIdsByParent(state.mandala.types, id).length > 0) return new Notice("该类型还有子类型，请先移动或删除子类型。");
-    new ConfirmActionModal(this.app, {
-      title: "删除这个类型？",
-      message: `确定删除类型「${cfg.name || id}」吗？相关节点会移除该标签；若节点没有其它类型，会回退为普通。`,
-      confirmText: "确认删除",
-      onConfirm: async () => {
-        const txId = gid();
-        const types = mergeTypeConfigs(state.mandala.types);
-        const db = state.mandala.db;
-        let affectedNodes = 0;
-        let removedRefs = 0;
-        Object.values(db || {}).forEach((node) => {
-          if (!node || node.id === "root") return;
-          const before = this.getNodeTypeIds(node, types);
-          if (!before.includes(id)) return;
-          let next = before.filter((item) => item !== id);
-          if (!next.length) next = ["default"];
-          removedRefs += before.length - next.length;
-          affectedNodes += 1;
-          syncNodeTypeFields(node, next, types);
-        });
-        delete types[id];
-        await this.saveMandalaTypes(types);
-        await this.saveMandalaDb(db);
-        logMTB("type-tree", txId, "type.delete", { status: "PASS", reasonCodes: [], typeId: id, affectedNodes, removedRefs });
-        new Notice("🗑️ 类型已删除");
-        await this.renderWidget(false, false, gid());
-      },
-    }).open();
-  }
-
-  async moveMandalaType(state, draggedTypeId, targetTypeId, position = "after") {
-    const draggedId = text(draggedTypeId);
-    const targetId = text(targetTypeId);
-    if (!draggedId || !targetId || draggedId === targetId) return;
-    const types = mergeTypeConfigs(state.mandala.types);
-    if (!types[draggedId] || !types[targetId]) return;
-    const nextParentId = position === "child" ? targetId : text(types[targetId].parentId);
-    if (this.wouldCreateTypeCycle(types, draggedId, nextParentId)) {
-      new Notice("不能把类型拖到自己或子类型下面。");
-      return;
-    }
-    const txId = gid();
-    const oldParentId = text(types[draggedId].parentId);
-    types[draggedId].parentId = nextParentId;
-    this.normalizeSiblingTypeOrders(types, oldParentId);
-    if (position === "child") {
-      const childIds = this.getSortedTypeIdsByParent(types, targetId).filter((id) => id !== draggedId);
-      childIds.push(draggedId);
-      childIds.forEach((id, index) => {
-        if (types[id]) types[id].order = index * 10;
-      });
-    } else {
-      const siblings = this.getSortedTypeIdsByParent(types, nextParentId).filter((id) => id !== draggedId);
-      const targetIndex = Math.max(0, siblings.indexOf(targetId));
-      const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
-      siblings.splice(insertIndex, 0, draggedId);
-      siblings.forEach((id, index) => {
-        if (types[id]) types[id].order = index * 10;
-      });
-    }
-    await this.saveMandalaTypes(types);
-    logMTB("type-tree", txId, "type.move", { status: "PASS", reasonCodes: [], draggedId, targetId, position, nextParentId });
-    await this.renderWidget(false, false, gid());
-  }
-
   getMandalaDragState() {
     this.mandalaDragState = Object.assign({ draggedNodeId: "", stagedNodeIds: [] }, this.mandalaDragState || {});
     this.mandalaDragState.stagedNodeIds = Array.isArray(this.mandalaDragState.stagedNodeIds) ? this.mandalaDragState.stagedNodeIds : [];
@@ -23424,10 +23264,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
     ].join("\n");
     new ConfirmActionModal(this.app, {
       title: "删除这个九宫格节点？",
-      message: "删除后会一并移除它的整棵下级树；相关颜色块记录会自动回退到上一级类型。",
+      message: "删除后会一并移除它的整棵下级树；相关颜色块记录会自动回退到上一级节点。",
       detail,
       confirmText: "确认删除节点",
       onConfirm: async () => {
+        const performDelete = async () => {
         options.assertEditorScope?.();
         const db = clone(mandala.db, {}) || {};
         const records = await this.loadRecords(!options.assertEditorScope);
@@ -23462,6 +23303,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
         if (typeof options.onDeleted === "function") options.onDeleted();
         new Notice("🗑️ 九宫格节点已删除，相关记录已回退到上级");
         await this.renderWidget(false, false, gid());
+        };
+        return this.nativeMandalaHost ? this.nativeMandalaHost.mutate(state, performDelete) : performDelete();
       },
     }).open();
   }
@@ -23472,6 +23315,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       parentPath: state?.mandala?.getPath?.(parentId) || parentNode?.title || parentId,
       slotLabel: `槽位 ${slotIndex + 1}`,
       onSubmit: async (finalTitle) => {
+        const performCreate = async () => {
         const db = state.mandala.db;
         const id = gid();
         db[id] = {
@@ -23479,8 +23323,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
           title: finalTitle,
           note: "",
           children: {},
-          type: "default",
-          typeIds: ["default"],
           comment: "",
           image: "",
           shortcuts: [],
@@ -23493,6 +23335,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
         this.updateDashboardState({ manageCurrentId: parentId });
         new Notice("✅ 九宫格节点已新增");
         await this.renderWidget(false, false, gid());
+        };
+        return this.nativeMandalaHost ? this.nativeMandalaHost.mutate(state, performCreate) : performCreate();
       },
     }).open();
   }
@@ -23709,7 +23553,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const left = make(top, "div", { cls: "mtb-inline-row mtb-wrap" });
     [
       ["grid", "🕸️ 九宫格"],
-      ["filter", "🔎 类型筛选/管理"],
+      ["nodes", "🔎 节点目录"],
       ["keywords", "🏷️ 关键词管理"],
     ].forEach(([view, label]) => {
       const btn = make(left, "button", { cls: `mtb-m-btn ${dashboardState.manageView === view ? "is-active" : ""}`, text: label });
@@ -23722,8 +23566,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
     make(right, "button", { text: "刷新九宫格" }).onclick = () => this.renderWidget(false, true, gid());
     if (dashboardState.manageView === "grid") {
       await this.renderMandalaGridViews(wrap, state);
-    } else if (dashboardState.manageView === "filter" || dashboardState.manageView === "types") {
-      this.renderMandalaFilter(wrap, state);
+    } else if (dashboardState.manageView === "nodes") {
+      this.renderMandalaNodeDirectory(wrap, state);
     } else if (dashboardState.manageView === "keywords") {
       this.renderMandalaKeywords(wrap, state);
     }
@@ -24059,6 +23903,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       this.mandalaKeywordUiHost?.releaseSubtree(pane);
       pane.replaceChildren(content);
       this.mandalaKeywordUiHost?.activate(content);
+      this.getMandalaKeywordMountController().mount(content, state, mode);
       if (mountImages) this.mandalaGridImageCleanup = mountImages();
     };
     [9, 81].forEach((value) => {
@@ -24067,6 +23912,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       button.onclick = async () => {
         if ((this.mandalaGridSize === 81 ? 81 : 9) === value) return;
         this.mandalaGridSize = value;
+        this.nativeMandalaHost?.saveEnvironment();
         await render();
       };
     });
@@ -24074,6 +23920,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   stopMandalaGridImages() {
+    this.mandalaKeywordMountController?.dispose();
     this.mandalaGridImageCleanup?.();
     this.mandalaGridImageCleanup = null;
   }
@@ -24192,8 +24039,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
           return this.renderWidget(false, false, gid());
         };
         const footer = make(cell, "div", { cls: "mtb-grid81-footer" });
-        const typeCfg = this.getTypeConfig(mandala.types, node.type || "default");
-        make(footer, "span", { cls: "mtb-grid81-kind", text: typeCfg.icon || "", attr: { title: node.type || "default" } });
         const menu = make(footer, "details", { cls: "mtb-grid81-menu" });
         make(menu, "summary", { text: "⋯", attr: { "aria-label": `${node.title || "节点"}的操作` } });
         const actions = make(menu, "div", { cls: "mtb-grid81-actions" });
@@ -24206,7 +24051,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
         action("编辑节点", () => this.openNodeEditor(node.id, state));
         action("查看历史", () => this.openNodeHistory(node.id, state));
         action("周追踪表", () => this.openWeeklyGoalTable(node.id, { source: "mandala-grid" }));
-        action("EVA Meta 捕获", () => this.captureEvaMetaForMandalaNode(node.id, { label: node.title || node.id }));
         if (node.noteBinding) action("打开绑定笔记", () => this.openBoundNote(node.noteBinding));
         const shortcuts = normalizeNodeShortcutEntries(node.shortcuts || []);
         if (shortcuts.length) action("打开文件快捷方式", () => this.activateShortcutEntries(`文件快捷方式：${node.title || node.id}`, shortcuts));
@@ -24271,11 +24115,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
         const bg = make(cell, "div", { cls: "mtb-manage-cell-bg" });
         bg.style.backgroundImage = `url("${imageUrl}")`;
       }
-      const typeCfg = this.getTypeConfig(mandala.types, node.type || "default");
-      cell.style.borderColor = isCore ? "var(--interactive-accent)" : typeCfg.color;
-      if (isLeaf) decorateLeafTerminalCell(cell, typeCfg.color, isCore);
-      const badge = make(cell, "div", { cls: "mtb-manage-cell-type", text: `${typeCfg.icon}` });
-      badge.style.background = typeCfg.color;
+      cell.style.borderColor = isCore ? "var(--interactive-accent)" : "var(--background-modifier-border)";
+      if (isLeaf) decorateLeafTerminalCell(cell, "", isCore);
       if (isLeaf) make(cell, "div", { cls: "mtb-manage-cell-terminal", text: "✦ 终点" });
       const dropHint = make(cell, "div", { cls: "mtb-manage-cell-drop-hint" });
       make(dropHint, "div", { cls: "mtb-manage-cell-drop-zone mtb-drop-zone-top", text: isCore ? "拖到这里：上移一层" : "拖到这里：去这个层级" });
@@ -24307,10 +24148,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
       make(overlay, "span", { text: "周", attr: { title: "打开周追踪表" } }).onclick = async (event) => {
         event.stopPropagation();
         await this.openWeeklyGoalTable(node.id, { source: "mandala-grid" });
-      };
-      make(overlay, "span", { cls: "eva-meta-capture-btn", text: "M", attr: { title: "EVA Meta 捕获这个九宫格节点" } }).onclick = async (event) => {
-        event.stopPropagation();
-        await this.captureEvaMetaForMandalaNode(node.id, { label: node.title || node.id });
       };
       if (node.noteBinding) {
         make(overlay, "span", { text: "🔗", attr: { title: "打开绑定笔记" } }).onclick = async (event) => {
@@ -24417,98 +24254,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
     return (event.clientY - rect.top) < rect.height / 2 ? "before" : "after";
   }
 
-  renderNodeTypeChips(parent, node, mandala) {
-    const row = make(parent, "div", { cls: "mtb-type-chip-row" });
-    this.getNodeTypeIds(node, mandala.types).forEach((typeId) => {
-      const cfg = this.getTypeConfig(mandala.types, typeId);
-      const chip = make(row, "span", { cls: "mtb-node-type-chip", text: `${cfg.icon} ${cfg.name}` });
-      chip.style.background = cfg.color;
-    });
-    return row;
-  }
-
-  renderTypeTreeBranch(container, state, typeId, options = {}, level = 0, trail = new Set()) {
-    const mandala = state.mandala;
-    if (trail.has(typeId)) return;
-    const cfg = this.getTypeConfig(mandala.types, typeId);
-    const selectedSet = new Set(uniqueTextList(options.selectedTypeIds));
-    const childIds = this.getSortedTypeIdsByParent(mandala.types, typeId);
-    const branch = make(container, "div", {
-      cls: `mtb-type-tree-branch ${childIds.length ? "has-children" : "is-leaf"} ${selectedSet.has(typeId) ? "has-selected-self" : ""}`.trim(),
-    });
-    branch.style.setProperty("--mtb-type-color", cfg.color || "#9ca3af");
-    const capsule = make(branch, "div", { cls: `mtb-type-capsule ${selectedSet.has(typeId) ? "is-selected" : ""}`.trim(), attr: { "data-mtb-type-id": typeId } });
-    capsule.style.setProperty("--mtb-type-color", cfg.color || "#9ca3af");
-    if (options.showManage !== false) {
-      const handle = make(capsule, "span", { cls: "mtb-type-drag-handle", text: "⋮⋮", attr: { title: "拖拽调整层级 / 顺序" } });
-      handle.draggable = true;
-      handle.addEventListener("dragstart", (event) => {
-        event.stopPropagation();
-        this.draggedTypeId = typeId;
-        if (event.dataTransfer) {
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain", typeId);
-        }
-        window.setTimeout(() => capsule.classList.add("is-dragging"), 0);
-      });
-      handle.addEventListener("dragend", (event) => {
-        event.stopPropagation();
-        this.draggedTypeId = "";
-        capsule.classList.remove("is-dragging");
-      });
-      capsule.addEventListener("dragover", (event) => {
-        const draggedId = text(this.draggedTypeId || event.dataTransfer?.getData("text/plain"));
-        if (!draggedId || draggedId === typeId) return;
-        event.preventDefault();
-        event.stopPropagation();
-        capsule.classList.remove("drag-over-before", "drag-over-after", "drag-over-child");
-        capsule.classList.add(`drag-over-${this.getTypeDropPosition(capsule, event)}`);
-      });
-      capsule.addEventListener("dragleave", () => capsule.classList.remove("drag-over-before", "drag-over-after", "drag-over-child"));
-      capsule.addEventListener("drop", async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const draggedId = text(this.draggedTypeId || event.dataTransfer?.getData("text/plain"));
-        const position = this.getTypeDropPosition(capsule, event);
-        capsule.classList.remove("drag-over-before", "drag-over-after", "drag-over-child");
-        await this.moveMandalaType(state, draggedId, typeId, position);
-      });
-    }
-    const main = make(capsule, "button", { cls: "mtb-type-capsule-main", attr: { type: "button", title: "点击切换筛选 / 选择" } });
-    main.onclick = async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (typeof options.onToggle === "function") await options.onToggle(typeId);
-    };
-    make(main, "span", { cls: "mtb-type-dot" });
-    make(main, "span", { cls: "mtb-type-label", text: `${cfg.icon || "🏷️"} ${cfg.name || typeId}` });
-    if (options.showCounts !== false) {
-      make(main, "span", { cls: "mtb-type-count", text: String(this.getTypeUsageCount(mandala.db, typeId, mandala.types, true)) });
-    }
-    if (options.showManage !== false) {
-      const actions = make(capsule, "div", { cls: "mtb-type-actions" });
-      [
-        ["＋子", "添加子类型", () => this.addMandalaType(state, { kind: "child", typeId })],
-        ["＋同", "添加同级类型", () => this.addMandalaType(state, { kind: "sibling", typeId })],
-        ["✏️", "编辑类型", () => this.editMandalaType(state, typeId)],
-        ["🗑", "删除类型", () => this.deleteMandalaType(state, typeId)],
-      ].forEach(([label, title, handler]) => {
-        const btn = make(actions, "button", { text: label, attr: { type: "button", title } });
-        btn.onclick = async (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          await handler();
-        };
-      });
-    }
-    if (childIds.length) {
-      const childWrap = make(branch, "div", { cls: "mtb-type-children" });
-      const nextTrail = new Set(trail);
-      nextTrail.add(typeId);
-      childIds.forEach((childId) => this.renderTypeTreeBranch(childWrap, state, childId, options, level + 1, nextTrail));
-    }
-  }
-
   getMandalaOrderedChildIds(mandala, nodeId) {
     const node = mandala?.nodeById?.[nodeId];
     if (!node) return [];
@@ -24600,45 +24345,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
     childIds.forEach((childId) => this.renderMandalaNodeTreeLine(container, state, childId, visibleSet, directMatchSet, relationSnapshotCache, level + 1, nextTrail));
   }
 
-  renderTypeTree(container, state, options = {}) {
-    const rootIds = this.getSortedTypeIdsByParent(state.mandala.types, "");
-    const shell = make(container, "div", { cls: `mtb-type-tree ${options.showManage === false ? "is-assignment" : "is-manager"}` });
-    rootIds.forEach((typeId) => this.renderTypeTreeBranch(shell, state, typeId, options, 0));
-    return shell;
-  }
-
-  renderMandalaFilter(parent, state) {
+  renderMandalaNodeDirectory(parent, state) {
     const mandala = state.mandala;
     const dashboardState = this.getDashboardState();
-    const selectedTypeIds = uniqueTextList(dashboardState.typeFilterIds);
-    make(parent, "h3", { text: "🔎 类型筛选与管理" });
-    make(parent, "p", { cls: "mtb-muted", text: "点击胶囊可多选筛选；用 ⋮⋮ 拖拽排序/改父子；用胶囊内按钮添加子级、同级、编辑或删除。" });
+    make(parent, "h3", { text: "🔎 节点目录" });
     const filterWrap = make(parent, "div", { cls: "mtb-filter-stack", style: "width:100%;max-width:980px;" });
-    const toolbar = make(filterWrap, "div", { cls: "mtb-inline-row mtb-wrap" });
-    make(toolbar, "button", { cls: "mod-cta", text: "新增顶层类型" }).onclick = async () => this.addMandalaType(state, { kind: "root", typeId: "" });
-    make(toolbar, "button", { text: "清空类型筛选" }).onclick = async () => {
-      this.updateDashboardState({ typeFilter: "all", typeFilterIds: [] });
-      await this.renderWidget(false, false, gid());
-    };
-    const selectedBar = make(filterWrap, "div", { cls: "mtb-selected-type-filter-bar" });
-    if (selectedTypeIds.length) {
-      make(selectedBar, "span", { cls: "mtb-muted", text: `已多选 ${selectedTypeIds.length} 个类型：` });
-      selectedTypeIds.forEach((typeId) => {
-        const cfg = this.getTypeConfig(mandala.types, typeId);
-        const chip = make(selectedBar, "button", { cls: "mtb-node-type-chip is-removable", text: `${cfg.icon || "🏷️"} ${cfg.name || typeId} ×`, attr: { type: "button", title: "从筛选中移除" } });
-        chip.style.background = cfg.color || "#9ca3af";
-        chip.onclick = async (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          const current = uniqueTextList(this.getDashboardState().typeFilterIds);
-          const next = current.filter((id) => id !== typeId);
-          this.updateDashboardState({ typeFilter: next[0] || "all", typeFilterIds: next });
-          await this.renderWidget(false, false, gid());
-        };
-      });
-    } else {
-      make(selectedBar, "span", { cls: "mtb-muted", text: "当前为全部类型；点击任意类型胶囊可加入多选筛选。" });
-    }
     const searchField = make(filterWrap, "div", { cls: "mtb-filter-field" });
     make(searchField, "span", { text: "节点名搜索：" });
     const searchInput = make(searchField, "input", { attr: { type: "text", placeholder: "输入节点名字关键词，下面列出匹配路径" } });
@@ -24647,27 +24358,13 @@ class MandalaTimeBlocksPlugin extends Plugin {
       this.updateDashboardState({ nodeSearchQuery: searchInput.value || "" });
       await this.renderWidget(false, false, gid());
     };
-    this.renderTypeTree(filterWrap, state, {
-      selectedTypeIds,
-      showManage: true,
-      showCounts: true,
-      onToggle: async (typeId) => {
-        const current = uniqueTextList(this.getDashboardState().typeFilterIds);
-        const next = current.includes(typeId)
-          ? current.filter((id) => id !== typeId)
-          : [...current, typeId];
-        this.updateDashboardState({ typeFilter: next[0] || "all", typeFilterIds: next });
-        await this.renderWidget(false, false, gid());
-      },
-    });
     const list = make(parent, "div", { cls: "mtb-node-tree-list" });
     const query = qText(dashboardState.nodeSearchQuery);
     const nodes = Object.values(mandala.nodeById)
       .filter((node) => node && node.id !== "root")
-      .filter((node) => this.nodeMatchesTypeFilter(node, selectedTypeIds, mandala.types))
       .filter((node) => !query || qText(node.title).includes(query) || qText(mandala.getPath(node.id)).includes(query))
       .sort((a, b) => mandala.getPath(a.id).localeCompare(mandala.getPath(b.id), "zh-CN", { numeric: true, sensitivity: "base" }));
-    if (!nodes.length) make(list, "div", { cls: "mtb-muted", text: query ? "没有匹配这个节点名关键词的路径。" : "当前类型筛选下暂无节点。" });
+    if (!nodes.length) make(list, "div", { cls: "mtb-muted", text: query ? "没有匹配这个节点名关键词的路径。" : "暂无九宫格节点。" });
     const directMatchSet = new Set(nodes.map((node) => node.id));
     const visibleSet = new Set(["root"]);
     const relationSnapshotCache = new Map();
@@ -24781,11 +24478,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const dashboardState = this.getDashboardState();
     const mandala = state.mandala;
     make(parent, "h3", { text: "🏷️ 关键词管理" });
-    make(parent, "p", { cls: "mtb-muted", text: "上方是关键词索引；下方是像类型筛选一样的九宫格节点条目。点击关键词会滚动到它对应的节点条目。" });
+    make(parent, "p", { cls: "mtb-muted", text: "上方是关键词索引，下方是九宫格节点目录。点击关键词会滚动到对应节点。" });
     const shell = make(parent, "div", { cls: "mtb-keyword-manager-shell" });
     const toolbar = make(shell, "div", { cls: "mtb-inline-row mtb-wrap" });
-    make(toolbar, "button", { cls: "mod-cta", text: "回到类型管理" }).onclick = async () => {
-      this.updateDashboardState({ tab: "mandala", manageView: "filter" });
+    make(toolbar, "button", { cls: "mod-cta", text: "回到节点目录" }).onclick = async () => {
+      this.updateDashboardState({ tab: "mandala", manageView: "nodes" });
       await this.renderWidget(false, false, gid());
     };
     const searchField = make(toolbar, "div", { cls: "mtb-filter-field" });
@@ -24873,15 +24570,17 @@ class MandalaTimeBlocksPlugin extends Plugin {
       children.forEach((child) => this.renderMandalaKeywordCapsule(childWrap, state, child, entries));
     }
   }
-  renderTypeManager(parent, state) {
-    this.updateDashboardState({ manageView: "filter" });
-    this.renderMandalaFilter(parent, state);
+  // Compatibility for existing owner callers; the directory has no type filter.
+  renderMandalaFilter(parent, state) {
+    return this.renderMandalaNodeDirectory(parent, state);
   }
 
   openNodeEditor(nodeId, state) {
+    if (this.nativeMandalaHost && !this.nativeMandalaHost.canEdit()) return;
     const editorBridge = this.getGoalRenameWriteBridge();
     const editorScope = Object.freeze(editorBridge.capture());
     const assertEditorScope = () => {
+      this.nativeMandalaHost?.assertState(state);
       editorBridge.assert(editorScope);
       for (const key of ["sourceNotePath", "db", "keywords"]) {
         if (state.paths?.[key] !== editorScope[key]) throw new Error("GOAL_EDITOR_SOURCE_CHANGED");
@@ -24905,39 +24604,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
     make(form, "label", { text: "节点名称" });
     const titleInput = make(form, "input");
     titleInput.value = node.title || "";
-
-    make(form, "label", { text: "节点类型（可多选）" });
-    let selectedTypeIds = this.getNodeTypeIds(node, mandala.types);
-    const typeWrap = make(form, "div", { cls: "mtb-node-type-selector" });
-    const selectedPreview = make(form, "div", { cls: "mtb-node-type-selected-preview" });
-    const renderTypeAssignment = () => {
-      clear(typeWrap);
-      clear(selectedPreview);
-      make(selectedPreview, "div", { cls: "mtb-muted", text: "已选类型：" });
-      selectedTypeIds.forEach((typeId) => {
-        const cfg = this.getTypeConfig(mandala.types, typeId);
-        const chip = make(selectedPreview, "button", { cls: "mtb-node-type-chip is-removable", text: `${cfg.icon} ${cfg.name} ×`, attr: { type: "button", title: "移除这个类型" } });
-        chip.style.background = cfg.color;
-        chip.onclick = () => {
-          selectedTypeIds = selectedTypeIds.filter((id) => id !== typeId);
-          if (!selectedTypeIds.length) selectedTypeIds = ["default"];
-          renderTypeAssignment();
-        };
-      });
-      this.renderTypeTree(typeWrap, state, {
-        selectedTypeIds,
-        showManage: false,
-        showCounts: false,
-        onToggle: async (typeId) => {
-          selectedTypeIds = selectedTypeIds.includes(typeId)
-            ? selectedTypeIds.filter((id) => id !== typeId)
-            : [...selectedTypeIds, typeId];
-          if (!selectedTypeIds.length) selectedTypeIds = ["default"];
-          renderTypeAssignment();
-        },
-      });
-    };
-    renderTypeAssignment();
 
     make(form, "label", { text: "关键词（可多选，单关键词只能对应一个节点）" });
     let keywords = normalizeMandalaKeywords(node.keywords || []);
@@ -24988,6 +24654,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
       const actions = make(noteBox, "div", { cls: "mtb-inline-row mtb-wrap" });
       make(actions, "button", { text: label ? "更换笔记" : "选择笔记" }).onclick = async (event) => {
         event.preventDefault();
+        const finishNativeWork = this.nativeMandalaHost?.beginWork();
+        const runPick = async () => {
         const result = await this.pickNoteBinding({
           title: `绑定笔记：${node.title || node.id}`,
           value: currentNoteBinding?.path || "",
@@ -24996,6 +24664,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
         if (!result) return;
         currentNoteBinding = result.action === "clear" ? null : normalizeNoteBinding(result.value);
         renderNoteBinding();
+        };
+        let nativeWorkError; try { await runPick(); } catch(error) { nativeWorkError=error; new Notice("笔记选择未完成，请重试。"); } finally { finishNativeWork?.(nativeWorkError,runPick); }
       };
       if (label) {
         make(actions, "button", { text: "打开" }).onclick = async (event) => {
@@ -25051,15 +24721,18 @@ class MandalaTimeBlocksPlugin extends Plugin {
         return;
       }
       pasteStatus.textContent = "正在保存图片...";
-      try {
+      const finishNativeWork = this.nativeMandalaHost?.beginWork();
+      const runPaste = async () => {
         const saved = await this.savePastedImage(file);
         imageInput.value = saved.rawPath;
         pasteStatus.textContent = `已保存并填入：${saved.rawPath}`;
         renderPreview();
-      } catch (error) {
+      };
+      let nativeWorkError; try { await runPaste(); } catch (error) {
+        nativeWorkError = error;
         console.error("[MandalaTimeBlocks][node-image][paste]", error);
         pasteStatus.textContent = `保存失败：${error.message}`;
-      }
+      } finally { finishNativeWork?.(nativeWorkError,runPaste); }
     });
 
     make(form, "label", { text: "文件快捷方式" });
@@ -25168,11 +24841,9 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const buildDraft = (allowFallbackTitle = false) => {
       let finalTitle = text(titleInput.value);
       if (!finalTitle && allowFallbackTitle) finalTitle = node.title || "未命名";
-      const finalTypeIds = uniqueTextList(selectedTypeIds).filter((typeId) => mandala.types[typeId]);
       return {
         title: finalTitle,
         comment: comment.value || "",
-        typeIds: finalTypeIds.length ? finalTypeIds : ["default"],
         keywords: normalizeMandalaKeywords(keywordInput.value.split(/\r?\n/)),
         image: text(imageInput.value),
         shortcuts: normalizeNodeShortcutEntries(currentShortcuts),
@@ -25182,17 +24853,32 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const snapshotOf = (draft) => JSON.stringify({
       title: draft.title || "",
       comment: draft.comment || "",
-      typeIds: draft.typeIds || ["default"],
       keywords: normalizeMandalaKeywords(draft.keywords || []),
       image: draft.image || "",
       shortcuts: normalizeNodeShortcutEntries(draft.shortcuts || []),
       noteBinding: draft.noteBinding || null,
     });
-    const initialSnapshot = snapshotOf(buildDraft(true));
-    const persistNode = async ({ silent = false, allowFallbackTitle = false } = {}) => {
+    const initialDraft = buildDraft(true);
+    const initialSnapshot = snapshotOf(initialDraft);
+    const clearedFields = (draft) => [
+      ["名称", initialDraft.title, draft.title],
+      ["描述 / 备注", text(initialDraft.comment), text(draft.comment)],
+      ["关键词", initialDraft.keywords.length, draft.keywords.length],
+      ["封面图片", initialDraft.image, draft.image],
+      ["文件快捷方式", initialDraft.shortcuts.length, draft.shortcuts.length],
+      ["绑定笔记", initialDraft.noteBinding, draft.noteBinding],
+    ].filter(([, before, after]) => before && !after).map(([label]) => label);
+
+    const persistNode = async ({ silent = false, allowFallbackTitle = false, clearApprovedSnapshot = "" } = {}) => {
+      await this.nativeMandalaHost?.settleEditor();
       assertEditorScope();
       if (saveInFlight) return false;
-      const draft = buildDraft(allowFallbackTitle);
+      const draft = buildDraft(false);
+      if (clearedFields(draft).length && clearApprovedSnapshot !== snapshotOf(draft)) {
+        new Notice("已清空的内容尚未提交；请点击保存节点并确认清空，或恢复原内容后关闭。", 10000);
+        return false;
+      }
+
       const keywordValidation = this.validateMandalaNodeKeywords(state, node.id, draft.keywords || []);
       if (!keywordValidation.ok) {
         if (!silent) new Notice(`关键词已被其他节点使用：${keywordValidation.conflicts.map((item) => `${item.keyword} → ${item.nodeTitle || item.nodeId}`).join("；")}`);
@@ -25220,7 +24906,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
         }
         node.title = draft.title;
         node.comment = draft.comment;
-        syncNodeTypeFields(node, draft.typeIds, mandala.types);
         node.image = draft.image;
         node.shortcuts = normalizeNodeShortcutEntries(draft.shortcuts || []);
         node.noteBinding = normalizeNoteBinding(draft.noteBinding);
@@ -25240,7 +24925,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
         await this.saveMandalaKeywords(keywordStore);
         keywordsFileSaved = true;
         const afterNotePath = normalizeNoteBinding(node.noteBinding)?.path || "";
-        logMTB("node-editor", txId, "node.save", { status: "PASS", reasonCodes: [], nodeId: node.id, typeIds: node.typeIds || [], hasNoteBinding: !!node.noteBinding, shortcutCount: node.shortcuts.length });
+        logMTB("node-editor", txId, "node.save", { status: "PASS", reasonCodes: [], nodeId: node.id, hasNoteBinding: !!node.noteBinding, shortcutCount: node.shortcuts.length });
         if (beforeNotePath !== afterNotePath) {
           logMTB("note-binding", txId, afterNotePath ? "binding.set" : "binding.clear", { status: "PASS", reasonCodes: [], nodeId: node.id, beforeNotePath, afterNotePath });
         }
@@ -25283,22 +24968,35 @@ class MandalaTimeBlocksPlugin extends Plugin {
         },
       }); };
     }
-    make(actions, "button", { text: "取消" }).onclick = () => {
-      suppressAutoSave = true;
-      modal.close();
-    };
-    make(actions, "button", { cls: "mod-cta", text: "保存节点" }).onclick = async () => {
+    make(actions, "button", { text: "关闭" }).onclick = () => modal.close();
+    const saveAndClose = async (clearApprovedSnapshot = "") => {
       let ok = false;
-      try { ok = await persistNode({ silent: false, allowFallbackTitle: false }); }
+      try { ok = await persistNode({ silent: false, clearApprovedSnapshot }); }
       catch (_) { new Notice("节点未保存，编辑内容仍保留在窗口中。", 0); }
       if (!ok) return;
       suppressAutoSave = true;
       modal.close();
     };
-    guardGoalNodeModalClose(modal,
+    make(actions, "button", { cls: "mod-cta", text: "保存节点" }).onclick = async () => {
+      const draft = buildDraft(false), cleared = clearedFields(draft);
+      if (!cleared.length) return saveAndClose();
+      new ConfirmActionModal(this.app, {
+        title: "确认清空节点内容", message: "将清空：" + cleared.join("、"),
+        confirmText: "确认清空并保存", onConfirm: () => saveAndClose(snapshotOf(draft)),
+      }).open();
+    };
+    const nativeCloseGuard = guardGoalNodeModalClose(modal,
       () => persistNode({ silent: true, allowFallbackTitle: true }),
       () => suppressAutoSave, () => { suppressAutoSave = true; }, () => clear(content));
+    this.nativeMandalaHost?.trackEditor(modal, nativeCloseGuard, nodeId, () => buildDraft(false), draft => {
+      titleInput.value = draft.title || ""; comment.value = draft.comment || "";
+      keywordInput.value = normalizeMandalaKeywords(draft.keywords || []).join("\n");
+      imageInput.value = draft.image || ""; currentShortcuts = normalizeNodeShortcutEntries(draft.shortcuts || []);
+      currentNoteBinding = normalizeNoteBinding(draft.noteBinding);
+      renderNoteBinding(); renderShortcutList(); renderPreview();
+    }, () => { suppressAutoSave = true; modal.close(); });
     modal.open();
+    return modal;
   }
 
   openNodeHistory(nodeId, state) {
@@ -27794,3 +27492,671 @@ class GoalRenameWriterBridge {
 }
 
 module.exports = MandalaTimeBlocksPlugin;
+
+// MD-K1 embedded source: mandala-keyword-mount.cjs (no runtime sidecar dependency)
+const __MandalaKeywordMount = (() => { const module = { exports: {} };
+"use strict";
+// External keyword relationships are owned by EVA, never Mandala's local keywords.
+const RELATION_TYPE = "mandala-keyword-mount";
+const KEYWORD_VIEW = "keyword-index-plugin-view";
+const clean = value => typeof value === "string" ? value.trim() : "";
+const metaStamp = s => JSON.stringify([!!s?.active,s?.sessionId,s?.phase,s?.sourceNodeKey,s?.relationType,s?.updatedAt]);
+function projectMounts(snapshot, nodeKey, api, parseKey) {
+  const seen = new Set(), result = [];
+  for (const relation of [...(snapshot?.outgoing || []), ...(snapshot?.incoming || [])]) {
+    if (!relation?.id || seen.has(relation.id)) continue;
+    const outgoing = relation.sourceNodeKey === nodeKey;
+    if (!outgoing && relation.targetNodeKey !== nodeKey) continue;
+    const key = clean(outgoing ? relation.targetNodeKey : relation.sourceNodeKey);
+    if (!key || key === nodeKey) continue;
+    const type = clean(relation.relationType) || "引用";
+    if (type !== RELATION_TYPE && type !== "引用") continue;
+    const record = (outgoing ? relation.target : relation.source) || api.getNodeRecord?.(key);
+    const parsed = parseKey(key);
+    // Permanent Keyword IDs are opaque. Their provider record is authoritative.
+    const keyword = record ? record.viewType === KEYWORD_VIEW : parsed?.viewType === KEYWORD_VIEW;
+    if (!keyword && (record || type !== RELATION_TYPE)) continue;
+    seen.add(relation.id);
+    result.push({ id: relation.id, key, label: clean(record?.label) || "关键词暂不可用",
+      path: clean(record?.pathLabel), stale: !record, legacy: type !== RELATION_TYPE,
+      source: relation.sourceNodeKey, target: relation.targetNodeKey, type });
+  }
+  return result.sort((a,b) => a.label.localeCompare(b.label,"zh-CN") || a.id.localeCompare(b.id));
+}
+function createController(plugin, obs, parseKey, log) {
+  let lease = null;
+  const dispose = () => { lease?.dispose(); lease = null; };
+  function mount(root, state, mode) {
+    dispose();
+    const doc = root.ownerDocument, win = doc.defaultView;
+    root.classList.add("mtbk-grid-content");
+    const sourcePath = plugin.getRelationNotePath(), dbPath = plugin.getPaths().db;
+    const panels = new Set(), entries = new Map();
+    let closed = false, timer = null, panel = null, metaGeneration = 0, busy = false;
+    const eva = () => plugin.getRelationsPluginApi();
+    const keyword = () => plugin.app?.plugins?.plugins?.["keyword-index-plugin"]?.api || win.__keywordIndexPluginApi;
+    const valid = () => { try { return !closed && root.isConnected && !plugin.isUnloading &&
+      plugin.getRelationNotePath() === sourcePath && plugin.getPaths().db === dbPath; } catch (_) { return false; } };
+    const assert = (api = eva(), modal = null) => {
+      if (!valid() || eva() !== api || (modal && (!panels.has(modal) || !modal.contentEl.isConnected))) throw Error("界面或数据来源已变化，请重新打开节点。");
+    };
+    const el = (parent, tag, cls, label = "") => {
+      const e = doc.createElement(tag); if(cls)e.className=cls; e.textContent=label;parent.append(e);return e;
+    };
+    const notice = message => new obs.Notice(message);
+    const preserveFocus = parent => {
+      const active=doc.activeElement, owned=parent.contains(active), key=active?.dataset?.mtbkFocus;
+      return () => {
+        if(!owned||active.isConnected||!parent.isConnected)return;
+        const target=[...parent.querySelectorAll("button")].find(b=>!b.disabled&&key&&b.dataset.mtbkFocus===key)||parent.querySelector("button:not(:disabled)")||parent;
+        if(target===parent)parent.tabIndex=-1;
+        target.focus({preventScroll:true});
+      };
+    };
+    const report = (event,status,reason,nodeId="") => log?.("keyword-mount", "mtbk_"+Date.now().toString(36),event,
+      {status,reasonCodes:reason?[reason]:[],warnings:[],scopeType:"node",scopeKey:nodeId,notePath:sourcePath,hostId:sourcePath});
+    const button = (parent,label,icon,callback,cls="") => {
+      const b=el(parent,"button","mtbk-button "+cls);b.type="button";b.title=label;b.setAttribute("aria-label",label);
+      if(icon){const i=el(b,"span","mtbk-icon");obs.setIcon(i,icon);}
+      el(b,"span","mtbk-label",label);
+      b.onclick=event=>{event.preventDefault();event.stopPropagation();if(b.disabled)return;
+        Promise.resolve().then(callback).catch(error=>{if(valid()){notice(error?.message||"操作失败，请重试");report("summary","FAIL","operation-failed");}});};
+      return b;
+    };
+    const makeModal = (cls="") => {
+      const m=new obs.Modal(plugin.app);m.modalEl.classList.add("mtbk-modal",cls);
+      m.onClose=()=>{panels.delete(m);if(panel?.modal===m)panel=null;};
+      panels.add(m);m.open();return m;
+    };
+    const read = (id, api=eva()) => {
+      if(!api?.getNodeRelationSnapshot)throw Error("请先启用 EVA Cross View Relations 插件。");
+      return projectMounts(api.getNodeRelationSnapshot(plugin.getMandalaNodeRelationKey(id)),plugin.getMandalaNodeRelationKey(id),api,parseKey);
+    };
+    const freshMount = (id,item,api) => read(id,api).find(m=>m.id===item.id&&m.key===item.key&&m.source===item.source&&m.target===item.target&&m.type===item.type);
+    const meta = () => eva()?.getMetaCaptureState?.() || {active:false};
+    const toolbar=el(root,"div","mtbk-toolbar");root.prepend(toolbar);
+    const metaButton=button(toolbar,"开启 Meta","link",()=>{
+      assert();const api=eva();
+      if(!api?.startMetaCapture||!api?.getMetaCaptureState)throw Error("请先启用 EVA Cross View Relations 插件。");
+      if(api.getMetaCaptureState().active)api.stopMetaCapture("mandala-keyword-toolbar");
+      else api.startMetaCapture({reason:"mandala-keyword-toolbar",relationType:RELATION_TYPE});
+      refreshMeta();
+    },"mtbk-meta-toggle");
+    const status=el(toolbar,"span","mtbk-meta-status");status.setAttribute("aria-live","polite");
+    const refreshButton=button(toolbar,"刷新挂载","refresh-cw",()=>refresh(),"mtbk-icon-only");
+    const refreshMeta=()=>{
+      if(!valid())return;const s=meta();
+      metaButton.querySelector(".mtbk-label").textContent=s.active?"退出 Meta":"开启 Meta";
+      metaButton.setAttribute("aria-label",s.active?"退出 Meta":"开启 Meta");
+      metaButton.classList.toggle("is-active",!!s.active);
+      status.textContent=!eva()?"EVA 尚未连接":!s.active?"将知识连接到具体节点":
+        !s.sourceNodeKey?"选择格子右上的标签，设为来源":s.relationType===RELATION_TYPE?
+        "来源："+(s.sourceLabel||"已选节点")+" · 前往 Keyword Index 选择关键词":"EVA Meta 已开启 · 可捕获此节点";
+      toolbar.classList.toggle("is-active",!!s.active);
+      if(panel?.screen==="mounts")updatePanelActions();
+    };
+    const updatePanelActions=()=>{
+      if(!panel)return;const {id,actions,modal}=panel;
+      const actionSignature=JSON.stringify([id,metaStamp(meta()),busy,!!eva()?.startMetaCapture,!!keyword()?.openView]);
+      if(panel.actionSignature===actionSignature)return;
+      panel.actionSignature=actionSignature;const restore=preserveFocus(actions);actions.replaceChildren();
+      if(id==="root"){el(actions,"p","mtbk-hint","这里是总览根节点。进入一个分支后，即可为具体节点挂载关键词。");restore();return;}
+      const s=meta(),key=plugin.getMandalaNodeRelationKey(id);
+      const label=s.active&&s.sourceNodeKey&&s.sourceNodeKey!==key?"改用此节点挂载":s.active&&s.sourceNodeKey===key&&s.relationType===RELATION_TYPE?"前往 Keyword Index 选择":"挂载关键词";
+      const add=button(actions,label,"plus",()=>begin(id,modal),"mod-cta mtbk-primary");
+      add.disabled=busy||!eva()?.startMetaCapture||!keyword()?.openView;
+      if(!keyword()?.openView)el(actions,"p","mtbk-hint","启用 Keyword Index 后即可挂载。");
+      if(s.active&&s.relationType!==RELATION_TYPE){
+        const capture=button(actions,s.sourceNodeKey?"捕获为当前 Meta 目标":"捕获为当前 Meta 来源","link",()=>captureExisting(id,modal));
+        capture.disabled=busy;
+      }
+      restore();
+    };
+    async function verifySource(id,api,modal,stamp,generation) {
+      assert(api,modal);
+      const node=state.mandala.nodeById[id];
+      if(id==="root"||!node)throw Error("请进入具体分支后挂载关键词。");
+      const synced=await plugin.syncRelationAdapter();assert(api,modal);
+      if(synced===false)throw Error("节点索引尚未就绪，请刷新后重试。");
+      if(generation!==metaGeneration||stamp!==metaStamp(api.getMetaCaptureState()))throw Error("Meta 选择已变化，请按当前状态重新操作。");
+      if(!api.getNodeRecord?.(plugin.getMandalaNodeRelationKey(id)))throw Error("节点已不可用，请刷新九宫格。");
+      return node;
+    }
+    async function begin(id,modal) {
+      if(busy)return;busy=true;updatePanelActions();
+      const api=eva(),kw=keyword(),s=api?.getMetaCaptureState?.(),stamp=metaStamp(s),generation=metaGeneration;
+      try {
+        if(!api?.captureMetaNode||!kw?.openView)throw Error("请启用 EVA 和 Keyword Index 后重试。");
+        const node=await verifySource(id,api,modal,stamp,generation);
+        if(keyword()!==kw)throw Error("Keyword Index 已重新加载，请重试。");
+        const key=plugin.getMandalaNodeRelationKey(id);
+        if(!(s.active&&s.sourceNodeKey===key&&s.relationType===RELATION_TYPE)){
+          // No await between explicit reset and A capture; never capture into another flow.
+          api.startMetaCapture({reason:"mandala-keyword-mount",relationType:RELATION_TYPE});
+          const reset=api.getMetaCaptureState();
+          if(!reset.active||reset.sourceNodeKey||reset.relationType!==RELATION_TYPE)throw Error("Meta 状态已变化。");
+          const pending=api.captureMetaNode({nodeKey:key,label:node.title||id,sourcePlugin:"mandala-time-blocks"});
+          const capturedStamp=metaStamp(api.getMetaCaptureState()),capturedGeneration=metaGeneration;
+          const result=await pending;assert(api,modal);
+          if(!result?.ok||capturedGeneration!==metaGeneration||capturedStamp!==metaStamp(api.getMetaCaptureState()))throw Error("Meta 选择已变化，请重试。");
+        }
+        const current=api.getMetaCaptureState();
+        if(current.sourceNodeKey!==key||current.relationType!==RELATION_TYPE||keyword()!==kw)throw Error("Meta 选择已变化，请重试。");
+        report("capture.result","PASS","",id);
+        // Close the native modal so the user can select B in Keyword Index.
+        modal.close();
+        const opened=await kw.openView();
+        if(opened===false)throw Error("Keyword Index 暂时无法打开；Meta 来源已保留，可稍后前往。");
+      }finally{busy=false;refreshMeta();}
+    }
+    async function captureExisting(id,modal) {
+      if(busy)return;busy=true;updatePanelActions();
+      try{
+        const api=eva(),s=api?.getMetaCaptureState?.(),stamp=metaStamp(s),generation=metaGeneration;
+        if(!s?.active)throw Error("Meta 已退出。");
+        const node=await verifySource(id,api,modal,stamp,generation);
+        const result=await api.captureMetaNode({nodeKey:plugin.getMandalaNodeRelationKey(id),label:node.title||id,sourcePlugin:"mandala-time-blocks"});
+        if(result?.ok===false)throw Error("未捕获节点："+(result.reason||"请重试"));
+        report("capture.result","PASS","",id);
+      }finally{busy=false;refreshMeta();}
+    }
+    async function openIndex(id,item,modal) {
+      const api=eva();assert(api,modal);
+      if(!freshMount(id,item,api)||item.stale)throw Error("挂载或关键词已变化，请刷新。");
+      if(!api.openNode)throw Error("EVA 跳转暂不可用。");
+      // Native Modal.close may restore focus. Close before navigation so the target wins.
+      modal.mtbkNavigation=true;modal.close();assert(api);
+      const opened=await api.openNode(item.key);
+      if(opened===false)throw Error("未能定位关键词，请刷新 Keyword Index 后重试。");
+      report("summary","PASS","index-opened",id);
+    }
+    async function openNotes(id,item,modal) {
+      const api=eva(),kw=keyword(),sourceLeaf=plugin.app.workspace.activeLeaf;
+      assert(api,modal);if(!kw?.getKeywordNotesForNode||!kw?.openKeywordNoteAtTabEnd)throw Error("Keyword Index 的 Note 入口暂不可用。");
+      if(!freshMount(id,item,api)||item.stale)throw Error("挂载或关键词已变化，请刷新。");
+      const request=Symbol();panel.noteRequest=request;
+      const result=await kw.getKeywordNotesForNode(item.key);assert(api,modal);
+      if(keyword()!==kw||panel?.noteRequest!==request||!freshMount(id,item,api))throw Error("关键词或来源已变化，请重试。");
+      if(!Array.isArray(result))throw Error("未能读取关键词笔记，请重试。");
+      const unique=new Map();
+      result.forEach(note=>{const path=clean(typeof note==="string"?note:note?.path);if(path&&!unique.has(path))unique.set(path,{path,title:clean(note?.title)||path.split("/").pop()});});
+      const notes=[...unique.values()];
+      const open=async note=>{
+        assert(api,modal);
+        if(keyword()!==kw||panel?.noteRequest!==request||!freshMount(id,item,api))throw Error("关键词或来源已变化，请重试。");
+        modal.mtbkNavigation=true;modal.close();assert(api);
+        if(keyword()!==kw)throw Error("Keyword Index 已重新加载，请重试。");
+        const ok=await kw.openKeywordNoteAtTabEnd(note.path,sourceLeaf);
+        if(ok===false)throw Error("Note 暂时无法打开，请确认笔记仍然存在。");
+        report("summary","PASS","note-opened",id);
+      };
+      if(notes.length===1)return open(notes[0]);
+      panel.screen="notes";panel.list.replaceChildren();panel.actions.replaceChildren();
+      button(panel.actions,"返回挂载列表","arrow-left",()=>{panel.screen="mounts";panel.signature=null;panel.actionSignature=null;renderPanel();});
+      el(panel.list,"h3","mtbk-list-heading",notes.length?"选择要打开的 Note":"这个关键词还没有对应 Note");
+      el(panel.list,"p","mtbk-hint",notes.length?item.label+" · "+notes.length+" 篇笔记":"可以先打开 Keyword Index 查看或添加内容。");
+      for(const note of notes){
+        const row=button(panel.list,note.title,"file-text",()=>open(note),"mtbk-note-choice");
+        el(row,"span","mtbk-note-path",note.path);
+      }
+      if(!notes.length)button(panel.list,"打开 Keyword Index","arrow-up-right",()=>openIndex(id,item,modal));
+    }
+    function confirmUnlink(id,item,parent) {
+      const api=eva();assert(api,parent);
+      if(!freshMount(id,item,api))throw Error("这条挂载已变化，请刷新。");
+      const confirm=makeModal("mtbk-confirm");
+      el(confirm.contentEl,"h2","","解除关键词挂载？");
+      el(confirm.contentEl,"p","",item.label);
+      el(confirm.contentEl,"p","mtbk-hint","只解除这个节点与关键词的连接，关键词和笔记会保留。");
+      const actions=el(confirm.contentEl,"div","mtbk-actions");
+      button(actions,"取消","",()=>confirm.close());
+      const remove=button(actions,"解除挂载","unlink",async()=>{
+        assert(api,parent);assert(api,confirm);
+        if(!freshMount(id,item,api))throw Error("这条挂载已变化，请刷新。");
+        if(!api.deleteRelation)throw Error("EVA 解除挂载暂不可用。");
+        remove.disabled=true;
+        try{const result=await api.deleteRelation(item.id);
+          if(result===false)throw Error("未能解除挂载，请刷新确认。");
+          report("request.result","PASS","delete-accepted-awaiting-owner-save",id);
+          notice("解除请求已交给 EVA；挂载列表会在保存通知后更新。");confirm.close();
+        }finally{remove.disabled=false;}
+      },"mod-warning");
+    }
+    function openPanel(id,trigger) {
+      if(!valid())return;
+      panel?.modal.close();
+      const modal=makeModal("mtbk-inspector"),node=state.mandala.nodeById[id];
+      el(modal.contentEl,"div","mtbk-eyebrow","节点 · 关键词挂载");
+      el(modal.contentEl,"h2","mtbk-title",node?.title||"未命名节点");
+      el(modal.contentEl,"p","mtbk-path",state.mandala.getPath(id));
+      const actions=el(modal.contentEl,"div","mtbk-actions");
+      const list=el(modal.contentEl,"div","mtbk-list");
+      panel={id,modal,actions,list,screen:"mounts",trigger};
+      const onClose=modal.onClose;
+      modal.onClose=()=>{onClose();if(!modal.mtbkNavigation&&trigger?.isConnected)trigger.focus({preventScroll:true});};
+      renderPanel();
+    }
+    function renderPanel() {
+      if(!panel||panel.screen!=="mounts")return;
+      const {id,modal,list}=panel;updatePanelActions();
+      if(id==="root")return;
+      let rows,error;
+      try{rows=read(id);}catch(failure){rows=[];error=failure;}
+      const signature=JSON.stringify({rows,error:error?.message||""});
+      if(panel.signature===signature)return;
+      panel.signature=signature;const restore=preserveFocus(list);list.replaceChildren();
+      if(error){el(list,"p","mtbk-empty",error.message);button(list,"重试","refresh-cw",()=>refresh());restore();return;}
+      el(list,"div","mtbk-list-heading","已挂载 "+rows.length);
+      if(!rows.length){el(list,"p","mtbk-empty","把相关知识放在这里。挂载后，可从格子直接找到关键词和笔记。");restore();return;}
+      for(const item of rows) {
+        const row=el(list,"section","mtbk-mount-row"+(item.stale?" is-stale":""));
+        const heading=el(row,"div","mtbk-row-heading");
+        const icon=el(heading,"span","mtbk-icon");obs.setIcon(icon,item.stale?"link-2-off":"tag");
+        el(heading,"strong","mtbk-mount-name",item.label);
+        el(row,"p","mtbk-row-context",item.stale?"关键词索引暂不可用 · 挂载仍保留":item.path||"Keyword Index");
+        const nav=el(row,"div","mtbk-row-actions");
+        const index=button(nav,"Keyword Index","arrow-up-right",()=>openIndex(id,item,modal));
+        const note=button(nav,"Note","file-text",()=>openNotes(id,item,modal));
+        index.dataset.mtbkFocus=item.id+":index";note.dataset.mtbkFocus=item.id+":note";
+        index.disabled=note.disabled=item.stale;
+        const unlink=button(nav,"解除挂载","unlink",()=>confirmUnlink(id,item,modal),"mtbk-icon-only mtbk-unlink");
+        unlink.dataset.mtbkFocus=item.id+":unlink";
+      }
+      restore();
+    }
+    function renderEntry(entry,rows,error) {
+      const signature=JSON.stringify({rows,error:error?.message||""});
+      if(entry.signature===signature)return;
+      entry.signature=signature;
+      const count=rows.length;
+      for(const {badge,footer,id} of entry.cells){
+        badge.title=id==="root"?"总览节点说明":error?"关键词挂载暂不可用":count+" 个关键词挂载";
+        badge.setAttribute("aria-label",badge.title+" · "+(state.mandala.nodeById[id]?.title||id));
+        badge.querySelector(".mtbk-label").textContent=count?String(count):"";
+        badge.classList.toggle("has-mounts",count>0);const restore=preserveFocus(footer);footer.replaceChildren();
+        if(id==="root")el(footer,"span","mtbk-root-label","总览");
+        else if(error)button(footer,"挂载暂不可用","circle-alert",()=>openPanel(id,badge),"mtbk-empty-chip");
+        else if(!count)button(footer,"挂载关键词","plus",()=>openPanel(id,badge),"mtbk-empty-chip");
+        else{
+          const max=mode===81?1:2;
+          rows.slice(0,max).forEach(item=>{const chip=button(footer,item.label,"tag",()=>openPanel(id,badge),"mtbk-chip");chip.dataset.mtbkFocus=item.id+":chip";});
+          if(count>max)button(footer,"+"+(count-max),"",()=>openPanel(id,badge),"mtbk-more");
+        }
+        restore();
+      }
+    }
+    function refresh() {
+      if(!valid())return;
+      for(const [id,entry]of entries){
+        try{renderEntry(entry,id==="root"?[]:read(id),null);}catch(error){renderEntry(entry,[],error);}
+      }
+      refreshMeta();renderPanel();
+    }
+    const schedule = () => {if(!valid()||timer!==null)return;timer=win.setTimeout(()=>{timer=null;refresh();},100);};
+    const metaChanged = () => {metaGeneration++;refreshMeta();};
+    for(const cell of root.querySelectorAll("[data-mtb-grid-node-id]")) {
+      const id=cell.getAttribute("data-mtb-grid-node-id");
+      if(!state.mandala.nodeById[id])continue;
+      let card=cell;
+      if(mode===9){
+        card=doc.createElement("div");card.className="mtbk-card";
+        cell.replaceWith(card);card.append(cell);
+      }else card.classList.add("mtbk-compact");
+      const badge=button(card,"","tags",()=>openPanel(id,badge),"mtbk-badge mtbk-icon-only");
+      const footer=el(card,"div","mtbk-footer");
+      if(!entries.has(id))entries.set(id,{cells:[]});
+      entries.get(id).cells.push({id,badge,footer});
+    }
+    win.addEventListener("eva-cross-view-relations:changed",schedule);
+    win.addEventListener("eva-cross-view-relations:meta-state-changed",metaChanged);
+    lease={dispose(){
+      closed=true;if(timer!==null)win.clearTimeout(timer);
+      win.removeEventListener("eva-cross-view-relations:changed",schedule);
+      win.removeEventListener("eva-cross-view-relations:meta-state-changed",metaChanged);
+      for(const modal of [...panels])modal.close();
+      entries.clear();
+    }};
+    refresh();
+    return lease;
+  }
+  return {mount,dispose};
+}
+module.exports={createController,projectMounts,metaStamp,RELATION_TYPE};
+
+return module.exports; })();
+
+// MD-L1 embedded UI session: no runtime sidecar dependency.
+const __MandalaNativeGrid = (() => { const module = { exports: {} };
+'use strict';
+// MD-L1: an environment-only ItemView; all content publishes use the real owner.
+module.exports.create = function ({ ItemView, Notice, PluginClass, defaults, hash, gid, norm, keywordUI, ensureStyles }) {
+  const TYPE = 'mandala-nine-grid-view';
+  const fields = ['manageCurrentId', 'manageView', 'nodeSearchQuery', 'keywordSearchQuery', 'collapsedNodeIds'];
+  const copy = x => JSON.parse(JSON.stringify(x));
+  const uiState = x => Object.fromEntries(fields.filter(k => x?.[k] !== undefined).map(k => [k, copy(x[k])]));
+  class GridView extends ItemView {
+    constructor(leaf, owner) {
+      super(leaf); this.owner = owner; this.sourceNotePath = ''; this.gridId = gid();
+      this.env = {}; this.mode = 9; this.scroll = 0; this.ticket = 0; this.baselines = new Map();
+      this.pending = new Set(); this.waiters = new Set(); this.failures = new Map(); this.closed = false; this.accepting = true;
+      (owner.mandalaGridViews ||= new Set()).add(this);
+    }
+    getViewType() { return TYPE; }
+    getDisplayText() { return '九宫格'; }
+    getIcon() { return 'grid-3x3'; }
+    getState() { return { sourceNotePath: this.sourceNotePath, gridId: this.gridId,
+      ...uiState(this.session?.dashboardState || this.env), gridSize: this.session?.mandalaGridSize || this.mode,
+      scrollTop: this.contentEl?.scrollTop ?? this.scroll }; }
+    async setState(state = {}, result) {
+      const source = norm(state.sourceNotePath || '');
+      if (this.session && source !== this.sourceNotePath) throw Error('MANDALA_GRID_SOURCE_CHANGED');
+      if (!this.received) {
+        this.sourceNotePath = source; this.env = uiState(state); this.mode = state.gridSize === 81 ? 81 : 9;
+        this.scroll = Math.max(0, Number(state.scrollTop) || 0);
+        if (state.gridId && ![...this.owner.mandalaGridViews].some(v => v !== this && v.gridId === state.gridId)) this.gridId = state.gridId;
+        this.received = true;
+      }
+      await super.setState(state, result);
+      if (this.ready && !this.session) await this.initialize();
+    }
+    assertSource() {
+      const p = this.owner.getPaths();
+      if (this.closed || this.owner.isUnloading || this.owner.app.plugins?.plugins?.[this.owner.manifest.id] !== this.owner)
+        throw Error('MANDALA_GRID_OWNER_CLOSED');
+      if (!this.sourceNotePath || norm(p.sourceNotePath) !== this.sourceNotePath ||
+        (this.paths && ['db', 'keywords', 'sourceNotePath'].some(k => p[k] !== this.paths[k]))) throw Error('MANDALA_GRID_SOURCE_CHANGED');
+      if (this.bridge && (this.owner.getGoalRenameWriteBridge() !== this.bridge || this.bridge.closed ||
+        this.provider !== this.owner.contextKeyManagement || this.providerGeneration !== this.provider?.generation))
+        throw Error('MANDALA_GRID_PROVIDER_CHANGED');
+      return true;
+    }
+    async onOpen() {
+      ensureStyles();
+      this.ready = true; this.contentEl.classList.add('mtb-native-grid');
+      const doc = this.contentEl.ownerDocument;
+      const runtimeStyle = document.getElementById('mandala-time-blocks-runtime-critical-style');
+      if (runtimeStyle && !doc.getElementById(runtimeStyle.id)) doc.head.appendChild(runtimeStyle.cloneNode(true));
+      this.statusEl = doc.createElement('div'); this.statusEl.className = 'mtb-native-grid-status';
+      this.body = doc.createElement('div'); this.body.className = 'mtb-native-grid-body';
+      this.contentEl.replaceChildren(this.statusEl, this.body);
+      this.wasActive = this.app.workspace.activeLeaf === this.leaf;
+      this.registerEvent(this.app.workspace.on('active-leaf-change', leaf => {
+        const left = this.wasActive && leaf !== this.leaf; this.wasActive = leaf === this.leaf;
+        if (left) { this.saveEnvironment(); void this.saveEditor(); }
+      }));
+      this.scrollRevision = 0;
+      this.registerDomEvent(this.contentEl, 'scroll', () => { ++this.scrollRevision; this.saveEnvironment(); });
+      if (this.received) await this.initialize();
+    }
+    saveEnvironment() { this.leaf.workspace?.requestSaveLayout?.(); }
+    status(message, failed = false) {
+      if (!this.statusEl) return;
+      this.statusEl.textContent = message; this.statusEl.classList.toggle('is-error', failed);
+      if (failed && !this.editor && !this.closed) {
+        const b = this.statusEl.ownerDocument.createElement('button'); b.textContent = '重新读取';
+        b.onclick = () => this.session ? this.refresh() : this.initialize(); this.statusEl.appendChild(b);
+      }
+    }
+    async initialize() {
+      if (this.initializing) return this.initializing;
+      this.initializing = (async () => {
+        try {
+          this.assertSource(); this.paths = Object.freeze({ ...this.owner.getPaths() });
+          if (!await this.app.vault.adapter.exists(this.sourceNotePath)) throw Error('九宫格来源笔记不存在');
+          this.assertSource();
+          this.bridge = this.owner.getGoalRenameWriteBridge(); this.provider = this.owner.contextKeyManagement;
+          this.providerGeneration = this.provider?.generation;
+          const s = this.session = new PluginClass(this.owner.app, this.owner.manifest);
+          s.nativeMandalaHost = this; s.plugin = this.owner; s.dashboardModal = this;
+          s.dashboardState = { ...copy(defaults), ...this.env, tab: 'mandala' }; s.mandalaGridSize = this.mode;
+          for (const k of ['settings', 'isUnloading', 'contextKeyManagement', 'goalContextKeyManagement', 'c2InputRecovery'])
+            Object.defineProperty(s, k, { configurable: true, get: () => this.owner[k] });
+          s.getPaths = () => { this.assertSource(); return this.paths; };
+          s.getPathsBeforeGoalBridge = () => this.owner.getPaths();
+          s.getGoalRenameWriteBridge = () => { this.assertSource(); return this.bridge; };
+          s.syncRelationAdapter = (...args) => this.owner.syncRelationAdapter(...args);
+          s.openWeeklyGoalTable = (...args) => { this.assertSource(); return this.owner.openWeeklyGoalTable(...args); };
+          for (const [method, index] of [['commitMandalaMoveTransaction', 1], ['moveMandalaKeywordCapsule', 0]])
+            s[method] = (...args) => this.mutate(args[index], () => PluginClass.prototype[method].apply(s, args));
+          s.getMandalaKeywordUiHost = () => s.mandalaKeywordUiHost ||= keywordUI.createHost(s, {
+            window: this.contentEl.ownerDocument.defaultView, document: this.contentEl.ownerDocument });
+          s.updateDashboardState = patch => { s.dashboardState = { ...s.dashboardState, ...patch, tab: 'mandala' }; this.saveEnvironment(); return s.dashboardState; };
+          s.renderWidget = () => this.refresh();
+          s.readJson = (path, fallback) => this.read(path, fallback);
+          s.readJsonWithEvidence = async (path, fallback) => ({ value: await this.read(path, fallback), ok: this.baselines.get(path)?.exists === true, reason: '' });
+          s.writeJson = s.writeJsonSafely = (path, value, options = {}) => this.write(path, value, options);
+          await this.refresh();
+        } catch (error) { this.status('九宫格未能加载：' + error.message, true); }
+      })();
+      try { return await this.initializing; } finally { this.initializing = null; }
+    }
+    async read(path, fallback) {
+      this.assertSource(); const a = this.app.vault.adapter;
+      const exists = await a.exists(path); this.assertSource();
+      if (!exists && [this.paths.db, this.paths.keywords].includes(path)) throw Error('九宫格节点或关键词文件不存在，请先从原九宫格面板完成初始化');
+      const raw = exists ? await a.read(path) : null; this.assertSource();
+      const value = exists ? JSON.parse(raw) : copy(fallback);
+      if (!value || typeof value !== 'object') throw Error('九宫格数据格式不正确');
+      // The exact parsed bytes are the only baseline. Never refresh it under an open editor.
+      if (this.editor && [this.paths.db, this.paths.keywords].includes(path)) throw Error('MANDALA_GRID_EDITOR_SNAPSHOT_LOCKED');
+      this.baselines.set(path, { exists, hash: exists ? hash(raw) : null });
+      return value;
+    }
+    async write(path, value, options = {}) {
+      this.assertSource(); const before = this.baselines.get(path);
+      if (![this.paths.db, this.paths.keywords, this.paths.records, this.paths.migration].includes(path) || !before) throw Error('MANDALA_GRID_UNREAD_WRITE');
+      if ((Object.hasOwn(options, 'expectedTargetExists') && options.expectedTargetExists !== before.exists) ||
+        (Object.hasOwn(options, 'expectedTargetHash') && options.expectedTargetHash !== before.hash)) throw Error('MANDALA_GRID_CALLER_CAS_CHANGED');
+      const result = await this.owner.writeJsonSafely(path, value, { ...options,
+        expectedTargetExists: before.exists, expectedTargetHash: before.hash,
+        assertCanPublish: async info => { this.assertSource(); await options.assertCanPublish?.(info); this.assertSource(); },
+        assertSynchronousLease: () => { this.assertSource(); return options.assertSynchronousLease?.(); },
+      });
+      // A receipt from this write, never a fresh read of somebody else's committed version.
+      if (result?.ok !== true || typeof result.hash !== 'string') throw Error('MANDALA_GRID_WRITE_RECEIPT_MISSING');
+      this.baselines.set(path, { exists: true, hash: result.hash });
+      this.writeCount = (this.writeCount || 0) + 1;
+      return result;
+    }
+    async refresh() {
+      if (this.editor || this.mutating) { this.refreshPending = true; return true; }
+      if (this.rendering) { this.refreshPending = true; return this.rendering; }
+      if (this.closed || !this.body) return false;
+      this.refreshPending = false;
+      this.rendering = this.renderPage();
+      try { return await this.rendering; }
+      finally { this.rendering = null; if (this.refreshPending && !this.editor && !this.closed) { this.refreshPending = false; void this.refresh(); } }
+    }
+    async renderPage() {
+      const ticket = ++this.ticket, old = this.body.firstElementChild, next = this.body.ownerDocument.createElement('div');
+      const doc = this.contentEl.ownerDocument, active = doc.activeElement;
+      const controls = [...(old?.querySelectorAll('input,textarea') || [])], focusIndex = controls.indexOf(active);
+      const selection = focusIndex >= 0 ? [active.selectionStart, active.selectionEnd] : null;
+      const scroll = this.contentEl.scrollTop, scrollRevision = this.scrollRevision;
+      const top = this.contentEl.getBoundingClientRect().top;
+      const anchor = [...(old?.querySelectorAll('[data-mtb-node-id]') || [])].find(el => el.getBoundingClientRect().bottom > top);
+      const anchorId = anchor?.getAttribute('data-mtb-node-id'), anchorOffset = anchor?.getBoundingClientRect().top - top;
+      next.style.visibility = 'hidden'; this.body.inert = true; this.body.appendChild(next);
+      try {
+        this.assertSource(); this.status('正在读取九宫格…');
+        const lease = this.session.getMandalaKeywordUiHost().lease();
+        const mandala = await this.session.loadMandala({ readOnly: true });
+        const records = await this.session.loadRecords(false);
+        this.assertSource();
+        const state = { paths: this.paths, mandala, recordsData: records };
+        this.session.mandalaKeywordUiStateLeases.set(state, lease);
+        await this.session.renderMandalaManager(next, state);
+        this.assertSource(); if (ticket !== this.ticket || this.closed) throw Error('MANDALA_GRID_RENDER_EXPIRED');
+        if (old) { this.session.mandalaKeywordUiHost?.releaseSubtree(old); old.remove(); } next.style.visibility = '';
+        this.session.mandalaKeywordUiHost?.activate(next); this.body.inert = false;
+        this.state = state;
+        this.mutationFailed = false;
+        if (!this.initialScrollApplied) { this.contentEl.scrollTop = this.scroll; this.initialScrollApplied = true; }
+        else if (this.scrollRevision === scrollRevision) {
+          const target = anchorId && [...next.querySelectorAll('[data-mtb-node-id]')].find(el => el.getAttribute('data-mtb-node-id') === anchorId);
+          if (target) this.contentEl.scrollTop += target.getBoundingClientRect().top - top - anchorOffset;
+          else if (this.contentEl.scrollTop !== scroll) this.contentEl.scrollTop = scroll;
+        }
+        if (focusIndex >= 0 && this.wasActive && [active, doc.body].includes(doc.activeElement)) {
+          const input = next.querySelectorAll('input,textarea')[focusIndex];
+          input?.focus({ preventScroll: true }); if (input && selection) { try { input.setSelectionRange(...selection); } catch (_) {} }
+        }
+        this.status(''); this.saveEnvironment(); return true;
+      } catch (error) {
+        this.session?.mandalaKeywordUiHost?.releaseSubtree(next); this.session?.stopMandalaGridImages(); next.remove();
+        this.status('未能更新九宫格，旧页面暂时只读：' + error.message, true); return false;
+      }
+    }
+    canEdit() {
+      this.assertSource();
+      if (!this.accepting || this.body.inert) throw Error('MANDALA_GRID_NOT_READY');
+      if (this.editor) { new Notice('请先保存或关闭当前节点编辑窗口。'); return false; }
+      return true;
+    }
+    assertState(state) {
+      this.assertSource();
+      if (this.state !== state || this.closed || this.mutationFailed) throw Error('MANDALA_GRID_STATE_EXPIRED');
+    }
+    async mutate(state, run) {
+      if (this.editor) await this.settleEditor();
+      this.assertState(state);
+      if (this.mutating) throw Error('MANDALA_GRID_MUTATION_BUSY');
+      this.mutating = true; this.body.inert = true;
+      let finishMutation; this.mutationDone = new Promise(resolve => { finishMutation = resolve; });
+      const count = this.writeCount || 0;
+      try { const result = await run(); if (result === false && this.writeCount > count) throw Error('多文件操作部分完成，需要重新读取核对'); return result; }
+      catch (error) { this.mutationFailed = true; this.status('操作未完成，请保留输入并重新读取页面后核对：' + error.message, true); throw error; }
+      finally { this.mutating = false; finishMutation(); this.mutationDone = null; if (!this.editor && !this.mutationFailed) { this.body.inert = false; if (this.refreshPending) void this.refresh(); } }
+    }
+    recoveryKey(nodeId) {
+      return 'mandala-native-node-v1:' + hash(JSON.stringify([this.app.vault.adapter.getBasePath?.(), this.sourceNotePath, nodeId]));
+    }
+    checkpoint() {
+      if (!this.editor) return true;
+      try {
+        this.storage.setItem(this.editor.key, JSON.stringify({ sourceNotePath: this.sourceNotePath,
+          nodeId: this.editor.nodeId, savedAt: Date.now(), draft: this.editor.readDraft() })); return true;
+      } catch (e) { this.status('草稿备份失败，请保持编辑窗口并复制内容：' + e.message, true); return false; }
+    }
+    trackEditor(modal, guard, nodeId, readDraft, restoreDraft, closeWithDraft) {
+      this.storage = modal.contentEl.ownerDocument.defaultView.localStorage;
+      const prefix = this.recoveryKey(nodeId) + ':';
+      const key = prefix + this.gridId + ':' + gid();
+      const recoveries = [];
+      for (let i = 0; i < this.storage.length; i++) {
+        const otherKey = this.storage.key(i);
+        if (!otherKey?.startsWith(prefix)) continue;
+        if ([...this.owner.mandalaGridViews].some(v => v.editor?.key === otherKey)) continue;
+        try { const r = JSON.parse(this.storage.getItem(otherKey)); if (r?.nodeId === nodeId && r.sourceNotePath === this.sourceNotePath) recoveries.push({ key: otherKey, value: r }); } catch (_) {}
+      }
+      const editor = this.editor = { modal, guard, nodeId, readDraft, key, composing: false, restoredKeys: new Set() };
+      this.body.inert = true;
+      const root = modal.contentEl;
+      const changed = () => { this.checkpoint(); };
+      root.addEventListener('input', changed); root.addEventListener('change', changed);
+      root.addEventListener('click', () => queueMicrotask(changed));
+      root.addEventListener('compositionstart', () => { editor.composing = true; });
+      root.addEventListener('compositionend', () => { editor.composing = false; this.checkpoint(); this.wake(); });
+      const keep = root.ownerDocument.createElement('button'); keep.textContent = '保留草稿并关闭';
+      keep.onclick = () => {
+        if (editor.composing || this.pending.size || this.failures.size) { new Notice('请先完成输入和未完成的图片／笔记操作。'); return; }
+        if (this.checkpoint()) { editor.keepRecovery = true; closeWithDraft(); }
+      };
+      root.appendChild(keep);
+      editor.recoveryPending = recoveries.length;
+      for (const { key: recoveryKey, value: recovery } of recoveries) {
+        const bar = root.ownerDocument.createElement('div'); bar.className = 'mtb-native-grid-recovery';
+        bar.textContent = '此节点有尚未确认保存的草稿。';
+        const b = root.ownerDocument.createElement('button'); b.textContent = '恢复草稿到编辑器';
+        b.onclick = () => { restoreDraft(recovery.draft); editor.recoveryPending--; editor.restoredKeys.add(recoveryKey); this.checkpoint(); bar.remove(); };
+        const discard = root.ownerDocument.createElement('button'); discard.textContent = '丢弃这份恢复草稿';
+        discard.onclick = () => { editor.recoveryPending--; this.storage.removeItem(recoveryKey); this.checkpoint(); bar.remove(); };
+        bar.append(b, discard); root.prepend(bar);
+      }
+      const oldClose = modal.onClose;
+      modal.onClose = () => {
+        oldClose?.call(modal);
+        // The existing guard only closes after save success or explicit discard/delete.
+        if (this.editor === editor) {
+          if (!editor.keepRecovery) { this.storage.removeItem(key); for (const restored of editor.restoredKeys) this.storage.removeItem(restored); }
+          this.editor = null; this.wake();
+          if (this.closeRequested) this.cleanup(); else { this.body.inert = false; void this.refresh(); }
+        }
+      };
+      this.checkpoint();
+    }
+    beginWork(retrying = false) {
+      if ((!this.accepting && !retrying) || !this.editor) throw Error('MANDALA_GRID_EDITOR_CLOSED');
+      let resolve; const pending = new Promise(r => { resolve = r; }); this.pending.add(pending);
+      return (error, retry) => {
+        if (error) {
+          this.failures.set(pending, { error, retry });
+          const bar = this.editor.modal.contentEl.ownerDocument.createElement('div');
+          bar.className = 'mtb-native-grid-recovery'; bar.textContent = '附件或笔记选择未完成，暂不关闭编辑器。';
+          const button = bar.ownerDocument.createElement('button'); button.textContent = '重试未完成操作';
+          button.onclick = async () => {
+            button.disabled = true; const finish = this.beginWork(true);
+            try { await retry(); this.failures.delete(pending); bar.remove(); }
+            catch (e) { this.status('重试失败：' + e.message, true); }
+            finally { finish(); button.disabled = false; }
+          };
+          bar.appendChild(button); this.editor.modal.contentEl.prepend(bar);
+        }
+        this.checkpoint(); this.pending.delete(pending); resolve(); this.wake();
+      };
+    }
+    wake() { for (const resolve of this.waiters) resolve(); this.waiters.clear(); }
+    async settleEditor() {
+      while (this.editor?.composing || this.pending.size) {
+        this.checkpoint(); await new Promise(resolve => this.waiters.add(resolve));
+      }
+      if (this.failures.size) throw Error('图片或笔记操作未完成，请在编辑器中重试');
+      if (this.editor?.recoveryPending) throw Error('请先选择恢复或丢弃上次草稿');
+      if (this.editor && !this.checkpoint()) throw Error('MANDALA_GRID_RECOVERY_FAILED');
+      this.assertSource();
+    }
+    async saveEditor() {
+      if (!this.editor) return true;
+      if (this.saving) return this.saving;
+      this.saving = (async () => {
+        try { await this.settleEditor(); const ok = await this.editor?.guard.attempt();
+          if (ok === false) this.status('节点尚未保存，请在保留的编辑窗口中核对。', true); return ok !== false;
+        } catch (error) { this.checkpoint(); this.status('节点未保存，编辑窗口与草稿已保留：' + error.message, true); return false; }
+      })();
+      try { return await this.saving; } finally { this.saving = null; }
+    }
+    async onClose() {
+      this.accepting = false; this.closeRequested = true; this.saveEnvironment(); this.checkpoint();
+      await this.mutationDone;
+      const ok = await this.saveEditor();
+      if (!ok || this.editor || this.pending.size) {
+        // Do not rely on the host honoring false: the modal/closures and disk-independent draft stay alive.
+        new Notice('九宫格编辑尚未保存，已保留编辑窗口及恢复草稿，请完成保存后再退出。', 0); return false;
+      }
+      this.cleanup(); return true;
+    }
+    cleanup() {
+      if (this.closed) return; this.closed = true; ++this.ticket;
+      this.session?.stopMandalaGridImages(); this.session?.mandalaKeywordUiHost?.close();
+      this.owner.mandalaGridViews?.delete(this);
+    }
+  }
+  async function open(owner) {
+    if (owner.mandalaGridOpening) return owner.mandalaGridOpening;
+    owner.mandalaGridOpening = (async () => {
+      const sourceNotePath = norm(owner.getTimeCaptureSourceNotePath());
+      if (!sourceNotePath) throw Error('请先配置九宫格来源笔记');
+      const matches = owner.app.workspace.getLeavesOfType(TYPE).filter(l => !l.view.closed && l.view.sourceNotePath === sourceNotePath);
+      const active = matches.find(l => l === owner.app.workspace.activeLeaf);
+      if (!active && matches.length > 1) throw Error('存在多个同来源九宫格页，请在标签栏选择要使用的页面');
+      const leaf = active || matches[0] || owner.app.workspace.getLeaf('tab');
+      if (!matches.includes(leaf)) await leaf.setViewState({ type: TYPE, active: true, state: { sourceNotePath } });
+      await owner.app.workspace.revealLeaf(leaf); return leaf;
+    })();
+    try { return await owner.mandalaGridOpening; } catch (error) { new Notice('九宫格打开失败：' + error.message); return null; }
+    finally { owner.mandalaGridOpening = null; }
+  }
+  return { GridView, open, TYPE };
+};
+
+return module.exports.create({ ItemView, Notice, PluginClass: MandalaTimeBlocksPlugin, defaults: DEFAULT_DASHBOARD_STATE, hash: GoalPrimaryWriteModule.hash, gid, norm, keywordUI: __MandalaKeywordUI, ensureStyles: ensureRuntimeStyles }); })();

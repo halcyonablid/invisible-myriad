@@ -693,3 +693,72 @@ body.eva-meta-capture-active .mtb-manage-cell-actions .eva-meta-capture-btn{visi
   line-height:1.4; max-height:2.8em; overflow:hidden;
 }
 .mtb-capture-view .mtb-overview .mtf-block-meta { white-space:nowrap; }
+
+/* MD-K1: external Keyword mounts; native theme and original grid geometry. */
+.mtbk-grid-content{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%;gap:10px}
+.mtb-grid-view-controls:has(+.mtb-grid-view-pane .mtbk-grid-content){justify-content:center}
+.mtbk-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:min(560px,100%);margin:8px auto 18px;padding:10px 12px;border:1px solid var(--background-modifier-border);border-radius:10px;background:var(--background-secondary)}
+.mtbk-toolbar.is-active{border-color:var(--interactive-accent)}
+.mtbk-meta-status{flex:1;min-width:120px;font-size:12px;line-height:1.5;color:var(--text-muted)}
+.mtbk-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:0;cursor:pointer;font-family:inherit}
+.mtbk-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;width:14px;height:14px}
+.mtbk-icon svg{width:14px;height:14px}
+.mtbk-button:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:2px}
+.mtbk-button:disabled{opacity:.5;cursor:default}
+.mtbk-button .mtbk-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mtbk-icon-only .mtbk-label:empty{display:none}
+.mtbk-toolbar .mtbk-icon-only .mtbk-label{display:none}
+.mtbk-card{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 30px;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-primary);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.mtbk-card>.mtb-manage-cell{border-radius:7px 7px 0 0!important;border-width:0!important}
+.mtbk-card .mtb-manage-cell-log-badge{right:auto!important;left:6px!important;top:6px!important}
+.mtbk-card .mtb-manage-cell-keywords{top:33px!important}
+.mtbk-card .mtb-manage-cell-actions{top:37px!important;right:5px!important}
+.mtbk-card .mtb-manage-cell-actions:focus-within{opacity:1}
+.mtbk-card .mtb-manage-cell-title{line-height:1.4!important;padding:4px 6px!important;max-width:100%}
+.mtbk-card .mtb-manage-cell-subtitle{font-size:10px!important}
+.mtbk-badge{position:absolute;right:5px;top:5px;z-index:5;min-width:28px;height:26px;padding:3px 6px!important;border:1px solid var(--background-modifier-border)!important;border-radius:6px!important;background:var(--background-primary)!important;color:var(--text-muted)!important;box-shadow:0 1px 4px rgb(0 0 0 / .15)!important;font-size:11px!important}
+.mtbk-badge.has-mounts{color:var(--text-accent)!important}
+.mtbk-footer{display:flex;align-items:center;gap:3px;min-width:0;max-width:100%;height:30px;padding:3px 5px;overflow:hidden;background:var(--background-primary);border-radius:0 0 7px 7px}
+.mtbk-footer .mtbk-button{height:23px;font-size:11px;padding:2px 4px;border:none;box-shadow:none;line-height:1.2;max-width:100%}
+.mtbk-chip{flex:0 1 auto;background:var(--background-secondary)!important;color:var(--text-accent)!important;border-radius:4px!important}
+.mtbk-chip .mtbk-icon{width:10px;height:10px}
+.mtbk-chip .mtbk-icon svg{width:10px;height:10px}
+.mtbk-more{flex:none!important;color:var(--text-muted);margin-left:auto}
+.mtbk-empty-chip{background:transparent!important;color:var(--text-muted)!important}
+.mtbk-empty-chip:hover{color:var(--text-accent)!important}
+.mtbk-root-label{font-size:11px;color:var(--text-faint);margin:auto}
+.mtbk-compact{position:relative}
+.mtbk-compact .mtbk-badge{height:23px;font-size:10px!important}
+.mtbk-compact .mtb-grid81-name{padding-top:30px!important}
+.mtbk-compact .mtbk-footer{position:relative;z-index:2;height:26px;flex-shrink:0;padding:2px 4px}
+.mtbk-compact .mtbk-footer .mtbk-button{height:21px;font-size:10px}
+.mtbk-compact .mtbk-footer .mtbk-icon{display:none}
+.mtbk-modal.mtbk-inspector{width:min(420px,calc(100vw - 24px));max-width:420px;height:min(760px,calc(100vh - 40px));max-height:calc(100vh - 40px);margin-left:auto;margin-right:20px;border-radius:12px;border:1px solid var(--background-modifier-border);background:var(--background-primary)}
+.mtbk-modal .modal-content{padding:4px;overflow:auto}
+.mtbk-eyebrow{color:var(--text-muted);font-size:11px;letter-spacing:.08em;margin:6px 0 12px}
+.mtbk-title{font-size:22px;line-height:1.35;margin:0 0 6px;overflow-wrap:anywhere}
+.mtbk-path{font-size:12px;line-height:1.5;color:var(--text-muted);margin:0 0 22px;overflow-wrap:anywhere}
+.mtbk-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:18px}
+.mtbk-actions .mtbk-primary{min-height:34px}
+.mtbk-list{border-top:1px solid var(--background-modifier-border);padding-top:16px}
+.mtbk-list-heading{font-size:12px;color:var(--text-muted);font-weight:600;margin:0 0 12px}
+.mtbk-mount-row{padding:14px;margin:0 0 10px;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-secondary)}
+.mtbk-row-heading{display:flex;align-items:flex-start;gap:8px;color:var(--text-accent)}
+.mtbk-row-heading>.mtbk-icon{margin-top:3px}
+.mtbk-mount-name{font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.mtbk-row-context{font-size:11px;color:var(--text-muted);line-height:1.5;margin:5px 0 12px;overflow-wrap:anywhere}
+.mtbk-row-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mtbk-row-actions>.mtbk-button{min-height:28px;font-size:12px}
+.mtbk-unlink{margin-left:auto;padding:4px 6px!important}
+.mtbk-unlink .mtbk-label{display:none}
+.mtbk-empty{padding:22px 12px;text-align:center;color:var(--text-muted);font-size:13px;line-height:1.8}
+.mtbk-hint{font-size:12px;color:var(--text-muted);line-height:1.7;margin:4px 0}
+.mtbk-note-choice{display:flex;width:100%;height:auto;justify-content:flex-start;flex-wrap:wrap;text-align:left;padding:12px;margin-bottom:8px}
+.mtbk-note-choice>.mtbk-label{white-space:normal;overflow-wrap:anywhere}
+.mtbk-note-path{display:block;width:100%;padding-left:20px;font-size:11px;color:var(--text-muted);overflow-wrap:anywhere}
+.mtbk-modal.mtbk-confirm{max-width:400px}
+@media(max-width:600px){.mtbk-toolbar{margin-bottom:12px;padding:8px;gap:6px}.mtbk-meta-status{font-size:11px}.mtbk-card{grid-template-rows:minmax(0,1fr) 26px}.mtbk-footer{height:26px;padding:2px 3px}.mtbk-footer .mtbk-button{font-size:10px;padding:2px 3px}.mtbk-footer .mtbk-icon{display:none}.mtbk-modal.mtbk-inspector{margin:12px;width:calc(100vw - 24px);height:calc(100vh - 24px);max-height:calc(100vh - 24px)}}
+
+/* MD-L1 native page */
+.mtb-native-grid{overflow:auto!important;padding:16px 20px 36px;min-height:0;}
+.mtb-native-grid-status:empty{display:none}.mtb-native-grid-status{padding:10px;color:var(--text-muted)}.mtb-native-grid-status.is-error{color:var(--text-error);border:1px solid var(--background-modifier-error);border-radius:8px}.mtb-native-grid-status button{margin-left:12px}.mtb-native-grid-recovery{padding:12px;margin-bottom:12px;background:var(--background-secondary);border-left:3px solid var(--interactive-accent)}.mtb-native-grid-recovery button{margin-left:12px}

@@ -22,12 +22,13 @@ Object.freeze({ key: "dailyReview", label: "每日 Note 回看", icon: "calendar
 Object.freeze({ key: "timeBlocks", label: "时间块记录", icon: "timer", pluginId: "mandala-time-blocks", viewType: "mandala-time-blocks-capture-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 Object.freeze({ key: "dailyLessons", label: "日课", icon: "calendar-check", pluginId: "mandala-time-blocks", viewType: "mandala-daily-lessons-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 Object.freeze({ key: "weeklyTracking", label: "周追踪", icon: "calendar-range", pluginId: "mandala-time-blocks", viewType: "mandala-weekly-tracking-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
+Object.freeze({ key: "mandalaGrid", label: "九宫格", icon: "grid-3x3", pluginId: "mandala-time-blocks", viewType: "mandala-nine-grid-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 ]);
 
 const GROUPS = Object.freeze([
   Object.freeze({ key: "execution", label: "执行与收集", members: Object.freeze(["overview","workspace","gtd","collection"].map(key => MEMBERS.find(member => member.key === key))) }),
   Object.freeze({ key: "working", label: "执行过程", members: Object.freeze(["nextAction","ontology","timeBlocks","dailyLessons"].map(key => MEMBERS.find(member => member.key === key))) }),
-  Object.freeze({ key: "review-planning", label: "回顾与长期规划", members: Object.freeze(["temporal","timeline","dailyReview","weeklyTracking"].map(key => MEMBERS.find(member => member.key === key))) }),
+  Object.freeze({ key: "review-planning", label: "回顾与长期规划", members: Object.freeze(["temporal","mandalaGrid","timeline","dailyReview","weeklyTracking"].map(key => MEMBERS.find(member => member.key === key))) }),
 ]);
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -394,7 +395,7 @@ class ViewGroupHubPlugin extends Plugin {
   }
 
   getExpectedSourcePath(member) {
-    if (["timeBlocks", "dailyLessons", "weeklyTracking"].includes(member?.key)) return normalizePath(this.app.plugins?.getPlugin?.("mandala-time-blocks")?.getTimeCaptureSourceNotePath?.());
+    if (["timeBlocks", "dailyLessons", "weeklyTracking", "mandalaGrid"].includes(member?.key)) return normalizePath(this.app.plugins?.getPlugin?.("mandala-time-blocks")?.getTimeCaptureSourceNotePath?.());
     if (!member?.sourceBound) return "";
     return normalizePath(
       this.settings?.[member.sourceSetting]
