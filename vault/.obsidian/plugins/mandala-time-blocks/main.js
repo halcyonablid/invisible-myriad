@@ -2165,7 +2165,7 @@ const dateKeysBetween = (startValue, endValue, maxDays = 370) => {
 };
 const dateSpanDaysInclusive = (startValue, endValue) => dateKeysBetween(startValue, endValue, 10000).length;
 const withDroppedDate = (date, timestamp) => `${date} ${tKey(ts(timestamp)) || tKey(nowStr()) || "09:00"}`;
-const complete = (record) => (TimeFrames.validBinding(record?.timeCategory) || !!text(record?.leafNodeId) || timeContextValid(record?.operationalContext)) && Number(record?.durationMin) > 0 && Number(record?.score) >= 1 && Number(record?.score) <= 10;
+const complete = (record) => (TimeFrames.validBinding(record?.timeCategory) || !!text(record?.leafNodeId) || timeContextValid(record?.operationalContext)) && Number(record?.durationMin) > 0 && Number(record?.score) >= 1 && Number(record?.score) <= 120;
 const qText = (value) => text(value).toLowerCase();
 const resolveSearchOption = (options, query) => {
   const keyword = qText(query);
@@ -9546,8 +9546,8 @@ class RecordModal extends Modal {
     const meta = make(form, "div", { cls: "mtb-meta-row" });
     const dur = make(meta, "div", { cls: "mtb-meta-col" }); make(dur, "label", { text: "耗时(分钟)" });
     this.duration = make(dur, "input", { attr: { type: "number", min: "1" } }); this.duration.value = this.record?.durationMin ? String(this.record.durationMin) : "";
-    const rate = make(meta, "div", { cls: "mtb-meta-col" }); make(rate, "label", { text: "评分(1-10)" });
-    this.score = make(rate, "input", { attr: { type: "number", min: "1", max: "10", step: "any" } }); this.score.value = this.record?.score ? String(this.record.score) : "";
+    const rate = make(meta, "div", { cls: "mtb-meta-col" }); make(rate, "label", { text: "评分(1-120)" });
+    this.score = make(rate, "input", { attr: { type: "number", min: "1", max: "120", step: "any" } }); this.score.value = this.record?.score ? String(this.record.score) : "";
     make(form, "label", { text: "comment / 评论" });
     this.comment = make(form, "textarea", { attr: { rows: "8", maxlength: "2000" } }); this.comment.value = this.record?.comment || "";
     this.initialValues = JSON.stringify(this.values());
@@ -9577,7 +9577,7 @@ class RecordModal extends Modal {
       const v = this.values(), timeValue = ts(v.normalizedTimestamp), durationValue = Number(v.durationMin), scoreValue = Number(v.score);
       if (!timeValue) return new Notice("请输入正确的时间");
       if (!Number.isFinite(durationValue) || durationValue < 0 || (!this.allowIncomplete && durationValue === 0)) return new Notice("请输入正确耗时");
-      if (!Number.isFinite(scoreValue) || scoreValue < 0 || scoreValue > 10 || (!this.allowIncomplete && scoreValue < 1)) return new Notice("评分范围应为 1-10");
+      if (!Number.isFinite(scoreValue) || scoreValue < 0 || scoreValue > 120 || (!this.allowIncomplete && scoreValue < 1)) return new Notice("评分范围应为 1-120");
       if (!text(v.comment)) return new Notice("请输入评论");
       if (!this.allowIncomplete && !TimeFrames.validBinding(this.category)) return new Notice("请选择归属类别");
       await this.commit({ normalizedTimestamp: timeValue, durationMin: durationValue, score: scoreValue, comment: text(v.comment),

@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "updated": "2026-10-28T14:14:27.563Z",
+  "updated": "2026-11-01T15:07:43.520Z",
   "vault_name": "大千-协作实验版",
   "indexes": {
     "by_keyword": {
@@ -86,6 +86,6 @@
     "tree_visible_count": 8,
     "mermaid_start_count": 0,
     "mermaid_hidden_count": 0,
-    "last_reason": "debounced"
+    "last_reason": "startup"
   }
 }

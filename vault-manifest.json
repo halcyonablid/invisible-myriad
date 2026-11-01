@@ -1,7 +1,7 @@
 {
   "format": "obsidian-vault-backup-v1",
-  "count": 4314,
-  "bytes": 210668299,
+  "count": 4321,
+  "bytes": 210722637,
   "files": [
     {
       "path": ".gitignore",
@@ -21,12 +21,12 @@
     {
       "path": ".obsidian/community-plugins.json",
       "bytes": 1116,
-      "sha256": "9ccece4ef68cc0fd5f52dfa3949179ac629b6494ef254343de7d7c5c8d91c512"
+      "sha256": "dda9a0f67f51b3e24bca94a80bf9771128846f7ea4b20d0bd6ffb7b639fdec04"
     },
     {
       "path": ".obsidian/core-plugins.json",
-      "bytes": 709,
-      "sha256": "f10b214c507f62ec32aace1958246a1c3ec9af1ebfc6df36380d296114839bfb"
+      "bytes": 707,
+      "sha256": "ade616dfe1c11ed1a69d5ac37d7b2d0271fca3b8e48e6885c5f91e054b4db27c"
     },
     {
       "path": ".obsidian/daily-notes.json",
@@ -35,8 +35,8 @@
     },
     {
       "path": ".obsidian/hotkeys.json",
-      "bytes": 443,
-      "sha256": "214fdd61f29386278ef0093fccd2a19756f8aefadb3fe76f031661712526a8a5"
+      "bytes": 779,
+      "sha256": "c35a37536540bf7ccf858450f87905d163ee693f7f1397df46f2350154862b85"
     },
     {
       "path": ".obsidian/plugins/advanced-canvas/main.js",
@@ -510,8 +510,8 @@
     },
     {
       "path": ".obsidian/plugins/eva-cross-view-relations/data.json",
-      "bytes": 114046,
-      "sha256": "c37588134a166a7a3b32e95df5d63a54fab30c58b2bfd74b6c23a602b8c86130"
+      "bytes": 118186,
+      "sha256": "aebbb4c907e2c85587c4ad3418cc6c7c7315541fa10e617f27d7b2d05cff616e"
     },
     {
       "path": ".obsidian/plugins/eva-cross-view-relations/main.js",
@@ -710,8 +710,8 @@
     },
     {
       "path": ".obsidian/plugins/keyword-index-plugin/data.json",
-      "bytes": 745,
-      "sha256": "9bd11d4cdcc83bcea78dae967efeb443bd50227b9355d5d53e085109d200af7c"
+      "bytes": 744,
+      "sha256": "a7d83e4c002d450e70a6c1c1737385260d002a387b16bee7998b5bad670bb452"
     },
     {
       "path": ".obsidian/plugins/keyword-index-plugin/identity-transaction.js",
@@ -729,9 +729,14 @@
       "sha256": "cad43d5ef919ede5dddb6670d5ff2c4c1ca4158618a256c49758dc653ddf2a43"
     },
     {
+      "path": ".obsidian/plugins/keyword-index-plugin/scan-source-cache.json",
+      "bytes": 6546,
+      "sha256": "a1141f5563f4ede4506d423306d655cc399455970c86f7fc42db5038283ba1f1"
+    },
+    {
       "path": ".obsidian/plugins/keyword-index-plugin/stable-identity.js",
-      "bytes": 10078,
-      "sha256": "0cd52a5e3b420bc7d5731326fa58beeccce009c593920441c5b21d7644c645c0"
+      "bytes": 11323,
+      "sha256": "4c5c747b3a6d37d7993516bd377da378c567da39207e12e774594732eec72fa3"
     },
     {
       "path": ".obsidian/plugins/keyword-index-plugin/styles.css",
@@ -795,8 +800,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/main.js",
-      "bytes": 1631266,
-      "sha256": "f0fc36ade1f4ddcad5434f5d55e83ae51c85e98adf93fd5030eb221a6e59c8bf"
+      "bytes": 1631271,
+      "sha256": "d088127c9817144cda042e9c03dba3990672e9f1f78535749246712418967291"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/manifest.json",
@@ -846,17 +851,17 @@
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/mermaid-fold-index.json",
       "bytes": 5586,
-      "sha256": "8d24b2b11951084f88599ffe9f431bfee6e53092d546bcaa001216838f7cac80"
+      "sha256": "f1e648706902b0ed7b09101ec2153d1fea4e65d971b4e1d5ae245fb2feae0a8b"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/mermaid-node-index.json",
       "bytes": 9388,
-      "sha256": "f013dada7698c20cb6c862649dc59350cdbd35899435029aaf2770e12c09f20c"
+      "sha256": "0c26b8343765e483598f60fcc981095287726a7569dfd59dad9d3089e1fd5517"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/mermaid-reference-index.json",
       "bytes": 6143,
-      "sha256": "4e873a14595550e05022bc24a29b70ce33a15e02be7041fb387ade2f01fc3f52"
+      "sha256": "8d613b620f21539ed8a2b96232c2eadd920e90e203a64e2d5700e66638fce77d"
     },
     {
       "path": ".obsidian/plugins/mermaid-tools/main.js",
@@ -20910,8 +20915,8 @@
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-ui.json",
-      "bytes": 627,
-      "sha256": "9753981e77f8edde9cc9bbae4426244335be5d4e74144a70143fddf899cd23a0"
+      "bytes": 673,
+      "sha256": "69645ae5043ee4cace88848d82af8548f2d57d1105aaf89e462f773b072debb1"
     },
     {
       "path": ".obsidian/plugins/supermemo-plan/data.json",
@@ -20974,6 +20979,16 @@
       "sha256": "67a6dd2d1d6dedca1287c334ca884ec4196433f71ca47388a0bd3eac14cf8b5f"
     },
     {
+      "path": ".obsidian/plugins/temporal-framework/Temporal_Framework.json",
+      "bytes": 1053,
+      "sha256": "d3bd14c22c643ca17547917a9815ced06378f926f757ce5e4087d4cdcfd6e8e0"
+    },
+    {
+      "path": ".obsidian/plugins/temporal-framework/Temporal_Framework_Drafts.json",
+      "bytes": 95,
+      "sha256": "21b8410e285bf7b74d51781a4c98810a76a89bcca2ec048d240c5c2af8bedbff"
+    },
+    {
       "path": ".obsidian/plugins/temporal-framework/main.js",
       "bytes": 335432,
       "sha256": "61a898145e585bec9099ed287d8c426a0a62e39461bbea5fc32ac9c4ea962599"
@@ -21025,8 +21040,8 @@
     },
     {
       "path": ".obsidian/plugins/view-group-hub/data.json",
-      "bytes": 517,
-      "sha256": "20ecf021fb923c7899a9c2cfe868449c0ad0e2a14f8b4c2e0683edc7f522ed6c"
+      "bytes": 565,
+      "sha256": "b6c2e71b01176f291fee5d3b50b24c496d5d490ae01a128be8aea4a94cec7778"
     },
     {
       "path": ".obsidian/plugins/view-group-hub/main.js",
@@ -21140,8 +21155,8 @@
     },
     {
       "path": ".obsidian/workspace.json",
-      "bytes": 30230,
-      "sha256": "3042163c8612647b45e4a7296ff1c3fb684e3c7c978bb27f6299623bae3b1660"
+      "bytes": 33433,
+      "sha256": "1bf5ef367fafe3a2759878b8860a365dd5707ad80fcaa6e7491014230f0f4fb2"
     },
     {
       "path": "Attachments/1e051508f30f21cbc11f322831756eb7.png",
@@ -21195,23 +21210,23 @@
     },
     {
       "path": "EVA_Indexer_State.json",
-      "bytes": 35989,
-      "sha256": "33741df61fdb7a2eee2055008b4257f412dea4afcd3c0af88c9bf62a3992e4aa"
+      "bytes": 35987,
+      "sha256": "6957675e432c8b51933ff1ee3b17ec8efc301a11b56b43483c6a4c87b802726d"
     },
     {
       "path": "EVA_Indexes.json",
-      "bytes": 1819,
-      "sha256": "acddc876cf5f132dfd3097d5d039334823ff3263007a579bb89ba65af18a359e"
+      "bytes": 1817,
+      "sha256": "fd451fe121ce84a5d32a6a3cb4764afb2e913c7387c7ea1b3f7e20fddef4acf9"
     },
     {
       "path": "EVA_Links.json",
       "bytes": 11938,
-      "sha256": "78cb6358b0d4c99b993d67e527d591ceeb704ade036db558c71f8527d7e03520"
+      "sha256": "f3d970896555ef7296e8275def4bb3e20e534b1acf7d8d92e843c5d063744a2c"
     },
     {
       "path": "EVA_Notes.json",
-      "bytes": 17674,
-      "sha256": "ba3b682501ee258623d1216a3bc48f33e6c8910f470986553cc65f2c5c1cc32f"
+      "bytes": 17672,
+      "sha256": "73422a9e74458b1889d4d2c06a990810fe9343b245f8d380e02340e6512bead1"
     },
     {
       "path": "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
@@ -21505,8 +21520,28 @@
     },
     {
       "path": "data/keyword_index.json",
+      "bytes": 6900,
+      "sha256": "9045820cc065e6d891e5ebcb9362e72a79134c3224cc32bc24d14fc92cff96e5"
+    },
+    {
+      "path": "data/keyword_index.json.bak-identity-upgrade-1793546324012",
       "bytes": 3066,
       "sha256": "c71dcbd2b499b7f3e0198b9f9c2a24a055935409e41c3a070351cf3be63b32e4"
+    },
+    {
+      "path": "data/keyword_index.json.bak-scan_mvxz6awo",
+      "bytes": 5885,
+      "sha256": "771a2a9433fda96fd602f9d9ef529fb6e22aeeaf193d1ce73c910684351d071b"
+    },
+    {
+      "path": "data/keyword_index.json.tx-identity-upgrade-1793546324012.json",
+      "bytes": 10357,
+      "sha256": "90dbc6503b1ba25c0ca69bdd52ab0b37b236b1e7d7839855446303d307b0372c"
+    },
+    {
+      "path": "data/keyword_index.json.tx-scan_mvxz6awo.json",
+      "bytes": 14488,
+      "sha256": "d27ca0aab37c3582b5704ccee22dd536c3296304de29d92a6554aca05acbc277"
     },
     {
       "path": "plugin-inventory.json",
@@ -22075,7 +22110,7 @@
     "Templates",
     "tools"
   ],
-  "captured_at": "2026-10-30T13:54:31.451582+08:00",
+  "captured_at": "2026-11-01T23:20:30.761837+08:00",
   "source": "D:\\han\\最新的\\大千-协作实验版-20261005\\大千-协作实验版",
   "stable": true
 }

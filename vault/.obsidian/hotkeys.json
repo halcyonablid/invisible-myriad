@@ -26,5 +26,25 @@
       ],
       "key": "O"
     }
+  ],
+  "keyword-index-plugin:scan-and-save-keyword-index": [
+    {
+      "modifiers": [
+        "Alt",
+        "Mod",
+        "Shift"
+      ],
+      "key": "2"
+    }
+  ],
+  "keyword-index-plugin:upgrade-stable-keyword-identity": [
+    {
+      "modifiers": [
+        "Alt",
+        "Mod",
+        "Shift"
+      ],
+      "key": "C"
+    }
   ]
 }

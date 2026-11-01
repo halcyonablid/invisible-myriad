@@ -97,9 +97,27 @@ function legacyKey(indexPath, d) {
     d.kind === "keyword" ? "capsule" : [d.type, d.scope, ...d.pathParts].map(encodeURIComponent).join("/"));
 }
 
+// Recognize the original flat Daqian sample envelope without inventing a version.
+// This gate only permits the existing explicit preview/confirm upgrade command.
+function isLegacyDaqianIndex(raw) {
+  const object = (value) => value && typeof value === "object" && !Array.isArray(value);
+  const nonempty = (value) => typeof value === "string" && value.trim().length > 0;
+  if (!object(raw) || own(raw, "version") || !object(raw.meta) || raw.meta.source !== "synthetic-daqian" || !object(raw.keywords)) return false;
+  const labels = new Set();
+  for (const [id, keyword] of Object.entries(raw.keywords)) {
+    if (!safe(id) || !object(keyword) || keyword.id !== id || !nonempty(keyword.baseKeyword) || !nonempty(keyword.displayText) || labels.has(keyword.baseKeyword)) return false;
+    if (keyword.type !== "yaml" || keyword.parentId !== "" || !Number.isFinite(keyword.order) || !Array.isArray(keyword.notes)) return false;
+    labels.add(keyword.baseKeyword);
+    for (const note of keyword.notes) {
+      if (!object(note) || !nonempty(note.path) || !nonempty(note.name) || note.suffix !== "" || note.sourceType !== "yaml") return false;
+    }
+  }
+  return true;
+}
+
 function upgrade(raw, descriptors, historicalKeys, indexPath) {
   if (own(raw, "identityRegistry")) { validate(raw.identityRegistry); return copy(raw.identityRegistry); }
-  if (String(raw.version) !== "4.1") fail("only explicit v4.1 upgrade is supported");
+  if (String(raw.version) !== "4.1" && !isLegacyDaqianIndex(raw)) fail("仅支持 v4.1 或结构完整的旧版大千示例索引；未进行升级或写入");
   const registry = { schema: 1, revision: 1, nodes: [] };
   const byKey = new Map();
   const add = (d, key, status, provenance) => {

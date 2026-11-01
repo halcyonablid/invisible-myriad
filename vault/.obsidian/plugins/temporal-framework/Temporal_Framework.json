@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 3,
+  "storeId": "temporal_store_a4be4e0e8f634ea9a8bb7a3359066535",
+  "revision": 1,
+  "nextEventOrdinal": 2,
+  "createdAt": "2026-10-30T07:03:37.633Z",
+  "updatedAt": "2026-10-30T07:03:37.633Z",
+  "timezone": "Asia/Shanghai",
+  "calendar": "iso8601",
+  "policyVersion": 1,
+  "frameworkEventsById": {
+    "fw_evt_599c78e7cea546ddbf6deb2940996ab8": {
+      "id": "fw_evt_599c78e7cea546ddbf6deb2940996ab8",
+      "type": "create",
+      "commitRevision": 1,
+      "ordinal": 1,
+      "createdAt": "2026-10-30T07:03:37.633Z",
+      "reason": "",
+      "frameworkId": "framework_59071f521f8e43089ed474f2ec000656",
+      "title": "2026-2028 整体时间框架",
+      "startDate": "2026-10-01",
+      "endDateExclusive": "2029-01-01",
+      "timezone": "Asia/Shanghai",
+      "calendar": "iso8601",
+      "policyVersion": 1
+    }
+  },
+  "membershipEventsById": {},
+  "outcomeEventsById": {},
+  "placementEventsById": {},
+  "relationEventsById": {},
+  "gatePolicyEventsById": {},
+  "completionEventsById": {},
+  "coverageEventsById": {}
+}

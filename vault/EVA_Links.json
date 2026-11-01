@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "updated": "2026-10-28T14:14:27.563Z",
+  "updated": "2026-11-01T15:07:43.520Z",
   "vault_name": "大千-协作实验版",
   "link_types": [
     "wikilink",
@@ -9,38 +9,6 @@
     "backlink"
   ],
   "links": [
-    {
-      "source": "ATOM@1.4",
-      "target": "ATOM@1.5",
-      "type": "wikilink",
-      "context": "看到材料链接后更容易理解行动。下一轮先展示材料，再展示计划。这里不是作者的真实经历。\r \r 下一站：[[Examples/ATOM@1.5-演示路线与完成标准]]。",
-      "created": "2026-10-05T14:43:18.906Z",
-      "_ext": {}
-    },
-    {
-      "source": "ATOM@1.3",
-      "target": "ATOM@1.4",
-      "type": "wikilink",
-      "context": "轮排练发现开场过长。下一步行动是把开场缩到六十秒；完成标准是计时读完且保留核心问题。\r \r 下一站：[[Examples/ATOM@1.4-回顾不是重新列计划]]。",
-      "created": "2026-10-05T14:43:18.907Z",
-      "_ext": {}
-    },
-    {
-      "source": "ATOM@1.1",
-      "target": "ATOM@001.002",
-      "type": "wikilink",
-      "context": "个人知识系统。他们想知道：资料放哪里？今天做什么？做完如何回看？每个问题只演示一次操作。  下一站：[[ATOM@001.002- 把材料压缩成三张卡]]。",
-      "created": "2026-10-26T16:08:44.953Z",
-      "_ext": {}
-    },
-    {
-      "source": "ATOM@1",
-      "target": "ATOM@1.1",
-      "type": "wikilink",
-      "context": "在周五向三位朋友介绍大千。成功标准：朋友能独立找到一份材料、创建一个行动、写下回顾。\r \r 下一站：[[Examples/ATOM@1.1-先说清楚听众的问题]]。",
-      "created": "2026-10-05T14:43:18.907Z",
-      "_ext": {}
-    },
     {
       "source": "ATOM@002.002.001",
       "target": "ATOM@900",
@@ -114,27 +82,51 @@
       "_ext": {}
     },
     {
-      "source": "ATOM@001.002",
-      "target": "ATOM@1.3",
+      "source": "ATOM@1.4",
+      "target": "ATOM@1.5",
       "type": "wikilink",
-      "context": "卡一讲问题，卡二讲行动，卡三讲回顾。删去工具名堆叠，每张卡保留一个可以试做的例子。\r \r 下一站：[[Examples/ATOM@1.3-一次排练只改一个问题]]。",
+      "context": "看到材料链接后更容易理解行动。下一轮先展示材料，再展示计划。这里不是作者的真实经历。\r \r 下一站：[[Examples/ATOM@1.5-演示路线与完成标准]]。",
+      "created": "2026-10-05T14:43:18.906Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@1.3",
+      "target": "ATOM@1.4",
+      "type": "wikilink",
+      "context": "轮排练发现开场过长。下一步行动是把开场缩到六十秒；完成标准是计时读完且保留核心问题。\r \r 下一站：[[Examples/ATOM@1.4-回顾不是重新列计划]]。",
+      "created": "2026-10-05T14:43:18.907Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@1.1",
+      "target": "ATOM@001.002",
+      "type": "wikilink",
+      "context": "个人知识系统。他们想知道：资料放哪里？今天做什么？做完如何回看？每个问题只演示一次操作。  下一站：[[ATOM@001.002- 把材料压缩成三张卡]]。",
       "created": "2026-10-26T16:08:44.953Z",
       "_ext": {}
     },
     {
-      "source": "ATOM@002.002.002",
-      "target": "ATOM@002.002.001",
+      "source": "ATOM@1",
+      "target": "ATOM@1.1",
       "type": "wikilink",
-      "context": "。至于应该在哪片领域生长、怎样避免每次都另起一个重复入口，就交给下一篇的“树与关键词”。  上一篇：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：",
-      "created": "2026-10-28T13:52:41.520Z",
+      "context": "在周五向三位朋友介绍大千。成功标准：朋友能独立找到一份材料、创建一个行动、写下回顾。\r \r 下一站：[[Examples/ATOM@1.1-先说清楚听众的问题]]。",
+      "created": "2026-10-05T14:43:18.907Z",
       "_ext": {}
     },
     {
-      "source": "ATOM@002.002.002",
+      "source": "ATOM@002.002.004",
       "target": "ATOM@002.002.003",
       "type": "wikilink",
-      "context": "2.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：怎样掌握整个库]]。",
-      "created": "2026-10-28T13:52:41.520Z",
+      "context": "速找到下一步。工作不再只是一张孤立的待办清单，也不至于只有丰富材料、却不知道从哪里开始。  上一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid",
+      "created": "2026-10-28T14:14:27.555Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@002.002.004",
+      "target": "ATOM@002.002.001",
+      "type": "wikilink",
+      "context": "2.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：怎样记录一个过程的发展]]。",
+      "created": "2026-10-28T14:14:27.555Z",
       "_ext": {}
     },
     {
@@ -154,23 +146,59 @@
       "_ext": {}
     },
     {
-      "source": "ATOM@002.002.004",
-      "target": "ATOM@002.002.003",
+      "source": "ATOM@002.002.002",
+      "target": "ATOM@002.002.001",
       "type": "wikilink",
-      "context": "速找到下一步。工作不再只是一张孤立的待办清单，也不至于只有丰富材料、却不知道从哪里开始。  上一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid",
-      "created": "2026-10-28T14:14:27.555Z",
+      "context": "。至于应该在哪片领域生长、怎样避免每次都另起一个重复入口，就交给下一篇的“树与关键词”。  上一篇：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：",
+      "created": "2026-10-28T13:52:41.520Z",
       "_ext": {}
     },
     {
-      "source": "ATOM@002.002.004",
-      "target": "ATOM@002.002.001",
+      "source": "ATOM@002.002.002",
+      "target": "ATOM@002.002.003",
       "type": "wikilink",
-      "context": "2.002.003- 树和关键词的结合，库整体结构设计|树和关键词：知识怎样组织起来]]。  相关：[[ATOM@002.002.001- 首先是mermaid图的使用方法|Mermaid 图：怎样记录一个过程的发展]]。",
-      "created": "2026-10-28T14:14:27.555Z",
+      "context": "2.001- 首先是mermaid图的使用方法|Mermaid 图：地址怎样形成图]]。  下一篇：[[ATOM@002.002.003- 树和关键词的结合，库整体结构设计|树和关键词：怎样掌握整个库]]。",
+      "created": "2026-10-28T13:52:41.520Z",
+      "_ext": {}
+    },
+    {
+      "source": "ATOM@001.002",
+      "target": "ATOM@1.3",
+      "type": "wikilink",
+      "context": "卡一讲问题，卡二讲行动，卡三讲回顾。删去工具名堆叠，每张卡保留一个可以试做的例子。\r \r 下一站：[[Examples/ATOM@1.3-一次排练只改一个问题]]。",
+      "created": "2026-10-26T16:08:44.953Z",
       "_ext": {}
     }
   ],
   "adjacency": {
+    "ATOM@002.002.001": {
+      "outgoing": [
+        "ATOM@002.002",
+        "ATOM@900",
+        "ATOM@900.001",
+        "ATOM@900.001.001",
+        "ATOM@900.001+001",
+        "ATOM@900.001+001.002",
+        "ATOM@900.001+001.002+001",
+        "ATOM@900.001+001+001",
+        "ATOM@900.002"
+      ],
+      "incoming": [
+        "ATOM@002.002.002",
+        "ATOM@002.002.003",
+        "ATOM@002.002.004"
+      ],
+      "outgoing_count": 9,
+      "incoming_count": 3
+    },
+    "ATOM@002.002": {
+      "outgoing": [],
+      "incoming": [
+        "ATOM@002.002.001"
+      ],
+      "outgoing_count": 0,
+      "incoming_count": 1
+    },
     "ATOM@1.4": {
       "outgoing": [
         "ATOM@1.5"
@@ -227,44 +255,14 @@
       "outgoing_count": 1,
       "incoming_count": 0
     },
-    "ATOM@002.002.001": {
-      "outgoing": [
-        "ATOM@002.002",
-        "ATOM@900",
-        "ATOM@900.001",
-        "ATOM@900.001.001",
-        "ATOM@900.001+001",
-        "ATOM@900.001+001.002",
-        "ATOM@900.001+001.002+001",
-        "ATOM@900.001+001+001",
-        "ATOM@900.002"
-      ],
-      "incoming": [
-        "ATOM@002.002.002",
-        "ATOM@002.002.003",
-        "ATOM@002.002.004"
-      ],
-      "outgoing_count": 9,
-      "incoming_count": 3
-    },
-    "ATOM@002.002": {
-      "outgoing": [],
-      "incoming": [
-        "ATOM@002.002.001"
-      ],
-      "outgoing_count": 0,
-      "incoming_count": 1
-    },
-    "ATOM@002.002.002": {
+    "ATOM@002.002.004": {
       "outgoing": [
         "ATOM@002.002.001",
         "ATOM@002.002.003"
       ],
-      "incoming": [
-        "ATOM@002.002.003"
-      ],
+      "incoming": [],
       "outgoing_count": 2,
-      "incoming_count": 1
+      "incoming_count": 0
     },
     "ATOM@002.002.003": {
       "outgoing": [
@@ -278,14 +276,16 @@
       "outgoing_count": 2,
       "incoming_count": 2
     },
-    "ATOM@002.002.004": {
+    "ATOM@002.002.002": {
       "outgoing": [
         "ATOM@002.002.001",
         "ATOM@002.002.003"
       ],
-      "incoming": [],
+      "incoming": [
+        "ATOM@002.002.003"
+      ],
       "outgoing_count": 2,
-      "incoming_count": 0
+      "incoming_count": 1
     }
   },
   "stats": {

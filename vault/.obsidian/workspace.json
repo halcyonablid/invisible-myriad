@@ -29,27 +29,6 @@
             }
           },
           {
-            "id": "dq-keyword",
-            "type": "leaf",
-            "pane-relief:history-v1": {
-              "pos": 0,
-              "stack": [
-                {
-                  "state": "{}",
-                  "eState": "{}"
-                }
-              ]
-            },
-            "pinned": true,
-            "state": {
-              "type": "keyword-index-plugin-view",
-              "state": {},
-              "pinned": true,
-              "icon": "tags",
-              "title": "Keyword Index"
-            }
-          },
-          {
             "id": "dq-concept",
             "type": "leaf",
             "pane-relief:history-v1": {
@@ -68,6 +47,25 @@
               "pinned": true,
               "icon": "network",
               "title": "SuperMemo Concept Display"
+            }
+          },
+          {
+            "id": "7bf520adfb20741d",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "keyword-index-plugin-view",
+              "state": {},
+              "icon": "tags",
+              "title": "Keyword Index"
             }
           },
           {
@@ -92,6 +90,35 @@
             }
           },
           {
+            "id": "f6088a98b5783cbf",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "mandala-nine-grid-view",
+              "state": {
+                "sourceNotePath": "System/Mandala/Mandala.md",
+                "gridId": "mvumlgp6ic5mqq",
+                "manageCurrentId": "root",
+                "manageView": "grid",
+                "nodeSearchQuery": "",
+                "keywordSearchQuery": "",
+                "collapsedNodeIds": [],
+                "gridSize": 9,
+                "scrollTop": 0
+              },
+              "icon": "grid-3x3",
+              "title": "九宫格"
+            }
+          },
+          {
             "id": "11c5e754a7480cb8",
             "type": "leaf",
             "pane-relief:history-v1": {
@@ -108,7 +135,7 @@
               "state": {
                 "sourceNotePath": "System/Collection/Collection.md",
                 "domain": "project",
-                "selected": "all",
+                "selected": "membership::mandala-time-blocks::project::System%2FMandala%2FMandala.md::jump%3Av1%3Aworkspace-mount-view%7CSystem%252FWorkspace%252FWorkspace.md%7Ctab%7Cdq-workspace-tab%7Citem_muvd1tpfsfxk5::v1",
                 "tagSelection": [],
                 "tagMode": "single",
                 "tagGroup": "all"
@@ -462,8 +489,14 @@
             "id": "4261ed4217926ac3",
             "type": "leaf",
             "pane-relief:history-v1": {
-              "pos": 0,
+              "pos": 1,
               "stack": [
+                {
+                  "title": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标",
+                  "icon": "lucide-file",
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标\"}",
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}}}"
+                },
                 {
                   "state": "{}",
                   "eState": "{}"
@@ -488,10 +521,10 @@
               "pos": 1,
               "stack": [
                 {
-                  "title": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计",
+                  "title": "ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图",
                   "icon": "lucide-file",
-                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.003- 树和关键词的结合，库整体结构设计\"}",
-                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}}}"
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图\"}",
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}},\"scroll\":0}"
                 },
                 {
                   "state": "{}",
@@ -517,9 +550,9 @@
               "pos": 1,
               "stack": [
                 {
-                  "title": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计",
+                  "title": "ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子",
                   "icon": "lucide-file",
-                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.003- 树和关键词的结合，库整体结构设计\"}",
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子\"}",
                   "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}},\"scroll\":0}"
                 },
                 {
@@ -549,7 +582,7 @@
                   "title": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标",
                   "icon": "lucide-file",
                   "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标\"}",
-                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}},\"scroll\":0}"
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}}}"
                 },
                 {
                   "state": "{}",
@@ -575,10 +608,10 @@
               "pos": 1,
               "stack": [
                 {
-                  "title": "ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图",
+                  "title": "ATOM@002.002.003- 树和关键词的结合，库整体结构设计",
                   "icon": "lucide-file",
-                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图\"}",
-                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}},\"scroll\":0}"
+                  "state": "{\"type\":\"markdown\",\"state\":{\"file\":\"Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md\",\"mode\":\"source\",\"source\":false},\"icon\":\"lucide-file\",\"title\":\"ATOM@002.002.003- 树和关键词的结合，库整体结构设计\"}",
+                  "eState": "{\"cursor\":{\"from\":{\"line\":8,\"ch\":0},\"to\":{\"line\":8,\"ch\":0}}}"
                 },
                 {
                   "state": "{}",
@@ -596,9 +629,55 @@
               "icon": "lucide-file",
               "title": "ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标"
             }
+          },
+          {
+            "id": "cece7bcd2d0c5312",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@1-准备十分钟分享.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@1-准备十分钟分享"
+            }
+          },
+          {
+            "id": "1bddcfcbc53e09d8",
+            "type": "leaf",
+            "pane-relief:history-v1": {
+              "pos": 0,
+              "stack": [
+                {
+                  "state": "{}",
+                  "eState": "{}"
+                }
+              ]
+            },
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Examples/ATOM@2.1-观察先于解释.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "ATOM@2.1-观察先于解释"
+            }
           }
         ],
-        "currentTab": 16
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -702,7 +781,7 @@
             }
           }
         ],
-        "currentTab": 3
+        "currentTab": 2
       }
     ],
     "direction": "horizontal",
@@ -861,51 +940,60 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "create-similar-note:创建相似笔记": false,
+      "create-similar-note:创建相似笔记": true,
       "context-key-manager:主键管理中心": false,
       "switcher:打开快速切换": false,
-      "eva-tree-view:打开 EVA 树状图": false,
-      "antinet-tree-structure:Antinet 树的结构": false,
-      "mermaid-tools:Open Mermaid Toolbar": false,
-      "supermemo-plan:Open SuperMemo Plan": false,
-      "timeline-planner:打开 Timeline 时间线": false,
-      "gtd-task-manager:打开 GTD 待办事项管理": false,
-      "project-execution-overview:项目执行总览": false,
-      "workspace-mount:Open Workspace Mount": false,
-      "temporal-framework:打开时间框架": false,
-      "collection-card-view:Open Collection Card View": false,
-      "eva-branch-sidebar:EVA 分支树": false,
-      "eva-cross-view-relations:EVA Meta Capture": false,
-      "ontology-meta-hub:打开 Ontology 元表格": false,
-      "file-tree-alternative:File Tree Alternative Plugin": false,
+      "eva-tree-view:打开 EVA 树状图": true,
+      "antinet-tree-structure:Antinet 树的结构": true,
+      "mermaid-tools:Open Mermaid Toolbar": true,
+      "supermemo-plan:Open SuperMemo Plan": true,
+      "timeline-planner:打开 Timeline 时间线": true,
+      "gtd-task-manager:打开 GTD 待办事项管理": true,
+      "project-execution-overview:项目执行总览": true,
+      "workspace-mount:Open Workspace Mount": true,
+      "temporal-framework:打开时间框架": true,
+      "collection-card-view:Open Collection Card View": true,
+      "eva-branch-sidebar:EVA 分支树": true,
+      "eva-cross-view-relations:EVA Meta Capture": true,
+      "ontology-meta-hub:打开 Ontology 元表格": true,
+      "file-tree-alternative:File Tree Alternative Plugin": true,
       "view-group-hub:打开视图组": false,
-      "reference-graph-widget:打开关系图谱悬浮窗": false,
-      "mandala-time-blocks:Open Mandala Time Blocks": false,
-      "next-action-workbench:下一步行动台": false,
-      "atom-note-sidebar:ATOM 侧栏导航": false,
-      "supermemo-concept-display:Open SuperMemo Concept Display": false,
+      "reference-graph-widget:打开关系图谱悬浮窗": true,
+      "mandala-time-blocks:Open Mandala Time Blocks": true,
+      "next-action-workbench:下一步行动台": true,
+      "atom-note-sidebar:ATOM 侧栏导航": true,
+      "supermemo-concept-display:Open SuperMemo Concept Display": true,
       "keyword-index-plugin:Open Keyword Index": false,
-      "mermaid-floating-widget:Toggle Mermaid floating widget": false,
-      "daily-note-review:每日 Note 回看": false,
-      "periodic-notes:Open today": false
+      "mermaid-floating-widget:Toggle Mermaid floating widget": true,
+      "daily-note-review:每日 Note 回看": true,
+      "periodic-notes:Open today": false,
+      "workspaces:管理工作区布局": false,
+      "command-palette:打开命令面板": false
     }
   },
-  "active": "233a28fb70ee463d",
+  "active": "7bf520adfb20741d",
   "lastOpenFiles": [
+    "data/keyword_index.json.tx-scan_mvxz6awo.json",
+    "data/keyword_index.json.identity-pending.json",
+    "data/keyword_index.json.bak-scan_mvxz6awo",
+    "data/keyword_index.json.tx-identity-upgrade-1793546324012.json",
+    "data/keyword_index.json.bak-identity-upgrade-1793546324012",
+    "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
+    "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
+    "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
+    "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
+    "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
+    "Examples/ATOM@2.1-观察先于解释.md",
+    "Examples/ATOM@1-准备十分钟分享.md",
     "Attachments/ABC-004-行动台项目待办.png",
     "Attachments/ABC-004-行动台标签筛选.png",
     "Attachments/ABC-004-主键管理中心.png",
     "Attachments/ABC-004-复杂项目总览.png",
     "Attachments/Pasted image 20261028215716.png",
-    "Examples/ATOM@002.002.003- 树和关键词的结合，库整体结构设计.md",
-    "Examples/ATOM@002.002.004- 分类：项目管理，待办事项管理体系，有效操作上下文主键，关于项目和目标.md",
-    "Examples/ATOM@002.002.002- 其次是新增笔记，笔记地址的排列规则，新增笔记插件和两侧的视图.md",
     "Attachments/Pasted image 20261028214909.png",
-    "Examples/ATOM@002.002.001- 首先是mermaid图的使用方法.md",
     "Attachments/Pasted image 20261028213945.png",
     "Attachments/Pasted image 20261028213510.png",
     "Examples/ATOM@002.001- 分类：形式的使用理念.md",
-    "Examples/ATOM@002.002- 分类：具体库当中的插件的应用、说明和例子.md",
     "Examples/ATOM@002- 分类：组件使用的说明.md",
     "Examples/ATOM@001.003- 把材料压缩成三张卡.md",
     "Examples/ATOM@001.002- 把材料压缩成三张卡.md",
@@ -917,10 +1005,6 @@
     "System/Mandala/Mandala_DailyLessons.json.rollback-1793168540718-mvrq9166p95dne",
     "System/Mandala/Mandala_DailyLessons.json.tmp-1793168533102-mvrq8vamjh81mo",
     "System/Mandala/Mandala_DailyLessons.json.rollback-1793168533102-mvrq8vamjh81mo",
-    "System/Mandala/Mandala_DailyLessons.json.tmp-1793168531196-mvrq8ttohh7mer",
-    "System/Mandala/Mandala_DailyLessons.json.rollback-1793168531196-mvrq8ttohh7mer",
-    "System/Mandala/Mandala_DailyLessons.json.tmp-1793168527136-mvrq8qowb0dth1",
-    "System/Mandala/Mandala_DailyLessons.json.rollback-1793168527136-mvrq8qowb0dth1",
     "Examples/ATOM@001.002- 把材料压缩成三张卡.001- 新的想法23.md",
     "Examples/outliner-20261027000516.md",
     "Examples/Untitled.md",

@@ -42,8 +42,8 @@
   "next-action-workbench",
   "atom-note-sidebar",
   "supermemo-concept-display",
-  "keyword-index-plugin",
   "mermaid-floating-widget",
   "daily-note-review",
-  "create-similar-note"
+  "create-similar-note",
+  "keyword-index-plugin"
 ]
