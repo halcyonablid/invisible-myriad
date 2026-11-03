@@ -442,10 +442,10 @@
   "daysByDate": {
     "2026-10-05": {
       "date": "2026-10-05",
-      "plan": "试讲开场并计时",
-      "completion": "虚构记录：第一轮用了九十秒",
-      "adjustment": "删去背景介绍的一段",
-      "tomorrowPlan": "再排练一次六十秒开场",
+      "plan": "试讲开场并计时\n\n【历史完成情况】\n虚构记录：第一轮用了九十秒",
+      "completion": "",
+      "adjustment": "删去背景介绍的一段\n\n【原明日计划】\n再排练一次六十秒开场",
+      "tomorrowPlan": "",
       "summary": "",
       "entriesByItemId": {
         "dq-lesson-rehearse": {

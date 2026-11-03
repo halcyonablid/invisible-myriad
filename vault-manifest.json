@@ -1,7 +1,7 @@
 {
   "format": "obsidian-vault-backup-v1",
   "count": 4321,
-  "bytes": 210746709,
+  "bytes": 216673618,
   "files": [
     {
       "path": ".gitignore",
@@ -800,13 +800,13 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/main.js",
-      "bytes": 1637368,
-      "sha256": "29c3563cc280821dac0bac5693fd3d411cb0563c1ade46a16f4119dcbe62fd77"
+      "bytes": 1629296,
+      "sha256": "f8a6f921be0d8ac936fcdf5598df170fb42174589d605dddc3006f58fbed835c"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/manifest.json",
       "bytes": 290,
-      "sha256": "e7b44fe283fd041ee9cc21ee92346dd9d55756622fd001d15ca2556ede0bc5b6"
+      "sha256": "41dc279356df3d51a433b934f4193861ba3721264f4050b4740933b75a47ca55"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/participant-snapshot.cjs",
@@ -820,8 +820,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/styles.css",
-      "bytes": 106168,
-      "sha256": "d2182a1a0670680f548c7f0358b14a4d921cf253963bb1510ceb339658cb41e9"
+      "bytes": 106174,
+      "sha256": "fcebae673da7fe7d5802b6ab909b700aea8fa8cb0d5c712812ec391e143daa42"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/tracking-state-reader.cjs",
@@ -835,18 +835,18 @@
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/core-script.js",
-      "bytes": 211688,
-      "sha256": "28fef11b88b09c1905bbbcb61b01b25685d6111e9b4140eee86019514f0764ad"
+      "bytes": 3179220,
+      "sha256": "e2abef7927ec223faee136e2c2035dd22751cb0417a6a8d82b50472a4e3ba116"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/main.js",
-      "bytes": 323238,
-      "sha256": "1d6095c1aecee5e8f04c48862b9fb1d15f854a5905c204a47404064b59c03ec3"
+      "bytes": 3290623,
+      "sha256": "7c22fad868fc712fb38939ebcc23782f9b0ccca5677713a188d68127a2238134"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/manifest.json",
       "bytes": 316,
-      "sha256": "6f85051ca06c814b44e8d0e8d74771532f2727f7b3d668a2d6932ab83c315328"
+      "sha256": "ff0d10e5445d7b83220857cf038270e97fbaef37177199d2d534cc8f8280b807"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/mermaid-fold-index.json",
@@ -21440,8 +21440,8 @@
     },
     {
       "path": "System/Mandala/Mandala_DailyLessons.json",
-      "bytes": 17081,
-      "sha256": "52eeb8060765c3f1924b256aa291aa4c2f1c13000aa0e8217f565d60aff9b746"
+      "bytes": 17139,
+      "sha256": "461e53383ab41c40f1ca23c081089ae884040fb2c1526c7b2879b61de9c9c918"
     },
     {
       "path": "System/Mandala/Mandala_Database.json",
@@ -22110,7 +22110,7 @@
     "Templates",
     "tools"
   ],
-  "captured_at": "2026-11-03T11:00:20.433168+08:00",
+  "captured_at": "2026-11-04T00:54:42.347652+08:00",
   "source": "D:\\han\\最新的\\大千-协作实验版-20261005\\大千-协作实验版",
   "stable": true
 }

@@ -1826,14 +1826,32 @@ const normalizeDailyStressDay = (day, fallback = {}) => {
     updatedAt: text(day?.updatedAt, fallback.updatedAt || ""),
   };
 };
+function mergeDailyLessonNotesV1(input = {}, fallback = {}) {
+  const read = key => {
+    const value = input[key] == null ? fallback[key] : input[key];
+    if (value == null) return '';
+    if (typeof value !== 'string') throw Error('日课文字字段异常：' + key);
+    return value;
+  };
+  const append = (current, legacy, title) => legacy.length ? current + (current.length ? '\n\n' : '') + '【' + title + '】\n' + legacy : current;
+  const plan = read('plan'), completion = read('completion');
+  const adjustment = input.adjustment != null
+    ? read('adjustment') || (input.summary != null ? read('summary') : '')
+    : read('adjustment') || read('summary');
+  const tomorrow = read('tomorrowPlan');
+  return { ...input, plan: append(plan, completion, '历史完成情况'), completion: '',
+    adjustment: append(adjustment, tomorrow, '原明日计划'), tomorrowPlan: '' };
+}
 const normalizeDailyLessonDay = (day, fallback = {}) => {
-  const summary = text(day?.summary, fallback.summary || "");
+  const merged = mergeDailyLessonNotesV1(day || {}, fallback);
+  const summary = day?.summary ?? fallback.summary ?? "";
   return {
+    ...clone(day || {}, {}),
     date: normalizeDailyLessonDateKey(day?.date || fallback.date),
-    plan: text(day?.plan, fallback.plan || ""),
-    completion: text(day?.completion, fallback.completion || ""),
-    adjustment: text(day?.adjustment, fallback.adjustment || summary),
-    tomorrowPlan: text(day?.tomorrowPlan, fallback.tomorrowPlan || ""),
+    plan: merged.plan,
+    completion: merged.completion,
+    adjustment: merged.adjustment,
+    tomorrowPlan: merged.tomorrowPlan,
     summary,
     entriesByItemId: day?.entriesByItemId && typeof day.entriesByItemId === "object" && !Array.isArray(day.entriesByItemId)
       ? clone(day.entriesByItemId, {})
@@ -7386,7 +7404,7 @@ body { margin: 0; font-family: "Microsoft YaHei", "Noto Sans CJK SC", Arial, san
 h1 { margin: 0 0 4px; font-size: 20px; }
 h2 { margin: 16px 0 7px; font-size: 15px; border-bottom: 2px solid #111827; padding-bottom: 4px; break-after: avoid; }
 .meta { display: flex; justify-content: space-between; gap: 12px; color: #4b5563; margin-bottom: 10px; }
-.note-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0 10px; }
+.note-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 6px 0 10px; }
 .note-box { min-height: 58px; border: 1px solid #9ca3af; padding: 6px; white-space: pre-wrap; word-break: break-word; }
 .muted { color: #6b7280; font-size: 10px; line-height: 1.45; }
 .closeout-badge,.current-stopped-badge,.kill-badge,.missing-badge { display: inline-block; margin: 3px 0 0 6px; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 700; }
@@ -7491,24 +7509,14 @@ ${rosterDiagnostic(payload.workspaceRosterPartial)}
   </div>
   <div class="note-grid">
     <div>
-      <div class="note-panel-title">今日计划三件事</div>
+      <div class="note-panel-title">今日计划</div>
       <div class="note-panel-hint">今天要推动什么、守住什么、避免什么</div>
       <div class="note-box">${escapeHtml(payload.dailyDay?.plan || "")}</div>
-    </div>
-    <div>
-      <div class="note-panel-title">完成情况</div>
-      <div class="note-panel-hint">实际完成、未完成、关键偏差</div>
-      <div class="note-box">${escapeHtml(payload.dailyDay?.completion || "")}</div>
     </div>
     <div>
       <div class="note-panel-title">记录、想法、路点与线索</div>
       <div class="note-panel-hint">今天经历、想法、路点、线索与调整</div>
       <div class="note-box">${escapeHtml(dailyCommentPrintText)}</div>
-    </div>
-    <div>
-      <div class="note-panel-title">明日计划三件事</div>
-      <div class="note-panel-hint">留给明天启动的三件事</div>
-      <div class="note-box">${escapeHtml(payload.dailyDay?.tomorrowPlan || "")}</div>
     </div>
   </div>
   <div class="daily-title-row">
@@ -10216,6 +10224,9 @@ function dailyPageProjection(plugin, store, template) {
 
 function dailyPageDelta(baseline, incoming, latest) {
   if (!baseline || baseline.date !== incoming.date || baseline.weekId !== incoming.weekId) throw new Error("日课页面基线不匹配，请保留草稿后重新打开。");
+  baseline = mergeDailyLessonNotesV1(baseline);
+  incoming = mergeDailyLessonNotesV1(incoming, baseline);
+  latest = mergeDailyLessonNotesV1(latest);
   const patch = { date: incoming.date, weekId: incoming.weekId, items: [] };
   const merge = (before, desired, current, target, fields) => {
     for (const key of fields) {
@@ -10525,7 +10536,7 @@ class DailyLessonsView extends ItemView {
           const latest = this.session.dailyLessonPageBaseline;
           dailyPageDelta(draft.baseline, draft.payload, latest); // Validate before touching visible inputs.
           this.session.dailyLessonPageWriter(draft.payload);
-          this.session.dailyLessonPageBaseline = clone(draft.baseline, null);
+          this.session.dailyLessonPageBaseline = mergeDailyLessonNotesV1(clone(draft.baseline, null));
           this.session.queueDailyLessonPageDraft();
           new Notice("草稿已恢复到编辑区，保存前仍会检查冲突。");
         } catch (error) { new Notice(error.message); }
@@ -15948,8 +15959,15 @@ class MandalaTimeBlocksPlugin extends Plugin {
   async saveDailyLessonPageUnlocked(dateValue, payload = {}) {
     const date = normalizeDailyLessonDateKey(dateValue);
     const baseline = this.dailyLessonPageBaseline;
-    const submitted = clone(payload, {});
+    const submittedRaw = clone(payload, {});
+    for (const [legacy, target] of [["completion", "plan"], ["tomorrowPlan", "adjustment"]]) {
+      if (typeof submittedRaw[legacy] === "string" && submittedRaw[legacy].length && !Object.hasOwn(submittedRaw, target)) {
+        throw new Error(`旧日课提交缺少 ${target} 基线，请保留原文并使用新的两列保存。`);
+      }
+    }
     const store = await this.loadDailyLessons(true);
+    const submitted = mergeDailyLessonNotesV1(submittedRaw, baseline || this.getDailyLessonDayFromStore(store, date));
+    payload = submitted;
     if (baseline && baseline.date === date) {
       if (baseline.sourceNotePath !== this.getPaths().sourceNotePath) throw new Error("日课页面来源已切换，未覆盖。");
       payload = dailyPageDelta(baseline, { ...submitted, date }, dailyPageProjection(this, store, submitted));
@@ -15957,10 +15975,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
     }
     const day = normalizeDailyLessonDay(store.daysByDate[date], { date });
     const now = nowIso();
-    if (payload.plan != null) day.plan = text(payload.plan);
+    if (payload.plan != null) day.plan = payload.plan;
     if (payload.completion != null) day.completion = text(payload.completion);
     if (payload.adjustment != null) {
-      day.adjustment = text(payload.adjustment);
+      day.adjustment = payload.adjustment;
       day.summary = day.adjustment;
     }
     if (payload.tomorrowPlan != null) day.tomorrowPlan = text(payload.tomorrowPlan);
@@ -21979,16 +21997,16 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const summaryBox = make(section, "div", { cls: "mtb-daily-lessons-summary mtb-daily-lessons-transition" });
     const summaryHead = make(summaryBox, "div", { cls: "mtb-daily-lessons-subhead" });
     make(summaryHead, "div", { cls: "mtb-daily-lessons-subtitle", text: "日课状态转移" });
-    make(summaryHead, "div", { cls: "mtb-muted", text: "昨日留下的状态承接今天，今天再写计划、完成、调整和明日三件事。" });
+    make(summaryHead, "div", { cls: "mtb-muted", text: "承接昨日的计划与记录，写下今天的安排、经历、想法和线索。" });
     const transitionGrid = make(summaryBox, "div", { cls: "mtb-daily-lessons-transition-grid" });
     const previousLabel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-transition-label", text: "昨日情况过来" });
     previousLabel.setAttribute("title", addDays(selectedDate, -1));
     const previousPlanPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel is-readonly" });
-    make(previousPlanPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "今日计划三件事" });
+    make(previousPlanPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "今日计划" });
     make(previousPlanPanel, "div", { cls: "mtb-daily-lessons-readonly-note", text: previousDay.plan || "—" });
-    const previousCompletionPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel is-readonly" });
+    const previousCompletionPanel = previousPlanPanel;
     const previousCompletionHeading = make(previousCompletionPanel, "div", { cls: "mtb-daily-lessons-day-note-heading" });
-    make(previousCompletionHeading, "div", { cls: "mtb-daily-lessons-day-note-title", text: "完成情况" });
+    // Historical structured records retain their owner and stable jump identity.
     const previousCompletionDate = previousDay.date || addDays(selectedDate, -1);
     const previousCompletionOntologyButton = make(previousCompletionHeading, "button", {
       cls: "mtb-daily-completion-ontology-button",
@@ -22008,29 +22026,28 @@ class MandalaTimeBlocksPlugin extends Plugin {
         dayLabel: "昨日",
       }),
     });
-    make(previousCompletionPanel, "div", { cls: "mtb-daily-lessons-readonly-note", text: previousDay.completion || "—" });
+
     const previousAdjustmentPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel is-readonly" });
     make(previousAdjustmentPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "记录、想法、路点与线索" });
     const previousAdjustmentValue = previousDay.adjustment || previousDay.summary || "";
     const previousAdjustmentProjection = getDailyLessonCommentProjection(previousAdjustmentValue);
     make(previousAdjustmentPanel, "div", { cls: "mtb-daily-lessons-readonly-note", text: previousAdjustmentProjection.text || "—" });
     this.renderDailyLessonImageAlbumLauncher(previousAdjustmentPanel, previousDay.date || addDays(selectedDate, -1), previousAdjustmentValue, { compact: true });
-    const previousTomorrowPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel is-readonly" });
-    make(previousTomorrowPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "明日计划三件事" });
-    make(previousTomorrowPanel, "div", { cls: "mtb-daily-lessons-readonly-note", text: previousDay.tomorrowPlan || "—" });
     const todayLabel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-transition-label is-today", text: "今日情况" });
     todayLabel.setAttribute("title", selectedDate);
     const planPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel" });
-    make(planPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "今日计划三件事" });
+    make(planPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "今日计划" });
     make(planPanel, "div", { cls: "mtb-muted", text: "请给今天做简要描述，提供记忆锚点" });
     const planInput = make(planPanel, "textarea", { attr: { rows: "5" } });
     planInput.value = day.plan || "";
+    let planOriginal = day.plan || "";
+    let planOriginalVisible = planInput.value;
     this.bindAutoGrow(planInput);
     this.renderTimelineMilestoneProjection(planPanel, dailyTimelineMilestones, { emptyText: "今日暂无 Timeline 里程碑安排" });
-    const completionPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel" });
+    const completionPanel = planPanel;
     this.dailyOntologySourceTargets.set("section:completion", completionPanel);
     const completionHeading = make(completionPanel, "div", { cls: "mtb-daily-lessons-day-note-heading" });
-    make(completionHeading, "div", { cls: "mtb-daily-lessons-day-note-title", text: "完成情况" });
+    // Ontology editor remains available within today's plan.
     const completionOntologyButton = make(completionHeading, "button", {
       cls: "mtb-daily-completion-ontology-button",
       attr: { type: "button" },
@@ -22049,9 +22066,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
         dayLabel: "今日",
       }),
     });
-    const completionInput = make(completionPanel, "textarea", { attr: { rows: "5" } });
-    completionInput.value = day.completion || "";
-    this.bindAutoGrow(completionInput);
     const adjustmentPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel" });
     make(adjustmentPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "记录、想法、路点与线索" });
     make(adjustmentPanel, "div", { cls: "mtb-muted", text: "同时请参见流水账记录表格、roamresearch当日日志、thebrain工作栏和思考，以及当日建条目总结。" });
@@ -22077,10 +22091,14 @@ class MandalaTimeBlocksPlugin extends Plugin {
     });
     setIcon(adjustmentImageAdd, "image-plus");
     let adjustmentImageTokens = initialAdjustmentProjection.records.map((record) => record.token);
+    let adjustmentOriginal = adjustmentCanonicalValue;
+    let adjustmentOriginalText = adjustmentInput.value;
+    let adjustmentOriginalTokens = JSON.stringify(adjustmentImageTokens);
     const adjustmentContext = {
       date: selectedDate,
       pendingCount: 0,
-      getCanonicalValue: () => composeDailyLessonComment(adjustmentInput.value, adjustmentImageTokens),
+      getCanonicalValue: () => adjustmentInput.value === adjustmentOriginalText && JSON.stringify(adjustmentImageTokens) === adjustmentOriginalTokens
+        ? adjustmentOriginal : composeDailyLessonComment(adjustmentInput.value, adjustmentImageTokens),
       renderAlbum: () => {
         clear(adjustmentAlbumHost);
         this.renderDailyLessonImageAlbumLauncher(adjustmentAlbumHost, selectedDate, composeDailyLessonComment(adjustmentInput.value, adjustmentImageTokens), { compact: true });
@@ -22088,7 +22106,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
       setCanonicalValue: (value) => {
         const projection = getDailyLessonCommentProjection(value);
         adjustmentImageTokens = projection.records.map((record) => record.token);
+        adjustmentOriginal = value;
+        adjustmentOriginalTokens = JSON.stringify(adjustmentImageTokens);
         adjustmentInput.value = projection.text;
+        adjustmentOriginalText = adjustmentInput.value;
         adjustmentContext.renderAlbum();
         window.setTimeout(() => {
           adjustmentInput.style.height = "auto";
@@ -22141,11 +22162,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
       if (files.length) await this.enqueueDailyLessonImageImport(selectedDate, files);
       else await this.enqueueDailyLessonVaultImageImport(selectedDate, vaultFiles);
     };
-    const tomorrowPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel" });
-    make(tomorrowPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "明日计划三件事" });
-    const tomorrowInput = make(tomorrowPanel, "textarea", { attr: { rows: "5" } });
-    tomorrowInput.value = day.tomorrowPlan || "";
-    this.bindAutoGrow(tomorrowInput);
     this.dailyLessonPageReader = () => ({
       date: selectedDate,
       weekId: weekInfo.weekId,
@@ -22154,10 +22170,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
       weekRecord: this.dailyLessonWeekRecordInput?.value || "",
       weekNextPlan: this.dailyLessonWeekNextPlanInput?.value || "",
       weekSummary: this.dailyLessonWeekRecordInput?.value || "",
-      plan: planInput.value || "",
-      completion: completionInput.value || "",
+      plan: planInput.value === planOriginalVisible ? planOriginal : planInput.value,
+      completion: "",
       adjustment: adjustmentContext.getCanonicalValue(),
-      tomorrowPlan: tomorrowInput.value || "",
+      tomorrowPlan: "",
       summary: adjustmentContext.getCanonicalValue(),
       items: pageRows.map((row) => ({
         id: row.item.id,
@@ -22171,15 +22187,13 @@ class MandalaTimeBlocksPlugin extends Plugin {
       })),
     });
     planInput.oninput = () => this.queueDailyLessonPageDraft();
-    completionInput.oninput = () => this.queueDailyLessonPageDraft();
     adjustmentInput.oninput = () => this.queueDailyLessonPageDraft();
-    tomorrowInput.oninput = () => this.queueDailyLessonPageDraft();
     const summaryActions = make(summaryBox, "div", { cls: "mtb-inline-row mtb-wrap mtb-daily-lessons-summary-actions" });
     make(summaryActions, "button", { cls: "mod-cta", text: "保存当前页面" }).onclick = async () => {
       await this.flushDailyLessonPageDraft(true);
       await this.renderWidget(false, false, gid());
     };
-    make(summaryActions, "span", { cls: "mtb-muted", text: "会保存今日计划、完成情况、记录、想法、路点与线索、明日计划、本周计划、周完成情况、周记录与线索、下周计划、所有可见事项属性和当天记录；切换或关闭前也会自动保存。" });
+    make(summaryActions, "span", { cls: "mtb-muted", text: "会保存今日计划、记录与线索、本周与下周计划、所有可见事项属性和当天记录；切换或关闭前也会自动保存。" });
 
     const tableWrap = make(section, "div", { cls: "mtb-daily-lessons-table-wrap" });
     const table = make(tableWrap, "table", { cls: "mtb-daily-lessons-table" });
@@ -22225,8 +22239,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
     this.dailyLessonPageDirty = false;
     this.dailyLessonPageWriter = payload => {
       if (payload.date !== selectedDate || payload.weekId !== weekInfo.weekId) throw new Error("草稿日期不匹配。");
-      planInput.value = payload.plan || ""; completionInput.value = payload.completion || "";
-      adjustmentContext.setCanonicalValue(payload.adjustment || payload.summary || ""); tomorrowInput.value = payload.tomorrowPlan || "";
+      payload = mergeDailyLessonNotesV1(payload);
+      planInput.value = payload.plan || "";
+      planOriginal = payload.plan || "";
+      planOriginalVisible = planInput.value;
+      adjustmentContext.setCanonicalValue(payload.adjustment || payload.summary || "");
       for (const [field, input] of [["weekPlan", this.dailyLessonWeekPlanInput], ["weekExecution", this.dailyLessonWeekExecutionInput], ["weekRecord", this.dailyLessonWeekRecordInput], ["weekNextPlan", this.dailyLessonWeekNextPlanInput]]) if (input) input.value = payload[field] || "";
       for (const row of pageRows) {
         const value = (payload.items || []).find(item => item.id === row.item.id && item.side === (row.item.ownerSide || row.item.side || DAILY_LESSON_SIDE_NORMAL));
@@ -22312,12 +22329,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
       const doneCount = displayItems.filter((item) => item.active !== false && day.entriesByItemId?.[item.id]?.done === true).length;
       const cell = make(summaryRow, "td", { cls: day.date === todayKey() ? "is-today" : "" });
       make(cell, "div", { cls: "mtb-daily-lessons-overview-note", text: day.plan ? `今日计划：${day.plan}` : "今日计划：—" });
-      make(cell, "div", { cls: "mtb-daily-lessons-overview-note", text: day.completion ? `完成情况：${day.completion}` : "完成情况：—" });
       const adjustmentValue = day.adjustment || day.summary || "";
       const adjustmentProjection = getDailyLessonCommentProjection(adjustmentValue);
       make(cell, "div", { cls: "mtb-daily-lessons-overview-note", text: adjustmentProjection.text ? `记录、想法、路点与线索：${adjustmentProjection.text}` : "记录、想法、路点与线索：—" });
       this.renderDailyLessonImageAlbumLauncher(cell, day.date, adjustmentValue, { compact: true });
-      make(cell, "div", { cls: "mtb-daily-lessons-overview-note", text: day.tomorrowPlan ? `明日计划：${day.tomorrowPlan}` : "明日计划：—" });
       make(cell, "div", { cls: "mtb-muted", text: `${doneCount}/${activeCount} 完成` });
     });
   }
@@ -24022,7 +24037,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       let mountImages = null;
       try {
         if (mode === 81) mountImages = this.renderMandalaEightyOneGrid(content, state);
-        else await this.renderMandalaGrid(content, state);
+        else mountImages = await this.renderMandalaGrid(content, state);
       } catch (error) {
         this.mandalaKeywordUiHost?.releaseSubtree(content);
         throw error;
@@ -24090,7 +24105,15 @@ class MandalaTimeBlocksPlugin extends Plugin {
           if (!valid() || !url) return;
           job.cells.forEach((cell) => {
             if (!cell.isConnected) return;
-            const image = document.createElement("img");
+            // Nine-grid readiness must not wait for note-backed cover IO.
+            if (cell.classList.contains("mtb-manage-cell")) {
+              const background = cell.ownerDocument.createElement("div");
+              background.className = "mtb-manage-cell-bg";
+              background.style.backgroundImage = `url("${url}")`;
+              cell.prepend(background);
+              return;
+            }
+            const image = cell.ownerDocument.createElement("img");
             image.className = "mtb-grid81-image";
             image.alt = "";
             image.loading = "lazy";
@@ -24183,9 +24206,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
         action("编辑节点", () => this.openNodeEditor(node.id, state));
         action("查看历史", () => this.openNodeHistory(node.id, state));
         action("周追踪表", () => this.openWeeklyGoalTable(node.id, { source: "mandala-grid" }));
-        if (node.noteBinding) action("打开绑定笔记", () => this.openBoundNote(node.noteBinding));
-        const shortcuts = normalizeNodeShortcutEntries(node.shortcuts || []);
-        if (shortcuts.length) action("打开文件快捷方式", () => this.activateShortcutEntries(`文件快捷方式：${node.title || node.id}`, shortcuts));
       }
     });
     const sourcePath = state.paths?.sourceNotePath || this.getPaths().sourceNotePath;
@@ -24215,11 +24235,9 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
     const grid = make(parent, "div", { cls: "mtb-manage-grid" });
     forceNineGridStyle(grid);
-    const historyCache = new Map();
-    const getHistory = (nodeId) => {
-      if (!historyCache.has(nodeId)) historyCache.set(nodeId, this.buildMandalaNodeHistory(nodeId, state));
-      return historyCache.get(nodeId);
-    };
+    const visibleIds = [current.id, ...Object.values(current.children || {})];
+    const historyCounts = this.getMandalaHistoryCounts(state, visibleIds);
+    const imageTargets = [];
     for (let index = 0; index < 9; index += 1) {
       const cell = make(grid, "button", { cls: "mtb-manage-cell" });
       forceNineCellStyle(cell);
@@ -24242,19 +24260,15 @@ class MandalaTimeBlocksPlugin extends Plugin {
       const hoverTitle = commentText ? `${pathText}\n\n评论/描述：${commentText}` : `${pathText}\n\n暂无评论/描述`;
       cell.title = hoverTitle;
       if (!isCore) this.attachMandalaDragSource(cell, node.id);
-      const imageUrl = await this.getNodeImage(node, state.paths.sourceNotePath);
-      if (imageUrl) {
-        const bg = make(cell, "div", { cls: "mtb-manage-cell-bg" });
-        bg.style.backgroundImage = `url("${imageUrl}")`;
-      }
+      imageTargets.push({ cell, node });
       cell.style.borderColor = isCore ? "var(--interactive-accent)" : "var(--background-modifier-border)";
       if (isLeaf) decorateLeafTerminalCell(cell, "", isCore);
       if (isLeaf) make(cell, "div", { cls: "mtb-manage-cell-terminal", text: "✦ 终点" });
       const dropHint = make(cell, "div", { cls: "mtb-manage-cell-drop-hint" });
       make(dropHint, "div", { cls: "mtb-manage-cell-drop-zone mtb-drop-zone-top", text: isCore ? "拖到这里：上移一层" : "拖到这里：去这个层级" });
       make(dropHint, "div", { cls: "mtb-manage-cell-drop-zone mtb-drop-zone-bottom", text: isCore ? "拖到这里：收为当前子节点" : "拖到这里：收为它的子节点" });
-      const history = getHistory(node.id);
-      if (history.recordCount > 0) make(cell, "div", { cls: "mtb-manage-cell-log-badge", text: String(history.recordCount), attr: { title: `关联记录 ${history.recordCount} 条` } });
+      const historyCount = historyCounts.get(node.id) || 0;
+      if (historyCount > 0) make(cell, "div", { cls: "mtb-manage-cell-log-badge", text: String(historyCount), attr: { title: `关联记录 ${historyCount} 条` } });
       const nodeKeywords = normalizeMandalaKeywords(node.keywords || []);
       if (nodeKeywords.length) {
         const keywordRow = make(cell, "div", { cls: "mtb-manage-cell-keywords" });
@@ -24281,19 +24295,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
         event.stopPropagation();
         await this.openWeeklyGoalTable(node.id, { source: "mandala-grid" });
       };
-      if (node.noteBinding) {
-        make(overlay, "span", { text: "🔗", attr: { title: "打开绑定笔记" } }).onclick = async (event) => {
-          event.stopPropagation();
-          await this.openBoundNote(node.noteBinding);
-        };
-      }
-      const shortcutEntries = normalizeNodeShortcutEntries(node.shortcuts || []);
-      if (shortcutEntries.length) {
-        make(overlay, "span", { text: "↗", attr: { title: `打开文件快捷方式（${shortcutEntries.length} 个）` } }).onclick = async (event) => {
-          event.stopPropagation();
-          await this.activateShortcutEntries(`文件快捷方式：${node.title || node.id}`, shortcutEntries);
-        };
-      }
       const title = make(cell, "div", { cls: "mtb-manage-cell-title", text: node.title || "未命名" });
       title.title = hoverTitle;
       make(cell, "div", { cls: "mtb-manage-cell-subtitle", text: mandala.leafById.has(node.id) ? "点击进入下一层" : "点击进入", attr: { title: hoverTitle } });
@@ -24308,6 +24309,20 @@ class MandalaTimeBlocksPlugin extends Plugin {
         this.openNodeEditor(node.id, state);
       };
     }
+    return () => this.mountMandalaGridImages(grid, imageTargets, state.paths.sourceNotePath);
+  }
+
+  getMandalaHistoryCounts(state, nodeIds) {
+    const direct = new Map(), result = new Map();
+    for (const record of Object.values(state.recordsData?.records || {})) {
+      if (complete(record)) direct.set(record.leafNodeId, (direct.get(record.leafNodeId) || 0) + 1);
+    }
+    for (const id of new Set(nodeIds)) {
+      const count = this.collectSubtreeIds(id, state.mandala.db)
+        .reduce((sum, child) => sum + (direct.get(child) || 0), 0);
+      result.set(id, count);
+    }
+    return result;
   }
 
   renderMandalaGridKeywordIndex(parent, state) {
@@ -24447,20 +24462,9 @@ class MandalaTimeBlocksPlugin extends Plugin {
         await this.renderWidget(false, false, gid());
       };
       const meta = make(item, "div", { cls: "mtb-node-meta" });
-      const boundFile = this.resolveBoundFile(node.noteBinding);
       const titleText = node.title || "未命名目标";
-      if (boundFile) {
-        const link = make(meta, "a", { cls: "mtb-node-title mtb-node-title-bound", text: titleText, attr: { href: boundFile.path, title: `打开 ${boundFile.path}` } });
-        link.onclick = async (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          await this.openBoundNote(node.noteBinding);
-        };
-      } else {
-        make(meta, "div", { cls: "mtb-node-title", text: titleText });
-      }
+      make(meta, "div", { cls: "mtb-node-title", text: titleText });
       if (!isDirect) make(meta, "div", { cls: "mtb-muted", text: "父级路径上下文" });
-      if (getBindingLabel(node.noteBinding)) make(meta, "div", { cls: "mtb-bound-note-label", text: `🔗 ${getBindingLabel(node.noteBinding)}` });
       const actions = make(item, "div", { cls: "mtb-inline-row mtb-node-tree-actions" });
       make(actions, "button", { text: "定位" }).onclick = async () => {
         this.updateDashboardState({ manageView: "grid", manageCurrentId: node.id });
@@ -24469,9 +24473,6 @@ class MandalaTimeBlocksPlugin extends Plugin {
       make(actions, "button", { text: relationCount > 0 ? `互联 ${relationCount}` : "互联" }).onclick = () => this.openRelationEditorForMandalaNode(node.id);
       make(actions, "button", { text: "历史" }).onclick = () => this.openNodeHistory(node.id, state);
       make(actions, "button", { text: "编辑" }).onclick = () => this.openNodeEditor(node.id, state);
-      if (node.noteBinding) make(actions, "button", { text: "打开笔记" }).onclick = async () => this.openBoundNote(node.noteBinding);
-      const shortcutEntries = normalizeNodeShortcutEntries(node.shortcuts || []);
-      if (shortcutEntries.length) make(actions, "button", { text: `打开文件 ${shortcutEntries.length}` }).onclick = async () => this.activateShortcutEntries(`文件快捷方式：${node.title || node.id}`, shortcutEntries);
     }
     if (isCollapsed) return;
     childIds.forEach((childId) => this.renderMandalaNodeTreeLine(container, state, childId, visibleSet, directMatchSet, relationSnapshotCache, level + 1, nextTrail));
@@ -24752,66 +24753,9 @@ class MandalaTimeBlocksPlugin extends Plugin {
     keywordInput.addEventListener("input", renderKeywordAssignment);
     renderKeywordAssignment();
 
-    make(form, "label", { text: "绑定 Obsidian 笔记" });
+    // Retired entry points. Existing values and accepted old drafts stay recoverable.
     let currentNoteBinding = normalizeNoteBinding(node.noteBinding);
-    const noteBox = make(form, "div", { cls: "mtb-note-binding-box" });
-    const applyDroppedNoteBinding = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      noteBox.classList.remove("is-drag-over");
-      const binding = this.resolveNoteBindingFromDrop(event.dataTransfer);
-      if (!binding?.path) {
-        new Notice("没有识别到可绑定的 Markdown 笔记");
-        console.warn("[MandalaTimeBlocks][node-editor.note-drop.miss]", { nodeId: node.id, types: Array.from(event.dataTransfer?.types || []) });
-        return;
-      }
-      currentNoteBinding = normalizeNoteBinding(binding);
-      console.info("[MandalaTimeBlocks][node-editor.note-drop]", { nodeId: node.id, path: currentNoteBinding?.path });
-      renderNoteBinding();
-    };
-    noteBox.addEventListener("dragover", (event) => {
-      if (!event.dataTransfer) return;
-      event.preventDefault();
-      event.stopPropagation();
-      event.dataTransfer.dropEffect = "copy";
-      noteBox.classList.add("is-drag-over");
-    });
-    noteBox.addEventListener("dragleave", () => noteBox.classList.remove("is-drag-over"));
-    noteBox.addEventListener("drop", applyDroppedNoteBinding);
-    const renderNoteBinding = () => {
-      clear(noteBox);
-      const label = getBindingLabel(currentNoteBinding);
-      make(noteBox, "div", { cls: label ? "mtb-bound-note-label" : "mtb-muted", text: label ? `🔗 ${label}` : "尚未绑定笔记" });
-      make(noteBox, "div", { cls: "mtb-note-drop-hint", text: "可从 Obsidian 文件列表拖拽 Markdown 笔记到这里绑定" });
-      const actions = make(noteBox, "div", { cls: "mtb-inline-row mtb-wrap" });
-      make(actions, "button", { text: label ? "更换笔记" : "选择笔记" }).onclick = async (event) => {
-        event.preventDefault();
-        const finishNativeWork = this.nativeMandalaHost?.beginWork();
-        const runPick = async () => {
-        const result = await this.pickNoteBinding({
-          title: `绑定笔记：${node.title || node.id}`,
-          value: currentNoteBinding?.path || "",
-          onOpenCurrent: async () => this.openBoundNote(currentNoteBinding),
-        });
-        if (!result) return;
-        currentNoteBinding = result.action === "clear" ? null : normalizeNoteBinding(result.value);
-        renderNoteBinding();
-        };
-        let nativeWorkError; try { await runPick(); } catch(error) { nativeWorkError=error; new Notice("笔记选择未完成，请重试。"); } finally { finishNativeWork?.(nativeWorkError,runPick); }
-      };
-      if (label) {
-        make(actions, "button", { text: "打开" }).onclick = async (event) => {
-          event.preventDefault();
-          await this.openBoundNote(currentNoteBinding);
-        };
-        make(actions, "button", { text: "清除" }).onclick = (event) => {
-          event.preventDefault();
-          currentNoteBinding = null;
-          renderNoteBinding();
-        };
-      }
-    };
-    renderNoteBinding();
+    make(form, "p", { cls: "mtb-muted", text: "相关知识请使用格子上的“挂载关键词”，从关键词进入笔记。" });
 
     make(form, "label", { text: "描述 / 备注" });
     const comment = make(form, "textarea", { cls: "mtb-node-comment", attr: { rows: "10", placeholder: "这里写这个九宫格节点的说明、判断标准、使用方式……" } });
@@ -24867,100 +24811,20 @@ class MandalaTimeBlocksPlugin extends Plugin {
       } finally { finishNativeWork?.(nativeWorkError,runPaste); }
     });
 
-    make(form, "label", { text: "文件快捷方式" });
     let currentShortcuts = normalizeNodeShortcutEntries(node.shortcuts || []);
-    const shortcutBox = make(form, "div", { cls: "mtb-shortcut-box" });
-    const shortcutStatus = make(shortcutBox, "div", { cls: "mtb-muted" });
-    const shortcutDropZone = make(shortcutBox, "div", { cls: "mtb-shortcut-drop-zone", text: "拖拽文件到这里" });
-    const shortcutAddRow = make(shortcutBox, "div", { cls: "mtb-shortcut-input-row" });
-    const shortcutInput = make(shortcutAddRow, "input", { attr: { placeholder: "也可粘贴文件路径 / file:// / Obsidian 链接后点添加" } });
-    const shortcutAddBtn = make(shortcutAddRow, "button", { text: "添加" });
-    const shortcutList = make(shortcutBox, "div", { cls: "mtb-shortcut-list" });
-    const renderShortcutList = () => {
-      clear(shortcutList);
-      shortcutStatus.textContent = currentShortcuts.length ? `当前已挂 ${currentShortcuts.length} 个快捷方式` : "当前还没有快捷方式";
-      if (!currentShortcuts.length) {
-        make(shortcutList, "div", { cls: "mtb-muted", text: "暂无快捷方式" });
-        return;
-      }
-      currentShortcuts.forEach((entry) => {
-        const row = make(shortcutList, "div", { cls: "mtb-shortcut-row" });
-        const meta = make(row, "div", { cls: "mtb-shortcut-meta" });
-        const titleEl = make(meta, "div", { cls: "mtb-shortcut-label", text: this.getShortcutDisplayLabel(entry) });
-        const subtitleEl = make(meta, "div", { cls: "mtb-shortcut-subtitle", text: "正在识别预览信息..." });
-        const pathEl = make(meta, "div", { cls: "mtb-shortcut-path", text: entry.path });
-        void this.getShortcutPreviewMeta(entry).then((info) => {
-          if (!row.isConnected) return;
-          titleEl.textContent = info.title || this.getShortcutDisplayLabel(entry);
-          subtitleEl.textContent = info.subtitle || "";
-          pathEl.textContent = info.detail || entry.path;
-        }).catch(() => {
-          if (row.isConnected) subtitleEl.textContent = "";
-        });
-        const actions = make(row, "div", { cls: "mtb-inline-row mtb-wrap" });
-        make(actions, "button", { text: "打开文件", cls: "mod-cta" }).onclick = async (event) => {
-          event.preventDefault();
-          await this.activateShortcutEntry(entry);
-        };
-        make(actions, "button", { text: "移除" }).onclick = (event) => {
-          event.preventDefault();
-          currentShortcuts = currentShortcuts.filter((item) => item.id !== entry.id);
-          renderShortcutList();
-        };
-      });
+    const retiredHost = make(form, "div");
+    const renderRetiredReferences = () => {
+      const wasOpen = retiredHost.querySelector("details")?.open || false;
+      clear(retiredHost);
+      if (!currentNoteBinding && !currentShortcuts.length) return;
+      const details = make(retiredHost, "details", { cls: "mtb-retired-references" });
+      details.open = wasOpen;
+      make(details, "summary", { text: "历史引用（只读）" });
+      make(details, "p", { cls: "mtb-muted", text: "原有引用保留在这里。新的知识关联请使用挂载关键词。" });
+      if (currentNoteBinding) make(details, "div", { text: "旧笔记：" + currentNoteBinding.path });
+      for (const entry of currentShortcuts) make(details, "div", { text: "旧文件：" + entry.path });
     };
-    const appendShortcutEntry = (entry, successText = "已添加快捷方式") => {
-      if (!entry) return false;
-      const next = normalizeNodeShortcutEntries(currentShortcuts.concat([entry]));
-      if (next.length === currentShortcuts.length) {
-        shortcutStatus.textContent = `已存在同一路径快捷方式：${this.getShortcutDisplayLabel(entry)}`;
-        return false;
-      }
-      currentShortcuts = next;
-      shortcutStatus.textContent = `${successText}：${this.getShortcutDisplayLabel(entry)}`;
-      console.info("[MandalaTimeBlocks][node-editor.shortcut.add]", { nodeId: node.id, path: entry.path });
-      renderShortcutList();
-      return true;
-    };
-    const addShortcutFromInput = () => {
-      const entry = this.resolveShortcutEntryFromRawInput(shortcutInput.value);
-      if (!entry) {
-        shortcutStatus.textContent = "没有识别到可用的 URL 或快捷方式";
-        return;
-      }
-      if (appendShortcutEntry(entry, "已粘贴添加快捷方式")) {
-        shortcutInput.value = "";
-        shortcutInput.focus();
-      }
-    };
-    shortcutDropZone.addEventListener("dragover", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      shortcutDropZone.classList.add("is-drag-over");
-    });
-    shortcutDropZone.addEventListener("dragleave", () => shortcutDropZone.classList.remove("is-drag-over"));
-    shortcutDropZone.addEventListener("drop", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      shortcutDropZone.classList.remove("is-drag-over");
-      const entry = this.resolveShortcutEntryFromDrop(event.dataTransfer);
-      if (!entry) {
-        shortcutStatus.textContent = "没有识别到可用的快捷方式";
-        console.warn("[MandalaTimeBlocks][node-editor.shortcut-drop.miss]", { nodeId: node.id, types: Array.from(event.dataTransfer?.types || []) });
-        return;
-      }
-      appendShortcutEntry(entry);
-    });
-    shortcutAddBtn.onclick = (event) => {
-      event.preventDefault();
-      addShortcutFromInput();
-    };
-    shortcutInput.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      addShortcutFromInput();
-    });
-    renderShortcutList();
+    renderRetiredReferences();
 
     if (Array.isArray(node.renameHistory) && node.renameHistory.length) {
       make(form, "label", { text: "改名历史" });
@@ -25123,9 +24987,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
     this.nativeMandalaHost?.trackEditor(modal, nativeCloseGuard, nodeId, () => buildDraft(false), draft => {
       titleInput.value = draft.title || ""; comment.value = draft.comment || "";
       keywordInput.value = normalizeMandalaKeywords(draft.keywords || []).join("\n");
-      imageInput.value = draft.image || ""; currentShortcuts = normalizeNodeShortcutEntries(draft.shortcuts || []);
-      currentNoteBinding = normalizeNoteBinding(draft.noteBinding);
-      renderNoteBinding(); renderShortcutList(); renderPreview();
+      imageInput.value = draft.image || "";
+      // Sparse historical drafts do not authorize clearing retained references.
+      if (Object.hasOwn(draft, "shortcuts")) currentShortcuts = normalizeNodeShortcutEntries(draft.shortcuts || []);
+      if (Object.hasOwn(draft, "noteBinding")) currentNoteBinding = normalizeNoteBinding(draft.noteBinding);
+      renderRetiredReferences(); renderPreview();
     }, () => { suppressAutoSave = true; modal.close(); });
     modal.open();
     return modal;
