@@ -127,9 +127,9 @@ function install(plugin, obsidian, actionEntry) {
       for(const id of this.group.tabs)select.createEl('option',{value:id,text:this.view.snapshot.data.tabsById[id].name});
       const input=this.contentEl.createEl('textarea',{attr:{rows:'4',placeholder:'下一步要做什么？'}});input.style.width='100%';
       const status=this.contentEl.createDiv();const submit=this.contentEl.createEl('button',{text:'创建并留在行动台',cls:'mod-cta'});
-      submit.onclick=async()=>{if(this.pending||!input.value.trim())return;this.pending=true;submit.disabled=true;input.disabled=true;select.disabled=true;status.textContent='正在保存…';
+      submit.onclick=async()=>{if(this.pending||!input.value.trim())return;this.recoveryToken ||= this.__inputRecovery?.capture();const recoveryToken=this.recoveryToken;this.pending=true;submit.disabled=true;input.disabled=true;select.disabled=true;status.textContent='正在保存…';
         this.request ||= {requestId:this.requestId,title:input.value.trim(),destination:destination(this.view,this.group)};
-        try{await create(this.view,this.request);this.committed=true;this.pending=false;new Notice('待办已保存');this.close();}
+        try{await create(this.view,this.request);this.__inputRecovery?.acknowledge(recoveryToken);this.committed=true;this.pending=false;new Notice('待办已保存');this.close();}
         catch(e){status.textContent=e.message;submit.textContent='用同一请求重试';}
         finally{this.pending=false;submit.disabled=false;}};
       this.contentEl.createEl('p',{text:'点击创建才保存；取消会放弃本次输入。'});input.focus();

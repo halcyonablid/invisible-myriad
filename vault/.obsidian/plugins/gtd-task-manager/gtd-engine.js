@@ -2912,7 +2912,7 @@ async function verifyPersistedRelationMembershipV1(request, options) {
             const input = contentEl.createEl("input", { type: "text", value: this.defaultValue });
             input.placeholder = this.placeholder; input.style.width = "100%"; input.focus();
             const btn = contentEl.createEl("button", { text: "确定", cls: "mod-cta", style: "margin-top:15px; float:right;" });
-            const submit = async () => { if(!input.value||this.submitting||this.__inputRecovery&&!this.__inputRecovery.canLeave())return;this.submitting=true;btn.disabled=true;input.disabled=true;try{await this.onSubmit(input.value);this.close();}catch(error){new Notice('未完成，输入已保留：'+String(error.message||error),10000);}finally{this.submitting=false;btn.disabled=false;input.disabled=false;} };
+            const submit = async () => { if(!input.value||this.submitting)return;this.submitting=true;btn.disabled=true;input.disabled=true;try{await this.onSubmit(input.value);this.close();}catch(error){new Notice('未完成，输入已保留：'+String(error.message||error),10000);}finally{this.submitting=false;btn.disabled=false;input.disabled=false;} };
             btn.onclick = submit; input.addEventListener("keypress", (e) => { if (e.key === "Enter") submit(); });
         }
         onClose() { this.contentEl.empty(); }
@@ -2995,7 +2995,7 @@ async function verifyPersistedRelationMembershipV1(request, options) {
         }
         async submitComment(result) {
             if (this.saving || this.closed || this.saved) return;
-            if (this.__inputRecovery && !this.__inputRecovery.canLeave()) return;
+            // Formal save must remain available even if recovery storage is unavailable.
             this.saving = true;
             for (const el of this.contentEl.querySelectorAll('button,textarea')) el.disabled = true;
             try {

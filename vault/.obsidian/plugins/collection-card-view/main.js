@@ -673,59 +673,189 @@ async function create(plugin, options) {
 // main.source.js
 const C2InputRecovery=(()=>{const module={exports:{}};
 'use strict';
-// Text-only recovery, never a business snapshot or an automatic replay command.
-const installed=new WeakMap();
-const SEARCH_HINTS=new Set(['输入范式名称、ID 或定义源筛选','输入 Tab 名称、ID 或 emoji 筛选','输入标签名称或 ID 筛选','输入关键词片段、完整路径或 ID 筛选','搜索关键词或节点名','按旧事项名或评论关键词筛选 staging 块']);
-function createBox(storage,vault,owner){
- const prefix='ckm-input-v1:'+encodeURIComponent(vault)+':'+owner+':';
- function list(){const rows=[];for(let i=0;i<storage.length;i++){const key=storage.key(i);if(key?.startsWith(prefix)){const raw=storage.getItem(key);let row;try{row=JSON.parse(raw);}catch{throw Error('input-backup-invalid');}if(!row||typeof row.text!=='string')throw Error('input-backup-invalid');rows.push({...row,key,raw});}}return rows;}
- function save(id,data){const key=prefix+id,raw=JSON.stringify({...data,updatedAt:Date.now()}),rows=list(),others=rows.filter(r=>r.key!==key);if(others.length>=128||others.reduce((n,r)=>n+r.raw.length*2,raw.length*2)>2*1024*1024)throw Error('input-backup-capacity');storage.setItem(key,raw);if(storage.getItem(key)!==raw)throw Error('input-backup-readback');return {key,raw};}
- function remove(key,raw){if(!key.startsWith(prefix)||storage.getItem(key)!==raw)throw Error('input-backup-changed');storage.removeItem(key);}
- return {list,save,remove};
-}
-function install(plugin,{Modal,Notice},storage){
- if(installed.has(plugin))return installed.get(plugin);
- const app=plugin.app,owner=plugin.manifest.id;
- const live=()=>!controller.closed&&app.plugins?.plugins?.[owner]===plugin;
- let box;const pendingText=new Map();const getBox=()=>box||(box=createBox(storage||globalThis.localStorage,app.vault.adapter.getBasePath(),owner));
- const notice=text=>new Notice(text,10000);
- function source(host){try{return String(host?.sourceFile?.path||host?.sourceNotePath||host?.sourcePath||(['mandala-time-blocks','gtd-task-manager'].includes(owner)?plugin.getPaths?.()?.sourceNotePath||plugin.resolveContextRenameScope?.()?.sourceNotePath||plugin.settings?.sourceNotePath:'')||'');}catch{return '';}}
- class RecoveryModal extends Modal{
-  onOpen(){const root=this.contentEl;root.empty();root.createEl('h2',{text:'输入恢复箱'});root.createEl('p',{text:'这里保留编辑过的文本。是否保存成功以原编辑入口为准；可复制后回原入口重新核对，不会自动覆盖业务内容。'});
-   let rows=[];try{rows=getBox().list();}catch(e){root.createEl('p',{text:'持久备份读取失败：'+e.message});}
-   try{for(const r of [...pendingText.values()].map(r=>({...r,memoryOnly:true})).concat(rows)){const row=root.createDiv();row.createEl('h3',{text:r.title||'文本输入'});row.createEl('p',{text:r.source||'来源未能确定，请核对后手动复制'});row.createEl('p',{text:r.memoryOnly?'仅在本次会话保留，尚未写入备份。请立即复制，勿重载插件。':new Date(r.updatedAt).toLocaleString()});const input=row.createEl('textarea');input.value=r.text;input.readOnly=true;input.style.width='100%';input.rows=5;
-    row.createEl('button',{text:'选中文本'}).onclick=()=>{input.focus();input.select();};
-    if(r.source)row.createEl('button',{text:'打开原来源'}).onclick=async()=>{try{if(!live())throw Error('plugin-unavailable');const f=app.vault.getAbstractFileByPath(r.source);if(!f||f.extension!=='md')throw Error('source-unavailable');await app.workspace.getLeaf(false).openFile(f);}catch(e){notice('无法打开来源：'+e.message);}};
-    if(!r.memoryOnly)row.createEl('button',{text:'已核对，清除此份输入备份'}).onclick=()=>{try{if(!live())throw Error('plugin-unavailable');getBox().remove(r.key,r.raw);row.remove();}catch(e){notice('未清除：'+e.message);}};
-   }}catch(e){root.createEl('p',{text:'恢复箱暂不可用：'+e.message+'。请保留原编辑窗口并复制输入。'});}
+// Owner-local text recovery. Never replay into business data or infer a save from a close.
+const installed = new WeakMap();
+const SEARCH_HINTS = new Set(['输入范式名称、ID 或定义源筛选','输入 Tab 名称、ID 或 emoji 筛选','输入标签名称或 ID 筛选','输入关键词片段、完整路径或 ID 筛选','搜索关键词或节点名','按旧事项名或评论关键词筛选 staging 块']);
+function createDiskBox(directory, vault, owner, io = require('fs')) {
+  const path = require('path'), crypto = require('crypto');
+  const filename = id => crypto.createHash('sha256').update(id).digest('hex') + '.json';
+  const valid = row => row && row.schema === 2 && row.vault === vault && row.owner === owner && typeof row.id === 'string' && typeof row.text === 'string';
+  function save(id, data) {
+    const name = filename(id), target = path.join(directory, name);
+    const raw = JSON.stringify({...data, schema:2, vault, owner, id, updatedAt:Date.now()});
+    io.mkdirSync(directory, {recursive:true});
+    const temp = target + '.' + crypto.randomUUID() + '.tmp';
+    let fd;
+    try {
+      fd = io.openSync(temp, 'wx'); io.writeFileSync(fd, raw, 'utf8'); io.fsyncSync(fd); io.closeSync(fd); fd = undefined;
+      if (io.readFileSync(temp, 'utf8') !== raw) throw Error('input-backup-readback');
+      io.renameSync(temp, target);
+      if (io.readFileSync(target, 'utf8') !== raw) throw Error('input-backup-readback');
+      return {key:'disk:' + name, raw};
+    } finally {
+      if (fd !== undefined) try { io.closeSync(fd); } catch (_) {}
+      // A verified or partial temp may be the only copy after an IO failure.
+      // Keep it for recovery inspection instead of deleting uncertain content.
+    }
   }
- }
- const controller={closed:false,open(){if(live())new RecoveryModal(app).open();},canLeave(){try{for(const entry of [...pendingText.values()])entry.retry();return true;}catch(e){notice('还有尚未备份的输入，请先复制或清理恢复箱后重试。'+e.message);return false;}},bind(root,host){
-  if(!root)return null;const fields=new WeakMap(),pending=new Map(),session=globalThis.crypto.randomUUID();let failure=null;
-  const text=e=>e.isContentEditable?e.textContent:e.value;
-  const eligible=e=>e?.nodeType===1&&(e.tagName==='TEXTAREA'||e.isContentEditable||e.tagName==='INPUT'&&['text','url','email','number',''].includes(e.type))&&!e.readOnly&&!e.disabled&&!e.hasAttribute('data-input-recovery-ignore')&&!SEARCH_HINTS.has(e.placeholder||'')&&!e.matches('[role="searchbox"],.search-input,.gtd-search-input');
-  const save=entry=>{getBox().save(entry.id,{source:entry.source,title:entry.title,field:entry.field,text:entry.text});pending.delete(entry.id);pendingText.delete(entry.id);};
-  const flush=()=>{try{for(const entry of [...pending.values()])save(entry);failure=null;return true;}catch(e){failure=e;notice('输入备份未保存，请保留编辑窗口并复制文本；可清理恢复箱后重试。'+e.message);return false;}};
-  const handler=e=>{if(!eligible(e.target))return;let entry=fields.get(e.target);const current=source(host);if(!entry||entry.source!==current){entry={id:session+':'+globalThis.crypto.randomUUID(),source:current,field:e.target.getAttribute('name')||e.target.id||'text'};fields.set(e.target,entry);}entry.text=String(text(e.target)||'');entry.title=(host?.titleStr||host?.options?.title||root.querySelector('h1,h2,h3')?.textContent||e.target.getAttribute('aria-label')||e.target.placeholder||'文本输入').slice(0,512);entry.retry=()=>save(entry);pending.set(entry.id,entry);pendingText.set(entry.id,entry);try{if(!live())throw Error('plugin-unavailable');save(entry);failure=pending.size?failure:null;}catch(error){failure=error;e.stopImmediatePropagation();notice('输入尚未备份，请保留窗口并复制文本。'+error.message);}};
-  const gate=e=>{if(pending.size&&!eligible(e.target)&&!flush()){e.preventDefault();e.stopImmediatePropagation();}};
-  const keyGate=e=>{if(e.key==='Enter'&&!e.isComposing&&pending.size&&!flush()){e.preventDefault();e.stopImmediatePropagation();}};
-  root.addEventListener('input',handler,true);
-  root.addEventListener('click',gate,true);
-  root.addEventListener('keydown',keyGate,true);root.addEventListener('keypress',keyGate,true);
-  return {flush,canLeave(){return flush();},dispose(){root.removeEventListener('input',handler,true);root.removeEventListener('click',gate,true);root.removeEventListener('keydown',keyGate,true);root.removeEventListener('keypress',keyGate,true);if(!flush())notice('插件关闭时未能备份全部输入，请保留仍可见的文本。');}};
- },report(error){notice((/unsupported-binding-format|binding-format-unsupported/.test(String(error?.message||error))?'本次保存未完成：主键管理中心的绑定数据格式比本插件更新，请把本插件更新到与管理中心匹配的版本；':'本次保存未完成。请保留编辑内容，待管理中心和相关插件就绪后重试；')+'已编辑文本可在本插件“输入恢复箱”查看。详情：'+String(error?.message||error));}};
- installed.set(plugin,controller);
- plugin.addCommand({id:'open-input-recovery',name:'输入恢复箱（查看与复制）',callback:()=>controller.open()});
- // Bind every registered owner view, including inline editors and custom GTD dialogs.
- const register=plugin.registerView.bind(plugin);plugin.registerView=(type,factory)=>register(type,leaf=>{const view=factory(leaf),binding=controller.bind(view.contentEl||view.containerEl,view);for(const method of ['render','setState']){const original=view[method];if(typeof original==='function')view[method]=function(...args){if(binding&&!binding.canLeave())throw Error('input-backup-required');return original.apply(this,args);};}const close=view.onClose;view.onClose=function(...args){binding?.dispose();return close?.apply(this,args);};return view;});
- plugin.register?.(()=>{controller.closed=true;});
- return controller;
+  function list() {
+    const rows = [], errors = [];
+    if (!io.existsSync(directory)) return {rows, errors};
+    for (const name of io.readdirSync(directory)) {
+      if (!/^[a-f0-9]{64}\.json(?:\.[a-f0-9-]+\.tmp)?$/.test(name)) continue;
+      try {
+        const raw = io.readFileSync(path.join(directory, name), 'utf8'), row = JSON.parse(raw);
+        if (!valid(row) || !name.startsWith(filename(row.id))) throw Error('scope/schema mismatch');
+        rows.push({...row, key:'disk:' + name, raw});
+      } catch (_) { errors.push('备份文件需人工核对（未删除）：' + path.join(directory, name)); }
+    }
+    return {rows, errors};
+  }
+  function remove(key, raw) {
+    const name = key.slice(5);
+    if (!key.startsWith('disk:') || !/^[a-f0-9]{64}\.json(?:\.[a-f0-9-]+\.tmp)?$/.test(name)) throw Error('input-backup-scope');
+    const target = path.join(directory, name);
+    if (!io.existsSync(target)) return;
+    if (io.readFileSync(target, 'utf8') !== raw) throw Error('input-backup-changed');
+    io.unlinkSync(target);
+  }
+  return {save, list, remove};
 }
-function protectModal(Base,owner){return class extends Base{
- open(){const plugin=this.app.plugins?.plugins?.[owner],controller=plugin&&installed.get(plugin);if(controller)this.__inputRecovery=controller.bind(this.contentEl,this);return super.open();}
- close(){if(this.__inputRecovery&&!this.__inputRecovery.canLeave())return;return super.close();}
+function createBox(storage, vault, owner, disk) {
+  const prefix = 'ckm-input-v1:' + encodeURIComponent(vault) + ':' + owner + ':';
+  let errors = [];
+  function list() {
+    const rows = []; errors = [];
+    if (disk) { try { const result = disk.list(); rows.push(...result.rows); errors.push(...result.errors); } catch (_) { errors.push('磁盘恢复目录读取失败，请保留当前输入。'); } }
+    if (storage) try {
+      for (let i=0;i<storage.length;i++) {
+        const key = storage.key(i); if (!key?.startsWith(prefix)) continue;
+        try { const raw=storage.getItem(key), row=JSON.parse(raw); if (!row || typeof row.text !== 'string') throw Error(); rows.push({...row,key,raw}); }
+        catch (_) { errors.push('旧恢复箱有损坏条目，已隔离保留：' + key); }
+      }
+    } catch (_) { errors.push('旧恢复箱读取失败；未清空或迁移旧内容。'); }
+    return rows;
+  }
+  function save(id, data) {
+    let diskError;
+    if (disk) try { return disk.save(id, data); } catch (e) { diskError=e; }
+    // Browser fallback has no artificial total-count/size gate. Real quota errors remain visible.
+    if (!storage) throw diskError || Error('input-backup-unavailable');
+    const key=prefix+id, raw=JSON.stringify({...data,updatedAt:Date.now()});
+    storage.setItem(key,raw); if (storage.getItem(key)!==raw) throw Error('input-backup-readback');
+    return {key,raw};
+  }
+  function remove(key, raw) {
+    if (key.startsWith('disk:')) return disk.remove(key,raw);
+    if (!key.startsWith(prefix) || !storage || storage.getItem(key)!==raw) throw Error('input-backup-changed');
+    storage.removeItem(key);
+  }
+  return {list, save, remove, errors:()=>errors};
+}
+function install(plugin, {Modal, Notice}, storage) {
+  if (installed.has(plugin)) return installed.get(plugin);
+  const app=plugin.app, owner=plugin.manifest.id, bindings=new Set(), roots=new WeakMap(), pendingText=new Map();
+  let box, lastNotice='', lastNoticeAt=0;
+  const live=()=>!controller.closed && app.plugins?.plugins?.[owner]===plugin;
+  const notice=message=>{const now=Date.now();if(message===lastNotice&&now-lastNoticeAt<10000)return;lastNotice=message;lastNoticeAt=now;new Notice(message,10000);};
+  function getBox() {
+    if (box) return box;
+    const vault=app.vault.adapter.getBasePath?.() || app.vault.adapter.basePath;
+    if (!vault) throw Error('input-backup-vault-unavailable');
+    let local=storage, disk;
+    if (!local) try { local=globalThis.localStorage; } catch (_) {}
+    try {
+      const path=require('path'), pluginDir=path.resolve(vault,plugin.manifest.dir || `${app.vault.configDir || '.obsidian'}/plugins/${owner}`);
+      const relative=path.relative(path.resolve(vault),pluginDir);
+      if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) throw Error('input-backup-path');
+      disk=createDiskBox(path.join(pluginDir,'.input-recovery-v2'),vault,owner);
+    } catch (_) { /* Unsupported hosts use verified localStorage, never silently succeed. */ }
+    return box=createBox(local,vault,owner,disk);
+  }
+  function source(host) { try { return String(host?.sourceFile?.path||host?.sourceNotePath||host?.sourcePath||(['mandala-time-blocks','gtd-task-manager'].includes(owner)?plugin.getPaths?.()?.sourceNotePath||plugin.resolveContextRenameScope?.()?.sourceNotePath||plugin.settings?.sourceNotePath:'')||''); } catch (_) { return ''; } }
+  class RecoveryModal extends Modal {
+    onOpen() {
+      const root=this.contentEl;root.empty();root.createEl('h2',{text:'输入恢复箱'});
+      root.createEl('p',{text:'未确认保存的输入保留在此；旧备份也可查看。复制回原入口核对，不会自动覆盖业务内容。'});
+      let rows=[],errors=[];
+      try { rows=getBox().list();errors=getBox().errors(); } catch (_) {errors=['恢复箱读取失败，请保留当前窗口并复制输入。'];}
+      for(const error of errors)root.createEl('p',{text:error});
+      rows=[...pendingText.values()].map(r=>({...r,memoryOnly:true})).concat(rows.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)));
+      root.createEl('p',{text:`共 ${rows.length} 份输入，逐批显示。`});
+      const list=root.createDiv(), more=root.createEl('button',{text:'继续显示 30 份'});let cursor=0;
+      const render=()=>{for(const r of rows.slice(cursor,cursor+30)) {
+        const row=list.createDiv();row.createEl('h3',{text:r.title||'文本输入'});row.createEl('p',{text:r.source||'来源未能确定，请核对后手动复制'});
+        row.createEl('p',{text:r.memoryOnly?'尚未持久备份：请立即复制，勿重载插件。':new Date(r.updatedAt).toLocaleString()});
+        const input=row.createEl('textarea');input.value=r.text;input.readOnly=true;input.style.width='100%';input.rows=5;
+        row.createEl('button',{text:'选中文本'}).onclick=()=>{input.focus();input.select();};
+        if(r.source)row.createEl('button',{text:'打开原来源'}).onclick=async()=>{try{if(!live())throw Error();const f=app.vault.getAbstractFileByPath(r.source);if(!f||f.extension!=='md')throw Error();await app.workspace.getLeaf(false).openFile(f);}catch(_){notice('无法打开来源，请手动核对。');}};
+        if(!r.memoryOnly)row.createEl('button',{text:'已核对，清除此份输入备份'}).onclick=()=>{try{if(!live())throw Error();getBox().remove(r.key,r.raw);row.remove();}catch(_){notice('备份已变化或无法清除，请重新核对。');}};
+      }cursor+=30;more.disabled=cursor>=rows.length;};more.onclick=render;render();
+    }
+  }
+  const controller={closed:false,open(){if(live())new RecoveryModal(app).open();},canLeave(){let ok=true;for(const b of bindings)if(!b.flush())ok=false;return ok;},
+    bind(root,host) {
+      if(!root)return null;if(roots.has(root))return roots.get(root);
+      const fields=new Map(),entries=new Map(),tokens=new WeakSet();let disposed=false,timer=null,maxTimer=null;
+      const cancelTimers=()=>{clearTimeout(timer);clearTimeout(maxTimer);timer=maxTimer=null;};
+      const eligible=e=>e?.nodeType===1&&(e.tagName==='TEXTAREA'||e.isContentEditable||e.tagName==='INPUT'&&['text','url','email','number',''].includes(e.type))&&!e.readOnly&&!e.hasAttribute('data-input-recovery-ignore')&&!SEARCH_HINTS.has(e.placeholder||'')&&!e.matches('[role="searchbox"],.search-input,.gtd-search-input');
+      const value=e=>String((e.isContentEditable?e.textContent:e.value)||'');
+      function update(el) {
+        let entry=fields.get(el);const current=source(host);
+        if(!entry||entry.source!==current){entry={id:globalThis.crypto.randomUUID(),source:current,field:el.getAttribute('name')||el.id||'text',version:0,receipts:[]};fields.set(el,entry);entries.set(entry.id,entry);}
+        const text=value(el);if(entry.text===text)return entry;
+        entry.text=text;entry.version++;entry.saved=false;
+        entry.title=(host?.titleStr||host?.options?.title||root.querySelector('h1,h2,h3')?.textContent||el.getAttribute('aria-label')||el.placeholder||'文本输入').slice(0,512);
+        pendingText.set(entry.id,entry);return entry;
+      }
+      function persist(entry) {
+        if(entry.saved)return;
+        const receipt=getBox().save(entry.id,{source:entry.source,title:entry.title,field:entry.field,text:entry.text,revision:entry.version});
+        entry.receipts=entry.receipts.filter(r=>r.key!==receipt.key);entry.receipts.push(receipt);entry.saved=true;pendingText.delete(entry.id);
+      }
+      function flush() {
+        cancelTimers();
+        let ok=true;
+        // Capture tracked controls even when business code temporarily disables them.
+        for(const [el]of fields)if(root.contains(el))update(el);
+        for(const entry of entries.values())try{persist(entry);}catch(_){ok=false;pendingText.set(entry.id,entry);}
+        for(const [el,entry]of fields)if(!root.contains(el)&&entry.saved){fields.delete(el);entries.delete(entry.id);}
+        if(!ok)notice('输入备份暂未写入，请保留窗口；仍可尝试正式保存。未保存前勿重载，可从输入恢复箱复制文本。');
+        return ok;
+      }
+      const handler=e=>{if(disposed||!eligible(e.target)||e.target.disabled)return;update(e.target);
+        // Coalesce typing; explicit leave/unload always flushes the final snapshot synchronously.
+        clearTimeout(timer);timer=setTimeout(flush,250);if(maxTimer===null)maxTimer=setTimeout(flush,1000);
+      };
+      const binding={flush,canLeave:flush,
+        capture(){for(const[el]of fields)if(root.contains(el))update(el);const token=[...entries.values()].map(e=>({id:e.id,version:e.version,text:e.text}));tokens.add(token);return token;},
+        acknowledge(token){if(!token||!tokens.has(token))return;tokens.delete(token);for(const snap of token){const entry=entries.get(snap.id);if(!entry)continue;for(const[el,e]of fields)if(e===entry&&root.contains(el))update(el);if(entry.version!==snap.version||entry.text!==snap.text)continue;
+          // Commit is already durable: cleanup errors must not turn it into a failed save.
+          for(const receipt of entry.receipts)try{getBox().remove(receipt.key,receipt.raw);}catch(_){notice('内容已保存；有一份旧输入备份未清理，可稍后在恢复箱核对。');}
+          entry.receipts=[];entry.saved=true;pendingText.delete(entry.id);
+        }},
+        dispose(){if(disposed)return;const ok=flush();disposed=true;root.removeEventListener('input',handler,true);roots.delete(root);if(ok){bindings.delete(binding);fields.clear();entries.clear();}else notice('仍有未备份输入，请从输入恢复箱复制后再退出。');}
+      };
+      root.addEventListener('input',handler,true);bindings.add(binding);roots.set(root,binding);return binding;
+    },
+    report(error){notice((/unsupported-binding-format|binding-format-unsupported/.test(String(error?.message||error))?'本次保存未完成：主键管理中心的绑定格式较新，请更新匹配插件；':'本次保存未完成，请保留编辑内容；')+'可在本插件“输入恢复箱”查看。详情：'+String(error?.message||error));}
+  };
+  installed.set(plugin,controller);
+  plugin.addCommand({id:'open-input-recovery',name:'输入恢复箱（查看与复制）',callback:()=>controller.open()});
+  const beforeUnload=e=>{if(!controller.canLeave()){e.preventDefault();e.returnValue='有未备份输入，请先复制。';}};
+  globalThis.addEventListener?.('beforeunload',beforeUnload);
+  const register=plugin.registerView.bind(plugin);
+  plugin.registerView=(type,factory)=>register(type,leaf=>{const view=factory(leaf),binding=controller.bind(view.contentEl||view.containerEl,view);
+    for(const method of ['render','setState']){const original=view[method];if(typeof original==='function')view[method]=function(...args){if(binding&&!binding.canLeave())throw Error('input-backup-required');return original.apply(this,args);};}
+    const close=view.onClose;view.onClose=function(...args){binding?.dispose();return close?.apply(this,args);};return view;});
+  plugin.register?.(()=>{controller.canLeave();for(const b of [...bindings])b.dispose();controller.closed=true;globalThis.removeEventListener?.('beforeunload',beforeUnload);});
+  return controller;
+}
+function protectModal(Base,owner){return class extends Base {
+  open(){const plugin=this.app.plugins?.plugins?.[owner],controller=plugin&&installed.get(plugin);if(controller)this.__inputRecovery=controller.bind(this.contentEl,this);return super.open();}
+  close(){if(this.__inputRecovery&&!this.__inputRecovery.canLeave())return false;const result=super.close();this.__inputRecovery?.dispose();return result;}
 };}
-module.exports={createBox,install,protectModal};
+module.exports={createBox,createDiskBox,install,protectModal};
 
 return module.exports;})();
 var { Component, ItemView, MarkdownRenderer, Modal: C2BaseModal, Notice, Plugin, TFile } = require("obsidian");

@@ -1,7 +1,7 @@
 {
   "format": "obsidian-vault-backup-v1",
   "count": 4321,
-  "bytes": 210722637,
+  "bytes": 210746709,
   "files": [
     {
       "path": ".gitignore",
@@ -155,8 +155,8 @@
     },
     {
       "path": ".obsidian/plugins/collection-card-view/action-mode.cjs",
-      "bytes": 42639,
-      "sha256": "b2ade7dbe49d9388b786bdefd4d4faf208c5e4ab8d623fb559cd16445a10bfa9"
+      "bytes": 42782,
+      "sha256": "f1a902cc82891beb42ee78cb1003a43a3484c0e75a7ce0e5e8090430c3e79297"
     },
     {
       "path": ".obsidian/plugins/collection-card-view/binding-anchor.cjs",
@@ -220,8 +220,8 @@
     },
     {
       "path": ".obsidian/plugins/collection-card-view/main.js",
-      "bytes": 287212,
-      "sha256": "991c9c1b647465fe65ae1a3535549563ce71d4961b162f50d7d1e845cb847b08"
+      "bytes": 293172,
+      "sha256": "3acac1a58d500e4f5d48c59ce0f3c65a278ff66a729004cd0648a60985fb2499"
     },
     {
       "path": ".obsidian/plugins/collection-card-view/manifest.json",
@@ -660,13 +660,13 @@
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/gtd-engine.js",
-      "bytes": 459852,
-      "sha256": "464383202f67bfbd66f07f0f6b24181b1dce7f76d281ef6d9709157b25f6abca"
+      "bytes": 459804,
+      "sha256": "bc583e9841f59a77b12d4cac73d93284068f5279451d9c34a06348323e8f2e9f"
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/main.js",
-      "bytes": 53882,
-      "sha256": "95d8c57fa24036ea49cd4ad42567d5c5c7f0fc304a3a5c90e4627e36a5a7d6b1"
+      "bytes": 59842,
+      "sha256": "064256bcb77b9ea7e0e66d7d64b3786edb0082843765bcf8d58e79c9df2d9e36"
     },
     {
       "path": ".obsidian/plugins/gtd-task-manager/manifest.json",
@@ -800,8 +800,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/main.js",
-      "bytes": 1631271,
-      "sha256": "d088127c9817144cda042e9c03dba3990672e9f1f78535749246712418967291"
+      "bytes": 1637368,
+      "sha256": "29c3563cc280821dac0bac5693fd3d411cb0563c1ade46a16f4119dcbe62fd77"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/manifest.json",
@@ -21105,8 +21105,8 @@
     },
     {
       "path": ".obsidian/plugins/workspace-mount/main.js",
-      "bytes": 1375521,
-      "sha256": "2665db749157dad4c93503a0c58281b46f2f9fa265bc646d7aba3f9f278311e9"
+      "bytes": 1381481,
+      "sha256": "eb0050e54ad1bafbd59e4d50550e462278155209d9b0fcac0f9ccfd4617ffda9"
     },
     {
       "path": ".obsidian/plugins/workspace-mount/manifest.json",
@@ -22110,7 +22110,7 @@
     "Templates",
     "tools"
   ],
-  "captured_at": "2026-11-01T23:20:30.761837+08:00",
+  "captured_at": "2026-11-03T11:00:20.433168+08:00",
   "source": "D:\\han\\最新的\\大千-协作实验版-20261005\\大千-协作实验版",
   "stable": true
 }
