@@ -1967,9 +1967,7 @@ function joinVaultPath(dir, name) {
   return dir ? `${dir}/${name}` : name;
 }
 
-function buildSuffixTree(notes) {
-  const root = { children: new Map(), notes: [], subconcepts: new Map() };
-  notes.forEach((note) => {
+function appendSuffixTreeNote(root, note) {
     const parts = splitSuffixParts(note.suffix);
     if (parts.length === 0) {
       root.notes.push(note);
@@ -2001,10 +1999,88 @@ function buildSuffixTree(notes) {
       previousWasSubconcept = bucket === "subconcepts";
       if (index === parts.length - 1) current.notes.push(note);
     });
-  });
+}
+function buildSuffixTree(notes) {
+  const root = { children: new Map(), notes: [], subconcepts: new Map() };
+  notes.forEach(note => appendSuffixTreeNote(root, note));
   applyDrawerSortCodes(root);
   return root;
 }
+
+// Cooperative construction uses the same insertion and ordering rules as the legacy tree.
+async function buildPagedDrawerTrees(keyword, cancelled) {
+  const make = () => ({ children: new Map(), notes: [], subconcepts: new Map() });
+  const trees = { yaml: make(), plus: make(), dot: make() };
+  let deadline = performance.now() + 6, weight = 3;
+  const collator = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' });
+  const compare = (a, b) => {
+    const code = compareOptionalAtomSortCodes(a?.sortCode, b?.sortCode);
+    if (code) return code;
+    const ab = parseBusSegment(a?.label), bb = parseBusSegment(b?.label);
+    if (ab && bb) return ab.number - bb.number || collator.compare(text(ab.label), text(bb.label));
+    if (ab) return 1;
+    if (bb) return -1;
+    return collator.compare(text(a?.label), text(b?.label));
+  };
+  const checkpoint = async () => {
+    if (performance.now() < deadline) return true;
+    await new Promise(resolve => setTimeout(resolve, 0)); deadline = performance.now() + 6;
+    return !cancelled();
+  };
+  for (const note of keyword.notes || []) {
+    const root = trees[text(note.sourceType, keyword.type)];
+    if (root) { appendSuffixTreeNote(root, note); weight++; }
+    if (!(await checkpoint())) return null;
+  }
+  // Postorder, without a recursive depth limit. Derive sort codes and cache direct child order.
+  for (const root of Object.values(trees)) {
+    const stack = [[root, false]];
+    while (stack.length) {
+      const [node, done] = stack.pop();
+      if (!done) {
+        weight++; stack.push([node, true]);
+        for (const child of node.children.values()) stack.push([child, false]);
+        for (const child of node.subconcepts.values()) stack.push([child, false]);
+      } else {
+        let direct = '';
+        for (const note of node.notes || []) {
+          const code = getMinAtomSortCodeFromNotes([note]);
+          if (code && (!direct || compareAtomSortCodes(code, direct) < 0)) direct = code;
+          if (!(await checkpoint())) return null;
+        }
+        let minimum = direct;
+        for (const child of [...node.children.values(), ...node.subconcepts.values()]) {
+          const code = child.descendantSortCode;
+          if (code && (!minimum || compareAtomSortCodes(code, minimum) < 0)) minimum = code;
+        }
+        node.directSortCode = direct || ''; node.descendantSortCode = minimum; node.sortCode = direct || minimum;
+        // Merge sort yields during wide sibling lists; ordering matches stable Array.sort.
+        const sort = async values => {
+          let a = [...values];
+          for (let width = 1; width < a.length; width *= 2) {
+            const b = new Array(a.length);
+            for (let start = 0; start < a.length; start += width * 2) {
+              let i = start, j = Math.min(start + width, a.length), k = start;
+              const leftEnd = j, rightEnd = Math.min(start + width * 2, a.length);
+              while (i < leftEnd || j < rightEnd) {
+                b[k++] = j >= rightEnd || (i < leftEnd && compare(a[i], a[j]) <= 0) ? a[i++] : a[j++];
+                if ((k & 127) === 0 && !(await checkpoint())) return null;
+              }
+            }
+            a = b;
+          }
+          return a;
+        };
+        const children = await sort(node.children.values()), subconcepts = await sort(node.subconcepts.values());
+        if (!children || !subconcepts) return null;
+        node.pageChildren = children.concat(subconcepts);
+      }
+      if (!(await checkpoint())) return null;
+    }
+  }
+  return { trees, weight };
+}
+
 
 function getSuffixTreeNodePathPart(node) {
   return node?.kind === "subconcept" ? getSubconceptRawPathPart(node) : text(node?.rawLabel, node?.label);
@@ -5400,6 +5476,8 @@ module.exports = class KeywordIndexPlugin extends Plugin {
   }
 
   onunload() {
+    this._drawerPageDisposed = true; this._drawerPageTrees?.clear();
+
     this.unloaded = true;
     this.scanner?.disposeSourceCache?.();
     this._manualScanNotice?.hide();
@@ -5518,6 +5596,9 @@ module.exports = class KeywordIndexPlugin extends Plugin {
       }),
       openNode: async (nodeKey) => await this.openEvaNode(nodeKey),
       identityContractVersion: 1,
+      drawerProjectionPageContractVersion: 1,
+      getDrawerProjectionGeneration: (options = {}) => this.getDrawerProjectionGeneration(options),
+      getDrawerProjectionPage: (options = {}) => this.getDrawerProjectionPage(options),
       drawerProjectionContractVersion: 1,
       getDrawerProjection: (options = {}) => this.getDrawerProjection(options),
       resolveKeywordNodeKey: ({ keywordId, indexPath } = {}) => {
@@ -6302,6 +6383,87 @@ module.exports = class KeywordIndexPlugin extends Plugin {
   }
 
   // Read-only scoped source tree. No repository load/save or EVA registration here.
+  // SM-DRAWER-LAZY: opaque content generation; no IO, registration or owner writes.
+  getDrawerProjectionGeneration({ nodeKey } = {}) {
+    const index = this.repository?.index;
+    if (this._drawerPageDisposed || !index || this.repository.lastError) return { status: 'unavailable', generation: '' };
+    const parsed = this.resolveIdentityNode(nodeKey);
+    const keyword = parsed && index.keywords?.[parsed.scopeId];
+    if (!keyword || keyword.identityStatus === 'unavailable' || parsed.identityRecord?.status === 'unavailable') return { status: 'source-unavailable', generation: '' };
+    this._drawerPageIds ||= new WeakMap();
+    const id = value => {
+      if (!value || typeof value !== 'object') return 0;
+      if (!this._drawerPageIds.has(value)) this._drawerPageIds.set(value, ++this._drawerPageSerial || (this._drawerPageSerial = 1));
+      return this._drawerPageIds.get(value);
+    };
+    return { status: 'ready', generation: [id(index), index.identityRegistry?.revision || 0, id(keyword), id(keyword.notes)].join(':'),
+      rootNodeKey: parsed.identityRecord?.nodeKey || nodeKey, stableIdentity: Boolean(index.identityRegistry) };
+  }
+
+  async getDrawerProjectionPage({ nodeKey, offset = 0, limit = 50, generation } = {}) {
+    const stamp = this.getDrawerProjectionGeneration({ nodeKey });
+    const empty = status => ({ contractVersion: 1, ...stamp, status, nodes: [], offset: 0, limit: 50, total: 0, hasMore: false, complete: false });
+    if (stamp.status !== 'ready') return empty(stamp.status);
+    if (generation != null && generation !== stamp.generation) return empty('stale');
+    offset = Number.isFinite(Number(offset)) ? Math.max(0, Math.floor(Number(offset))) : 0;
+    limit = Number.isFinite(Number(limit)) ? Math.max(1, Math.min(200, Math.floor(Number(limit)))) : 50;
+    const parsed = this.resolveIdentityNode(nodeKey), index = this.repository.index, keyword = index.keywords[parsed.scopeId];
+    const drawer = parsed.scopeType === 'keyword-drawer' ? (parsed.identityRecord || decodeKeywordDrawerItemId(parsed.itemId)) : null;
+    this._drawerPageTrees ||= new Map();
+    this._drawerPagePending ||= new Map();
+    const cacheKey = keyword.id + ':' + stamp.generation;
+    let entry = this._drawerPageTrees.get(cacheKey);
+    if (!entry) {
+      let pending = this._drawerPagePending.get(cacheKey);
+      if (!pending) {
+        if (this._drawerPagePending.size >= 8) return empty('busy');
+        // One cold source build at a time. Repeated consumers share its promise.
+        pending = (this._drawerPageQueue || Promise.resolve()).catch(() => {}).then(async () => {
+          if (this.getDrawerProjectionGeneration({ nodeKey }).generation !== stamp.generation) return null;
+          const result = await buildPagedDrawerTrees(keyword, () => this.getDrawerProjectionGeneration({ nodeKey }).generation !== stamp.generation);
+          if (!result || this.getDrawerProjectionGeneration({ nodeKey }).generation !== stamp.generation) return null;
+          result.generation = stamp.generation;
+          // Weight is source notes + tree nodes; oversized sources stay usable but are not retained.
+          if (result.weight <= 40000) {
+            for (const [key] of this._drawerPageTrees) if (key.startsWith(keyword.id + ':')) this._drawerPageTrees.delete(key);
+            const weight = () => [...this._drawerPageTrees.values()].reduce((n, item) => n + item.weight, 0);
+            while (this._drawerPageTrees.size && (this._drawerPageTrees.size >= 8 || weight() + result.weight > 40000)) this._drawerPageTrees.delete(this._drawerPageTrees.keys().next().value);
+            this._drawerPageTrees.set(cacheKey, result);
+          }
+          return result;
+        }).finally(() => this._drawerPagePending.delete(cacheKey));
+        this._drawerPagePending.set(cacheKey, pending); this._drawerPageQueue = pending.then(() => {}, () => {});
+      }
+      entry = await pending;
+    } else { this._drawerPageTrees.delete(cacheKey); this._drawerPageTrees.set(cacheKey, entry); }
+    if (!entry || this.getDrawerProjectionGeneration({ nodeKey }).generation !== stamp.generation) return empty('stale');
+    const parts = drawer?.pathParts || [], lists = [];
+    if (drawer?.scope !== 'root-notes') for (const type of drawer ? [drawer.type] : ['yaml', 'plus', 'dot']) {
+      const tree = entry.trees[type], root = parts.length ? findSuffixTreeNodeByPath(tree, parts) : tree;
+      if (!root) return empty('source-unavailable');
+      lists.push({ type, nodes: root.pageChildren || [] });
+    }
+    const total = lists.reduce((n, item) => n + item.nodes.length, 0);
+    // Out-of-range offset recovers to the last valid page.
+    if (offset >= total) offset = total ? Math.floor((total - 1) / limit) * limit : 0;
+    const nodes = []; let base = 0, identityMissing = false;
+    for (const list of lists) {
+      for (let i = Math.max(0, offset - base); i < list.nodes.length && base + i < offset + limit; i++) {
+        const child = list.nodes[i], pathParts = [...parts, getSuffixTreeNodePathPart(child)];
+        const key = this.buildKeywordDrawerNodeKey(keyword.id, list.type, pathParts, 'branch');
+        if (!key) { identityMissing = true; continue; }
+        nodes.push(Object.freeze({ nodeKey: key, parentNodeKey: stamp.rootNodeKey, label: text(child.displayLabel, child.label),
+          kind: child.kind === 'subconcept' ? 'subconcept' : parseBusSegment(child.label) ? 'bus-drawer' : 'drawer',
+          type: list.type, pathParts: Object.freeze(pathParts), stableIdentity: stamp.stableIdentity,
+          hasChildren: Boolean(child.pageChildren?.length) }));
+      }
+      base += list.nodes.length;
+    }
+    return Object.freeze({ contractVersion: 1, ...stamp, status: identityMissing ? 'identity-incomplete' : 'ready',
+      revision: index.identityRegistry?.revision || 0, nodes: Object.freeze(nodes), offset, limit, total,
+      hasMore: offset + limit < total, nextOffset: offset + limit < total ? offset + limit : null, complete: !identityMissing });
+  }
+
   getDrawerProjection({ nodeKey, maxNodes = 1500 } = {}) {
     const index = this.repository?.index;
     const unavailable = (status) => ({ contractVersion: 1, status, complete: false, stableIdentity: false, rootNodeKey: nodeKey, nodes: [] });

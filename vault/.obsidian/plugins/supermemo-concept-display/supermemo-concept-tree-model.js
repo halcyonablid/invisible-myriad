@@ -1,6 +1,42 @@
 "use strict";
 
-const TREE_SCHEMA_VERSION = 1;
+// SM-F1: pure content timestamps and calendar-day projection. No I/O or timers.
+const freshness = (() => {
+  const epoch = '2026-11-06';
+  const reasons = {created:'新建节点',child:'新增子节点',rename:'修改名称',comment:'修改说明',keyword:'挂载关键词',concept:'挂入 Concept'};
+  const date = value => {const d=new Date(value);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+  function ordinal(value) {
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return NaN;
+    const [y,m,d]=value.split('-').map(Number), t=new Date(Date.UTC(y,m-1,d));
+    return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d?t.getTime()/86400000:NaN;
+  }
+  function stamp(reason,now=new Date().toISOString(),eventId) {
+    if(!reasons[reason]||!Number.isFinite(Date.parse(now)))throw new Error('FRESHNESS_EVENT_INVALID');
+    return {at:new Date(now).toISOString(),date:date(now),reason,...(eventId?{eventId}: {})};
+  }
+  function touch(store,id,reason,now,eventId) {
+    const node=store.nodesById[id];if(!node||(node.lifecycle!=null&&node.lifecycle!=='active'))throw new Error('FRESHNESS_NODE_UNAVAILABLE');
+    const next=stamp(reason,now,eventId), previous=node.freshness;
+    if(previous && Number.isFinite(Date.parse(previous.at)) && Date.parse(previous.at)>Date.parse(next.at))return;
+    node.freshness=next;
+  }
+  function project(store,node,now=new Date()) {
+    const f=node?.freshness,base=Object.hasOwn(store,"freshnessEpoch")?store.freshnessEpoch:epoch;
+    if((f!==undefined && (!f||typeof f!=='object'||!Number.isFinite(Date.parse(f.at))||!reasons[f.reason]||!Number.isFinite(ordinal(f.date))))||!Number.isFinite(ordinal(base)))
+      return {strength:0,text:'刷新时间待核验',valid:false};
+    const day=f?f.date:base,age=Math.max(0,ordinal(date(now))-ordinal(day));
+    return {strength:Math.max(0,1-age/100),age,valid:true,text:f?`上次刷新：${day} · ${age}天前 · ${reasons[f.reason]}`:`自 ${base} 启用起第${age}天`};
+  }
+  function pendingValid(map) {
+    if(!map||typeof map!=='object'||Array.isArray(map)||Object.keys(map).length>16)return false;
+    return Object.entries(map).every(([id,p])=>p&&p.intentId===id&&['antinet-keyword-mount','引用'].includes(p.relationType)&&typeof p.nodeId==='string'&&typeof p.sessionId==='string'&&typeof p.sourceNodeKey==='string'
+      &&(p.nodeCreatedAt===null||typeof p.nodeCreatedAt==='string')&&Number.isFinite(Date.parse(p.armedAt))&&Array.isArray(p.seen)&&p.seen.length<=2048&&p.seen.every(x=>typeof x==='string'));
+  }
+  return Object.freeze({epoch,date,ordinal,stamp,touch,project,pendingValid});
+})();
+
+
+const TREE_SCHEMA_VERSION = 2;
 const TX_SCHEMA_VERSION = 1;
 
 function deepClone(value) {
@@ -44,6 +80,7 @@ function normalizeNode(raw, fallbackId) {
   return {
     id,
     label,
+    ...(Object.prototype.hasOwnProperty.call(raw, "freshness") ? { freshness: deepClone(raw.freshness) } : {}),
     ...(Object.prototype.hasOwnProperty.call(raw, "comment") ? { comment: raw.comment } : {}),
     parentId: raw.parentId ? String(raw.parentId) : null,
     order: Number.isFinite(Number(raw.order)) ? Number(raw.order) : 0,
@@ -63,7 +100,7 @@ function normalizeTreeStore(raw) {
     return { store: createEmptyTreeStore(), readOnly: true, errors: ["TREE_ROOT_INVALID"] };
   }
   const schemaVersion = Number(raw.schemaVersion || TREE_SCHEMA_VERSION);
-  if (schemaVersion !== TREE_SCHEMA_VERSION) {
+  if (schemaVersion !== 1 && schemaVersion !== TREE_SCHEMA_VERSION) {
     return {
       store: createEmptyTreeStore(),
       readOnly: true,
@@ -113,6 +150,7 @@ function normalizeTreeStore(raw) {
   if (!Number.isFinite(Number(raw.revision)) || Number(raw.revision) < 0) normalizationErrors.push("TREE_REVISION_INVALID");
   const store = {
     schemaVersion: TREE_SCHEMA_VERSION,
+    freshnessEpoch: Object.hasOwn(raw, "freshnessEpoch") ? raw.freshnessEpoch : freshness.epoch,
     revision: Number.isFinite(Number(raw.revision)) ? Math.max(0, Number(raw.revision)) : 0,
     nodesById,
     reservedTreeNodeIds: uniqueStrings([...(raw.reservedTreeNodeIds || []), ...Object.keys(nodesById)]),
@@ -241,6 +279,8 @@ function createTreeNode(store, options = {}) {
     updatedAt: timestamp,
     archivedAt: null,
   };
+  freshness.touch(candidate,id,"created",timestamp);
+  if(parentId)freshness.touch(candidate,parentId,"child",timestamp);
   candidate.reservedTreeNodeIds.push(id);
   return finalizeTreeMutation(candidate, current.revision, timestamp);
 }
@@ -252,6 +292,8 @@ function renameTreeNode(store, nodeId, label, now) {
   if (!node) throw Object.assign(new Error("Tree node was not found"), { code: "TREE_NODE_MISSING" });
   if (!nextLabel) throw Object.assign(new Error("Tree node label is required"), { code: "TREE_LABEL_REQUIRED" });
   const candidate = deepClone(current);
+  if(node.label === nextLabel)return current;
+  freshness.touch(candidate,nodeId,"rename",now);
   candidate.nodesById[nodeId].label = nextLabel;
   candidate.nodesById[nodeId].updatedAt = nowIso(now);
   return finalizeTreeMutation(candidate, current.revision, now);
@@ -337,6 +379,8 @@ function assignConcept(store, stableId, nodeId, now) {
     throw Object.assign(new Error("Concept assignment requires an active tree node"), { code: "ASSIGNMENT_NODE_UNAVAILABLE" });
   }
   const candidate = deepClone(current);
+  if(current.conceptAssignments[conceptId] === nodeId)return current;
+  freshness.touch(candidate,nodeId,"concept",now);
   candidate.conceptAssignments[conceptId] = nodeId;
   return finalizeTreeMutation(candidate, current.revision, now);
 }
@@ -473,6 +517,7 @@ function normalizeTreeTransaction(raw) {
 }
 
 module.exports = {
+  freshness,
   TREE_SCHEMA_VERSION,
   TX_SCHEMA_VERSION,
   deepClone,

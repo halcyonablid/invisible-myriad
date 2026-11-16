@@ -2,6 +2,7 @@ const obsidian = require("obsidian");
 const { Notice, Plugin, PluginSettingTab, Setting, TFile } = obsidian;
 
 const DEFAULT_SETTINGS = {
+  graphRenderer: "rules",
   maxDepth: 7,
   layout: "LR",
   groupByLevel: true,
@@ -24,6 +25,7 @@ function toPositiveInt(value, fallback) {
 function normalizeSettings(raw = {}) {
   const layout = text(raw.layout, DEFAULT_SETTINGS.layout).toUpperCase();
   return {
+    graphRenderer: raw.graphRenderer === "mermaid" ? "mermaid" : "rules",
     maxDepth: toPositiveInt(raw.maxDepth, DEFAULT_SETTINGS.maxDepth),
     layout: ["LR", "TB", "RL", "BT"].includes(layout) ? layout : DEFAULT_SETTINGS.layout,
     groupByLevel: raw.groupByLevel !== false,
@@ -45,8 +47,20 @@ class ReferenceGraphWidgetSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl("h2", { text: "Reference Graph Widget" });
     containerEl.createEl("p", {
-      text: "原“关系图谱绘制.md”的插件化版本。只读 EVA_Notes.json / EVA_Links.json，不写业务 JSON。",
+      text: "两种关系图绘制方式共用笔记内容；集合卡独立显示。只读当前邻域，不触发全库 EVA 刷新。",
     });
+
+    new Setting(containerEl)
+      .setName("关系图绘制方式")
+      .setDesc("规则布局按编号与引用安排位置；Mermaid 自动排版。切换立即应用于已打开的图，不重新读取笔记。")
+      .addDropdown((dropdown) => dropdown
+        .addOption("rules", "规则布局")
+        .addOption("mermaid", "Mermaid 布局")
+        .setValue(this.plugin.settings.graphRenderer)
+        .onChange(async (value) => {
+          this.plugin.settings.graphRenderer = value === "mermaid" ? "mermaid" : "rules";
+          await this.plugin.saveSettings();
+        }));
 
     new Setting(containerEl)
       .setName("最大展开深度")
@@ -54,16 +68,6 @@ class ReferenceGraphWidgetSettingTab extends PluginSettingTab {
         .setValue(String(this.plugin.settings.maxDepth))
         .onChange(async (value) => {
           this.plugin.settings.maxDepth = toPositiveInt(value, DEFAULT_SETTINGS.maxDepth);
-          await this.plugin.saveSettings();
-        }));
-
-    new Setting(containerEl)
-      .setName("Mermaid 布局方向")
-      .setDesc("可选：LR / TB / RL / BT")
-      .addText((input) => input
-        .setValue(this.plugin.settings.layout)
-        .onChange(async (value) => {
-          this.plugin.settings.layout = normalizeSettings({ layout: value }).layout;
           await this.plugin.saveSettings();
         }));
 
@@ -76,32 +80,7 @@ class ReferenceGraphWidgetSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    new Setting(containerEl)
-      .setName("节点文字最大长度")
-      .addText((input) => input
-        .setValue(String(this.plugin.settings.nodeMaxLength))
-        .onChange(async (value) => {
-          this.plugin.settings.nodeMaxLength = toPositiveInt(value, DEFAULT_SETTINGS.nodeMaxLength);
-          await this.plugin.saveSettings();
-        }));
 
-    new Setting(containerEl)
-      .setName("EVA Notes JSON 文件名")
-      .addText((input) => input
-        .setValue(this.plugin.settings.notesJsonName)
-        .onChange(async (value) => {
-          this.plugin.settings.notesJsonName = text(value, DEFAULT_SETTINGS.notesJsonName);
-          await this.plugin.saveSettings();
-        }));
-
-    new Setting(containerEl)
-      .setName("EVA Links JSON 文件名")
-      .addText((input) => input
-        .setValue(this.plugin.settings.linksJsonName)
-        .onChange(async (value) => {
-          this.plugin.settings.linksJsonName = text(value, DEFAULT_SETTINGS.linksJsonName);
-          await this.plugin.saveSettings();
-        }));
   }
 }
 
@@ -154,6 +133,7 @@ module.exports = class ReferenceGraphWidgetPlugin extends Plugin {
   onunload() {
     this.unloaded = true;
     this.closeWidget();
+    this.mermaidService?.dispose();
     this.session?.dispose();
     if (window.__referenceGraphWidgetPluginApi?.pluginId === this.manifest.id) {
       delete window.__referenceGraphWidgetPluginApi;
@@ -167,50 +147,34 @@ module.exports = class ReferenceGraphWidgetPlugin extends Plugin {
   async saveSettings() {
     this.settings = normalizeSettings(this.settings);
     await this.saveData(this.settings);
+    if (!this.unloaded) window.__referenceGraphWidgetRuntime?.applySettings?.({...this.settings});
   }
 
   async loadEngineRunner() {
-    const candidatePaths = [
-      `${this.manifest.dir || `.obsidian/plugins/${this.manifest.id}`}/core-script.js`,
-      `.obsidian/plugins/${this.manifest.id}/core-script.js`,
-    ].filter(Boolean);
-    let code = "";
-    let loadedPath = "";
-    for (const candidatePath of candidatePaths) {
-      try {
-        if (!(await this.app.vault.adapter.exists(candidatePath))) continue;
-        code = await this.app.vault.adapter.read(candidatePath);
-        loadedPath = candidatePath;
-        break;
-      } catch (error) {
-        console.warn("[ReferenceGraphWidget][engine-load-candidate-fail]", {
-          path: candidatePath,
-          message: error?.message || String(error),
-        });
-      }
-    }
-    if (!code) {
-      throw new Error(`Cannot load core-script.js from plugin directory: ${candidatePaths.join(", ")}`);
-    }
-    const module = { exports: {} };
-    const factory = new Function("module", "exports", "require", `${code}\n;return module.exports;`);
-    const runner = factory(module, module.exports, require);
-    if (typeof runner !== "function") {
-      throw new Error(`core-script.js did not export a runner function: ${loadedPath}`);
-    }
-    console.info("[ReferenceGraphWidget][engine-load]", {
-      status: "OK",
-      path: loadedPath,
-      mode: "fresh-read",
-      engineChars: code.length,
-    });
-    const helperPath = loadedPath.replace(/core-script\.js$/, "collective-graph.cjs");
-    const helperCode = await this.app.vault.adapter.read(helperPath);
-    const helperModule = { exports: {} };
-    new Function("module", "exports", "require", helperCode)(helperModule, helperModule.exports, require);
-    this.session?.setEngine(code + "\n" + helperCode + "\n" + this.sessionSourceCode + "\n" + this.persistenceSourceCode);
-    await this.session?.restore();
-    return context => runner({ ...context, collective: helperModule.exports, session: this.session });
+    if (this.engineRunner) return this.engineRunner;
+    if (this.engineLoading) return this.engineLoading;
+    this.engineLoading = (async () => {
+      const dir = this.manifest.dir || `.obsidian/plugins/${this.manifest.id}`;
+      const names = ['core-script.js','rule-model.cjs','rule-layout.cjs','rule-view.cjs','note-navigation.cjs','mermaid-renderer.cjs'];
+      const sources = await Promise.all(names.map(name => this.app.vault.adapter.read(`${dir}/${name}`)));
+      const modules = sources.map(source => {
+        const m = {exports:{}}; new Function('module','exports','require',source)(m,m.exports,require); return m.exports;
+      });
+      if (this.unloaded) throw Error('plugin-unloaded');
+      this.session.setEngine(sources.join('\n')+'\n'+this.sessionSourceCode+'\n'+this.persistenceSourceCode);
+      await this.session.restore();
+      if (this.unloaded) throw Error('plugin-unloaded');
+      const [run,model,layout,view,navigation,mermaid] = modules;
+      this.mermaidService = mermaid.createService({loadEngine: async () => {
+        const source = await this.app.vault.adapter.read(`${dir}/mermaid-engine.cjs`);
+        if (this.unloaded) throw Error('plugin-unloaded');
+        const m = {exports:{}};
+        new Function('module','exports',source)(m,m.exports);
+        return m.exports();
+      }});
+      return this.engineRunner = context => run({...context,model,layout,view,navigation,mermaid,mermaidService:this.mermaidService,session:this.session});
+    })();
+    try { return await this.engineLoading; } finally { this.engineLoading = null; }
   }
 
   getActiveTargetFile() {
@@ -250,6 +214,8 @@ module.exports = class ReferenceGraphWidgetPlugin extends Plugin {
   async openWidget(forceRefresh = false) {
     const generation = ++this.openGeneration;
     if (forceRefresh) this.session?.invalidate("refresh");
+    const originLeaf = this.app.workspace.activeLeaf;
+    const originGroup = originLeaf?.parent;
     const activeFile = this.getActiveTargetFile();
     if (!activeFile) {
       new Notice("请先打开一个 Markdown 或 Excalidraw 笔记。", 3000);
@@ -259,6 +225,8 @@ module.exports = class ReferenceGraphWidgetPlugin extends Plugin {
       const runner = await this.loadEngineRunner();
       if (this.unloaded || generation !== this.openGeneration) return false;
       await runner({
+        originLeaf,
+        originGroup,
         forceRefresh,
         isCurrent: () => !this.unloaded && generation === this.openGeneration,
         app: this.app,

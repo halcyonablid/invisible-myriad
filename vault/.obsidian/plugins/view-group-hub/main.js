@@ -23,12 +23,14 @@ Object.freeze({ key: "timeBlocks", label: "时间块记录", icon: "timer", plug
 Object.freeze({ key: "dailyLessons", label: "日课", icon: "calendar-check", pluginId: "mandala-time-blocks", viewType: "mandala-daily-lessons-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 Object.freeze({ key: "weeklyTracking", label: "周追踪", icon: "calendar-range", pluginId: "mandala-time-blocks", viewType: "mandala-weekly-tracking-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 Object.freeze({ key: "mandalaGrid", label: "九宫格", icon: "grid-3x3", pluginId: "mandala-time-blocks", viewType: "mandala-nine-grid-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
+Object.freeze({ key: "experienceReview", label: "经验回看", icon: "book-open-check", pluginId: "experience-note-tags", viewType: "experience-note-tags-view", sourceBound: false }),
 ]);
 
 const GROUPS = Object.freeze([
   Object.freeze({ key: "execution", label: "执行与收集", members: Object.freeze(["overview","workspace","gtd","collection"].map(key => MEMBERS.find(member => member.key === key))) }),
   Object.freeze({ key: "working", label: "执行过程", members: Object.freeze(["nextAction","ontology","timeBlocks","dailyLessons"].map(key => MEMBERS.find(member => member.key === key))) }),
-  Object.freeze({ key: "review-planning", label: "回顾与长期规划", members: Object.freeze(["temporal","mandalaGrid","timeline","dailyReview","weeklyTracking"].map(key => MEMBERS.find(member => member.key === key))) }),
+  Object.freeze({ key: "review", label: "回看", members: Object.freeze(["experienceReview","weeklyTracking","dailyReview"].map(key => MEMBERS.find(member => member.key === key))) }),
+  Object.freeze({ key: "planning", label: "规划", members: Object.freeze(["timeline","mandalaGrid","temporal"].map(key => MEMBERS.find(member => member.key === key))) }),
 ]);
 
 const DEFAULT_SETTINGS = Object.freeze({

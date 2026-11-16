@@ -993,6 +993,79 @@ function persistAntinetUi(patch = {}) {
     }
 }
 
+// SM-F1: only visible rendered nodes are recolored; never refresh data or rebuild a tree.
+let freshnessTimer=null, freshnessDisposed=false;
+function freshnessStore(kind){return kind==='subject'?state.treeStore:state.antinetStore;}
+function paintNodeFreshness(element,kind,node,detail=false){
+    const store=freshnessStore(kind),p=treeModel.freshness.project(store,node);
+    element.dataset.smFreshnessKind=kind;element.dataset.smFreshnessId=node.id;
+    if(detail){element.dataset.smFreshnessDetail='1';element.textContent=p.text;return;}
+    element.classList.add('sm-node-freshness');
+    element.style.setProperty('--sm-freshness-weight',`${Math.round(p.strength*10000)/100}%`);
+    element.title=p.text;
+}
+function freshnessVisible(){
+    return !freshnessDisposed&&!document.hidden&&['tree','antinet'].includes(state.activeSurface)
+        &&rootContainer.isConnected&&rootContainer.getClientRects().length>0;
+}
+function refreshFreshnessColors(){
+    if(freshnessTimer!==null){window.clearTimeout(freshnessTimer);freshnessTimer=null;}
+    if(!freshnessVisible())return;
+    rootContainer.querySelectorAll('[data-sm-freshness-id]').forEach(element=>{
+        const kind=element.dataset.smFreshnessKind,node=freshnessStore(kind).nodesById[element.dataset.smFreshnessId];
+        if(node)paintNodeFreshness(element,kind,node,element.dataset.smFreshnessDetail==='1');
+    });
+    const now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+    freshnessTimer=window.setTimeout(refreshFreshnessColors,Math.max(1000,next-now+100));
+}
+document.addEventListener?.('visibilitychange',refreshFreshnessColors);
+window.addEventListener?.('focus',refreshFreshnessColors);
+const freshnessLeafRef=context.app?.workspace?.on?.('active-leaf-change',refreshFreshnessColors);
+cleanupCallbacks.push(()=>{
+    freshnessDisposed=true;if(freshnessTimer!==null)window.clearTimeout(freshnessTimer);
+    document.removeEventListener?.('visibilitychange',refreshFreshnessColors);window.removeEventListener?.('focus',refreshFreshnessColors);
+    if(freshnessLeafRef)context.app.workspace.offref(freshnessLeafRef);
+});
+
+function persistFreshnessIntent(pending){
+    const current=readCurrentAntinetStore(),map=current.freshnessMountPending||{};
+    if(Object.keys(map).length>=16||pending.seen.size>2048)throw new Error('挂载刷新待处理记录已满，请先在节点详情处理');
+    const node=current.nodesById[pending.nodeId];if(!node||node.lifecycle!=='active')throw new Error('节点不可用');
+    const relationType=getAntinetEvaApi()?.getMetaCaptureState?.()?.relationType||ANTINET_META_RELATION_TYPE;
+    if(relationType!==ANTINET_META_RELATION_TYPE&&!ANTINET_LEGACY_RELATION_TYPES.has(relationType))throw new Error('此关系类型不计入关键词挂载刷新');
+    const intent={relationType,intentId:antinetTreeModel.createId('smfresh'),sessionId:pending.sessionId,nodeId:pending.nodeId,
+        nodeCreatedAt:node.createdAt,sourceNodeKey:pending.sourceNodeKey,seen:[...pending.seen],armedAt:new Date().toISOString()};
+    const candidate=antinetTreeModel.deepClone(current);candidate.freshnessMountPending={...map,[intent.intentId]:intent};candidate.revision++;
+    commitAntinetCandidate(candidate,current.revision,'freshness-mount-intent');return intent.intentId;
+}
+function settleFreshnessIntent(intentId,cancel=false){
+    const current=readCurrentAntinetStore(),p=current.freshnessMountPending?.[intentId];if(!p)return;
+    const candidate=antinetTreeModel.deepClone(current);
+    if(!cancel){
+        const node=current.nodesById[p.nodeId];
+        if(!node||node.lifecycle!=='active'||node.createdAt!==p.nodeCreatedAt||getAntinetNodeKey(p.nodeId)!==p.sourceNodeKey)throw new Error('原节点身份已改变');
+        const matches=getAntinetOutgoingRelations(p.nodeId).filter(r=>!p.seen.includes(r.id)&&r.sourceNodeKey===p.sourceNodeKey
+            &&r.relationType===p.relationType&&Number.isFinite(Date.parse(r.createdAt))&&Date.parse(r.createdAt)>=Date.parse(p.armedAt));
+        if(matches.length!==1)throw new Error('未找到唯一的新挂载关系，请核对后取消待补记；不会自动猜选');
+        treeModel.freshness.touch(candidate,p.nodeId,'keyword',matches[0].createdAt,matches[0].id);
+    }
+    delete candidate.freshnessMountPending[intentId];candidate.revision++;
+    commitAntinetCandidate(candidate,current.revision,cancel?'freshness-intent-cancel':'freshness-keyword');
+}
+function renderFreshnessDetails(container,kind,node){
+    const info=container.createDiv({cls:'sm-node-freshness-details'});paintNodeFreshness(info,kind,node,true);
+    if(kind!=='antinet')return;
+    for(const p of Object.values(state.antinetStore.freshnessMountPending||{}).filter(p=>p.nodeId===node.id)){
+        const row=container.createDiv({cls:'sm-node-freshness-pending'});
+        row.createSpan({text:'有一次挂载刷新待核对。'});
+        for(const [label,cancel]of [['补记挂载刷新',false],['取消待补记',true]]){
+            const button=row.createEl('button',{text:label});button.onclick=()=>{
+                try{settleFreshnessIntent(p.intentId,cancel);renderViewFn?.();}catch(error){new Notice(error.message);}
+            };
+        }
+    }
+}
+
 function readCurrentAntinetStore() {
     const raw = localStorage.getItem(ANTINET_STORAGE_KEY);
     const normalized = antinetTreeModel.normalizeAntinetStore(raw ? JSON.parse(raw) : null);
@@ -1050,6 +1123,7 @@ function commitAntinetMutation(mutator, source) {
     assertAntinetMutationAllowed();
     const current = readCurrentAntinetStore();
     const candidate = mutator(antinetTreeModel.deepClone(current));
+    if(candidate.revision===current.revision)return current;
     return commitAntinetCandidate(candidate, current.revision, source);
 }
 
@@ -1126,6 +1200,7 @@ function commitTreeMutation(mutator, source, options = {}) {
     if (!options.allowPendingTx) assertTreeMutationAllowed(source);
     const expectedRevision = Number(state.treeStore.revision || 0);
     const candidate = mutator(treeModel.deepClone(state.treeStore));
+    if(candidate.revision===expectedRevision)return state.treeStore;
     return commitTreeCandidate(candidate, expectedRevision, source);
 }
 
@@ -2063,6 +2138,9 @@ async function saveNodeComment(draft, text) {
         if ((node.comment ?? '') === nextText) return false;
         const candidate = JSON.parse(current.raw);
         const now = new Date().toISOString();
+        candidate.schemaVersion=current.store.schemaVersion;
+        candidate.freshnessEpoch=Object.hasOwn(current.store,"freshnessEpoch")?current.store.freshnessEpoch:treeModel.freshness.epoch;
+        treeModel.freshness.touch(candidate,draft.nodeId,"comment",now);
         candidate.nodesById[draft.nodeId].comment = nextText;
         candidate.nodesById[draft.nodeId].updatedAt = now;
         candidate.revision = Number(current.store.revision) + 1;
@@ -2506,6 +2584,7 @@ function renderTreeBranch(container, node) {
         cls: `sm-structure-node${state.treeUi.selectedNodeId === node.id ? ' is-selected' : ''}`,
         attr: { type: 'button', 'data-tree-node-id': node.id }
     });
+    if(!node.kind || node.kind==='manual')paintNodeFreshness(card,card.classList.contains('sm-antinet-node')?'antinet':'subject',node);
     card.createSpan({ cls: 'sm-structure-node-label', text: node.label });
     const assignmentCount = getAssignedConcepts(node.id).length;
     card.createSpan({ cls: 'sm-structure-node-count', text: `${assignmentCount}` });
@@ -2703,6 +2782,7 @@ function renderTreeInspector(container) {
     const breadcrumb = getTreeBreadcrumb(node.id);
     inspector.createDiv({ cls: 'sm-tree-inspector-breadcrumb', text: breadcrumb.map(item => item.label).join(' / ') });
     inspector.createDiv({ cls: 'sm-tree-inspector-title', text: node.label });
+    renderFreshnessDetails(inspector, 'subject', node);
     renderNodeComment(inspector, 'subject', node);
     const actions = inspector.createDiv({ cls: 'sm-tree-inspector-actions' });
     if (node.lifecycle === 'active') {
@@ -3414,6 +3494,7 @@ function renderAntinetBranch(container, node) {
     });
     setButtonIcon(card, node.kind === 'drawer' ? 'archive' : node.kind === 'manual' ? 'circle-dot' : 'link-2');
     if (node.kind !== 'manual') card.classList.add('sm-antinet-projection');
+    if(!node.kind || node.kind==='manual')paintNodeFreshness(card,card.classList.contains('sm-antinet-node')?'antinet':'subject',node);
     card.createSpan({ cls: 'sm-structure-node-label', text: node.label });
     const mountCount = node.kind === 'manual' ? getAntinetMountRelations(node.id).length : children.length;
     card.createSpan({ cls: 'sm-structure-node-count', text: node.kind === 'drawer' ? '自动' : `${mountCount}` });
@@ -3570,14 +3651,19 @@ function armMeaningMeta(nodeId) {
     pendingMeaningMeta = meta?.active && meta.sessionId && meta.sourceNodeKey === getAntinetNodeKey(nodeId)
         ? { sessionId: meta.sessionId, nodeId, sourceNodeKey: meta.sourceNodeKey, seen: new Set(getAntinetMountRelations(nodeId).map(m => m.relationId)) }
         : null;
+    if(pendingMeaningMeta){
+        try{pendingMeaningMeta.intentId=persistFreshnessIntent(pendingMeaningMeta);}
+        catch(error){pendingMeaningMeta=null;getAntinetEvaApi()?.stopMetaCapture?.();throw error;}
+    }
 }
 
 function consumeMeaningMeta(reason, meta) {
     const pending = pendingMeaningMeta;
     if (!pending) return;
-    if (meta?.sessionId !== pending.sessionId || !meta?.active) { pendingMeaningMeta = null; return; }
+    if (meta?.sessionId !== pending.sessionId || !meta?.active) { pendingMeaningMeta = null; try{settleFreshnessIntent(pending.intentId,true);}catch(_){} return; }
     if (reason === 'capture-target') {
         pendingMeaningMeta = null;
+        try{settleFreshnessIntent(pending.intentId);}catch(error){new Notice(`挂载已建立，刷新标记待补记：${error.message}。请在原节点详情处理。`);}
         const added = getAntinetMountRelations(pending.nodeId).filter(m => !pending.seen.has(m.relationId));
         if (added.length === 1) {
             state.meaningProjectEditingRelation = added[0].relationId;
@@ -3588,7 +3674,9 @@ function consumeMeaningMeta(reason, meta) {
                 new Notice(`关系挂载成功，但项目归属未保存：${error.message}。请回到 SuperMemo Concept 重试。`);
             }
         } else new Notice('挂载已完成，请在该义胶囊的“项目归属”中选择项目。');
-    } else if (reason === 'capture-duplicate' || meta.sourceNodeKey !== pending.sourceNodeKey) pendingMeaningMeta = null;
+    } else if (reason === 'capture-duplicate' || meta.sourceNodeKey !== pending.sourceNodeKey) {
+        pendingMeaningMeta=null;try{settleFreshnessIntent(pending.intentId,true);}catch(error){new Notice(`刷新待处理记录保留：${error.message}`);}
+    }
 }
 
 function renderMeaningProjectPicker(container) {
@@ -3913,6 +4001,7 @@ function renderAntinetInspector(container) {
         return;
     }
     if (node.drawerAnchor) inspector.createDiv({ cls: 'sm-antinet-anchor-note', text: `接在抽屉：${node.drawerAnchor.lastKnownLabel}。可通过“移动”重新附着或移回普通节点。` });
+    renderFreshnessDetails(inspector, 'antinet', node);
     renderNodeComment(inspector, 'antinet', node);
     const actions = inspector.createDiv({ cls: 'sm-tree-inspector-actions' });
     if (node.lifecycle === 'active') {
@@ -5600,6 +5689,7 @@ function render(container) {
     captureMeaningViewport();
     activeMeaningNavigation?.close();
     container.innerHTML = '';
+    if(freshnessTimer!==null){window.clearTimeout(freshnessTimer);freshnessTimer=null;}
     container.className = 'sm-app-shell';
     renderSurfaceTabs(container);
     if (conceptPageEditingId && state.activeSurface === 'capsules') renderConceptPagePicker(container);
@@ -5607,10 +5697,12 @@ function render(container) {
     const panel = container.createDiv({ cls: 'sm-surface-panel' });
     if (state.activeSurface === 'tree') {
         renderTreeView(panel);
+        refreshFreshnessColors();
         return;
     }
     if (state.activeSurface === 'antinet') {
         renderAntinetView(panel);
+        refreshFreshnessColors();
         return;
     }
     if (state.activeSurface === 'meanings') {

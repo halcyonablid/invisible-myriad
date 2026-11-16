@@ -213,6 +213,8 @@ var DraftStore = class {
 var import_node_crypto2 = require("node:crypto");
 var STORE_SCHEMA_VERSION = 2;
 var LOCAL_DIRECTION_SCHEMA_VERSION = 3;
+var CUSTOM_FRAME_SCHEMA_VERSION = 4;
+var RETAINED_DIRECTION_HISTORY_SCHEMA_VERSION = 5;
 var LEGACY_STORE_SCHEMA_VERSION = 1;
 var EVENT_BUCKETS = [
   "frameworkEventsById",
@@ -272,7 +274,7 @@ function createEmptyStore(createdAt = nowIso()) {
 }
 function ensureFrameworkItemSchema(store) {
   if (store.schemaVersion === LEGACY_STORE_SCHEMA_VERSION) store.schemaVersion = STORE_SCHEMA_VERSION;
-  if (![STORE_SCHEMA_VERSION, LOCAL_DIRECTION_SCHEMA_VERSION].includes(store.schemaVersion)) throw new Error("\u65F6\u95F4\u6846\u67B6 Store \u7248\u672C\u4E0D\u652F\u6301\u6846\u67B6\u6761\u76EE\u80FD\u529B");
+  if (![STORE_SCHEMA_VERSION, LOCAL_DIRECTION_SCHEMA_VERSION, CUSTOM_FRAME_SCHEMA_VERSION, RETAINED_DIRECTION_HISTORY_SCHEMA_VERSION].includes(store.schemaVersion)) throw new Error("\u65F6\u95F4\u6846\u67B6 Store \u7248\u672C\u4E0D\u652F\u6301\u6846\u67B6\u6761\u76EE\u80FD\u529B");
 }
 function text(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
@@ -502,7 +504,8 @@ function applyPatch(target, patch, allowed) {
 }
 function reduceTemporalStore(store) {
   const projection = {
-    localDirectionModel: store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION,
+    localDirectionModel: store.schemaVersion >= LOCAL_DIRECTION_SCHEMA_VERSION,
+    retainedDirectionHistory: store.schemaVersion >= RETAINED_DIRECTION_HISTORY_SCHEMA_VERSION,
     frameworksById: {},
     frameworkItemsById: {},
     frameworkMilestonesById: {},
@@ -517,7 +520,8 @@ function reduceTemporalStore(store) {
     coverageById: {},
     diagnostics: []
   };
-  for (const event of orderedEvents(store, "frameworkEventsById")) {
+  const frameworkEvents = orderedEvents(store, "frameworkEventsById");
+  for (const event of frameworkEvents) {
     if (event.type === "create") {
       projection.frameworksById[event.frameworkId] = {
         id: event.frameworkId,
@@ -730,7 +734,7 @@ function reduceTemporalStore(store) {
     current.updatedAt = event.createdAt;
   }
   for (const event of orderedEvents(store, "gatePolicyEventsById")) {
-    if (event.type !== "set" || store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION) continue;
+    if (event.type !== "set" || store.schemaVersion >= LOCAL_DIRECTION_SCHEMA_VERSION) continue;
     projection.gatePoliciesByOutcomeId[event.outcomeId] = {
       outcomeId: event.outcomeId,
       mode: event.mode,
@@ -783,6 +787,7 @@ function reduceTemporalStore(store) {
     if (event.type === "revoke") current.status = "revoked";
     current.updatedAt = event.createdAt;
   }
+  reduceCustomFrames(projection, frameworkEvents);
   projection.diagnostics = [...projection.diagnostics, ...validateProjection(projection)];
   return projection;
 }
@@ -828,7 +833,7 @@ function validateProjection(projection) {
     else if (identityKey) membershipIdentityOwners.set(identityKey, membership.id);
     const ownedOutcomes = Object.values(outcomes).filter((outcome) => outcome.membershipId === membership.id);
     const activeCoverage = activeValues(projection.coverageById).filter((coverage) => coverage.membershipId === membership.id);
-    if (membership.status === "exited" && ownedOutcomes.length) errors.push(`${membership.id}: exited membership has outcomes`);
+    if (membership.status === "exited" && ownedOutcomes.some((outcome) => !projection.retainedDirectionHistory || outcome.status !== "archived")) errors.push(`${membership.id}: exited membership has outcomes`);
     if (membership.status === "exited" && activeCoverage.length) errors.push(`${membership.id}: exited membership has active coverage`);
     if (membership.status === "active" && membership.frameworkItemId) {
       const item = projection.frameworkItemsById[membership.frameworkItemId];
@@ -941,20 +946,21 @@ function validateProjection(projection) {
   return errors;
 }
 function assertValidStore(store) {
-  if (!store || ![LEGACY_STORE_SCHEMA_VERSION, STORE_SCHEMA_VERSION, LOCAL_DIRECTION_SCHEMA_VERSION].includes(store.schemaVersion)) throw new Error("Temporal Framework store schema \u4E0D\u517C\u5BB9");
-  if (store.schemaVersion !== LOCAL_DIRECTION_SCHEMA_VERSION && Object.values(store.membershipEventsById || {}).some((event) => event.type.startsWith("direction-"))) throw new Error("\u81EA\u6CBB\u65B9\u5411\u4E8B\u4EF6\u9700\u8981 v3 Store");
+  if (!store || ![LEGACY_STORE_SCHEMA_VERSION, STORE_SCHEMA_VERSION, LOCAL_DIRECTION_SCHEMA_VERSION, CUSTOM_FRAME_SCHEMA_VERSION, RETAINED_DIRECTION_HISTORY_SCHEMA_VERSION].includes(store.schemaVersion)) throw new Error("Temporal Framework store schema \u4E0D\u517C\u5BB9");
+  if (store.schemaVersion < LOCAL_DIRECTION_SCHEMA_VERSION && Object.values(store.membershipEventsById || {}).some((event) => event.type.startsWith("direction-"))) throw new Error("\u81EA\u6CBB\u65B9\u5411\u4E8B\u4EF6\u9700\u8981 v3 Store");
   if (store.schemaVersion === LEGACY_STORE_SCHEMA_VERSION) {
     const v2FrameworkEvents = Object.values(store.frameworkEventsById || {}).some((event) => String(event.type).startsWith("item-") || String(event.type).startsWith("milestone-"));
     const v2MembershipEvents = Object.values(store.membershipEventsById || {}).some((event) => event.type === "assign-framework-item" || event.frameworkItemId);
     const v2OutcomeEvents = Object.values(store.outcomeEventsById || {}).some((event) => event.type === "effect-set");
     if (v2FrameworkEvents || v2MembershipEvents || v2OutcomeEvents) throw new Error("v1 Store \u4E0D\u5141\u8BB8\u5305\u542B\u6846\u67B6\u6761\u76EE\u6216\u6B63\u5728\u751F\u6548\u4E8B\u4EF6");
   }
+  if (store.schemaVersion < CUSTOM_FRAME_SCHEMA_VERSION && Object.values(store.frameworkEventsById || {}).some((event) => String(event.type).startsWith("custom-frame-"))) throw new Error("\u81EA\u5B9A\u4E49\u65F6\u95F4\u5E27\u4E8B\u4EF6\u9700\u8981 v4 Store");
   if (!Number.isInteger(store.revision) || store.revision < 0) throw new Error("store revision \u65E0\u6548");
   if (!Number.isInteger(store.nextEventOrdinal) || store.nextEventOrdinal < 1) throw new Error("event ordinal \u65E0\u6548");
   for (const bucket of EVENT_BUCKETS) if (!store[bucket] || typeof store[bucket] !== "object" || Array.isArray(store[bucket])) throw new Error(`${bucket} \u65E0\u6548`);
   const projection = reduceTemporalStore(store);
   if (projection.diagnostics.length) throw new Error(projection.diagnostics.slice(0, 8).join("; "));
-  if (store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION) {
+  if (store.schemaVersion >= LOCAL_DIRECTION_SCHEMA_VERSION) {
     if (Object.values(projection.membershipsById).some((item) => item.localDirection !== true || item.primaryRef !== null || !text(item.lastKnownLabel))) throw new Error("v3 \u4E0A\u5C42\u7EA7\u65B9\u5411\u8EAB\u4EFD\u65E0\u6548");
     if (activeValues(projection.relationsById).length) throw new Error("v3 \u4E0D\u652F\u6301\u6210\u679C\u95F4\u5148\u540E\u6216\u524D\u7F6E\u5173\u7CFB");
   }
@@ -974,7 +980,7 @@ function projectLocalDirections(store) {
 }
 function migrateLocalDirections(store, options = {}) {
   assertValidStore(store);
-  if (store.schemaVersion === LOCAL_DIRECTION_SCHEMA_VERSION) return false;
+  if (store.schemaVersion >= LOCAL_DIRECTION_SCHEMA_VERSION) return false;
   const projection = reduceTemporalStore(store);
   store.schemaVersion = LOCAL_DIRECTION_SCHEMA_VERSION;
   for (const direction of Object.values(projection.membershipsById)) appendDomainEvent(store, "membershipEventsById", "direction-localize", { membershipId: direction.id }, options);
@@ -1028,6 +1034,7 @@ function restoreRemovedOutcome(store, input, options = {}) {
   const projection = reduceTemporalStore(store);
   const outcome = projection.outcomesById[input.outcomeId];
   if (!outcome || outcome.status !== "archived") throw new Error("\u6210\u679C\u672A\u88AB\u79FB\u9664");
+  if (projection.membershipsById[outcome.membershipId]?.status !== "active") throw new Error("\u8BF7\u5148\u4ECE\u201C\u5DF2\u79FB\u51FA\u65B9\u5411\u201D\u6062\u590D\u8BE5\u6210\u679C\u6240\u5C5E\u65B9\u5411\uFF0C\u518D\u6062\u590D\u6210\u679C");
   migrateLocalDirections(store, options);
   if (outcome.outlineParentId && projection.outcomesById[outcome.outlineParentId]?.status !== "active") {
     appendDomainEvent(store, "outcomeEventsById", "link-parent", { outcomeId: outcome.id, outlineParentId: null, reason: "\u6062\u590D\u6210\u679C\uFF1A\u539F\u7236\u6210\u679C\u4E0D\u53EF\u7528\uFF0C\u4FDD\u7559\u5728\u539F\u65B9\u5411\u4E0B" }, options);
@@ -1838,21 +1845,20 @@ function reviseFrameworkBoundary(store, input = {}, options = {}) {
 }
 function membershipExitBlockers(projection, membershipId) {
   const membership = projection.membershipsById?.[membershipId];
-  if (!membership) return [{ code: "membership_not_found", message: "\u627E\u4E0D\u5230\u8981\u79FB\u51FA\u7684\u76EE\u6807\u6216\u9879\u76EE\u4E3B\u952E" }];
-  if (membership.status !== "active") return [{ code: "membership_not_active", message: "\u8BE5\u76EE\u6807\u6216\u9879\u76EE\u5DF2\u4E0D\u5728\u65F6\u95F4\u6846\u67B6\u4E2D" }];
+  if (!membership) return [{ code: "membership_not_found", message: "\u627E\u4E0D\u5230\u8981\u79FB\u51FA\u7684\u4E0A\u5C42\u7EA7\u65B9\u5411" }];
+  if (membership.status !== "active") return [{ code: "membership_not_active", message: "\u8BE5\u65B9\u5411\u5DF2\u4E0D\u5728\u65F6\u95F4\u6846\u67B6\u4E2D" }];
   const blockers = [];
-  const outcomes = Object.values(projection.outcomesById || {}).filter((outcome) => outcome.membershipId === membershipId);
-  if (outcomes.length) blockers.push({ code: "membership_has_outcomes", message: `\u8BE5\u4E3B\u952E\u5DF2\u7ECF\u5F62\u6210\u8FC7 ${outcomes.length} \u4E2A\u9636\u6BB5\u6210\u679C\uFF0C\u4E0D\u80FD\u79FB\u51FA\u65F6\u95F4\u6846\u67B6` });
+  const outcomes = activeValues(projection.outcomesById).filter((outcome) => outcome.membershipId === membershipId);
+  if (outcomes.length) blockers.push({ code: "membership_has_outcomes", message: `\u8BE5\u65B9\u5411\u4ECD\u6709 ${outcomes.length} \u4E2A\u672A\u79FB\u9664\u7684\u6210\u679C\uFF0C\u8BF7\u5148\u5904\u7406\u8FD9\u4E9B\u6210\u679C` });
   const coverage = activeValues(projection.coverageById).filter((item) => item.membershipId === membershipId);
-  if (coverage.length) blockers.push({ code: "membership_has_active_coverage", message: `\u8BE5\u4E3B\u952E\u4ECD\u6709 ${coverage.length} \u9879\u201C\u672C\u9636\u6BB5\u65E0\u90E8\u7F72\u201D\u8BB0\u5F55\uFF0C\u8BF7\u5148\u64A4\u9500` });
+  if (coverage.length) blockers.push({ code: "membership_has_active_coverage", message: `\u8BE5\u65B9\u5411\u4ECD\u6709 ${coverage.length} \u9879\u201C\u672C\u9636\u6BB5\u65E0\u90E8\u7F72\u201D\u8BB0\u5F55\uFF0C\u8BF7\u5148\u64A4\u9500` });
   const boundTargetIds = /* @__PURE__ */ new Set([membershipId, ...Object.values(projection.outcomesById || {}).filter((outcome) => outcome.membershipId === membershipId).map((outcome) => outcome.id)]);
   const bindings = activeValues(projection.frameworkMilestoneBindingsById).filter((binding) => boundTargetIds.has(binding.targetId));
-  if (bindings.length) blockers.push({ code: "membership_has_milestone_bindings", message: `\u8BE5\u4E3B\u952E\u4ECD\u6709 ${bindings.length} \u9879\u6846\u67B6\u91CC\u7A0B\u7891\u5173\u8054\uFF0C\u8BF7\u5148\u89E3\u9664` });
+  if (bindings.length) blockers.push({ code: "membership_has_milestone_bindings", message: `\u8BE5\u65B9\u5411\u4ECD\u6709 ${bindings.length} \u9879\u6846\u67B6\u91CC\u7A0B\u7891\u5173\u8054\uFF0C\u8BF7\u5148\u89E3\u9664` });
   return blockers;
 }
 function exitMembership(store, input, options = {}) {
-  const reason = text(input.reason);
-  if (!reason) throw new Error("\u79FB\u51FA\u65F6\u95F4\u6846\u67B6\u9700\u8981\u586B\u5199\u539F\u56E0");
+  const reason = text(input.reason, "\u7528\u6237\u786E\u8BA4\u79FB\u51FA\u65F6\u95F4\u6846\u67B6");
   const projection = reduceTemporalStore(store);
   const blockers = membershipExitBlockers(projection, input.membershipId);
   if (blockers.length) {
@@ -1861,11 +1867,37 @@ function exitMembership(store, input, options = {}) {
     error.blockers = blockers;
     throw error;
   }
+  if (Object.values(projection.outcomesById).some((outcome) => outcome.membershipId === input.membershipId)) {
+    migrateLocalDirections(store, options);
+    store.schemaVersion = Math.max(store.schemaVersion, RETAINED_DIRECTION_HISTORY_SCHEMA_VERSION);
+  }
   appendDomainEvent(store, "membershipEventsById", "exit", {
     membershipId: input.membershipId,
     reason
   }, options);
   return input.membershipId;
+}
+function reinstateMembership(store, input, options = {}) {
+  const projection = reduceTemporalStore(store);
+  const membership = projection.membershipsById?.[input.membershipId];
+  if (!membership) throw new Error("\u627E\u4E0D\u5230\u8981\u6062\u590D\u7684\u76EE\u6807\u6216\u9879\u76EE\u4E3B\u952E");
+  if (membership.status !== "exited") throw new Error("\u8BE5\u76EE\u6807\u6216\u9879\u76EE\u5DF2\u7ECF\u5728\u65F6\u95F4\u6846\u67B6\u4E2D");
+  if (projection.frameworksById[membership.frameworkId]?.status !== "active") throw new Error("\u65F6\u95F4\u6846\u67B6\u5DF2\u505C\u7528\uFF0C\u65E0\u6CD5\u6062\u590D\u65B9\u5411");
+  const lastKnownLabel = text(input.lastKnownLabel, membership.lastKnownLabel);
+  if (!lastKnownLabel) throw new Error("\u4E3B\u952E\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A");
+  appendDomainEvent(store, "membershipEventsById", "reinstate", {
+    membershipId: membership.id,
+    patch: {
+      lastKnownLabel,
+      sourceState: text(input.sourceState, "fresh"),
+      planningStart: input.planningStart ?? membership.planningStart,
+      planningEndDateExclusive: input.planningEndDateExclusive ?? membership.planningEndDateExclusive
+    }
+  }, options);
+  if (membership.frameworkItemId && projection.frameworkItemsById[membership.frameworkItemId]?.status !== "active") {
+    appendDomainEvent(store, "membershipEventsById", "assign-framework-item", { membershipId: membership.id, frameworkItemId: null }, options);
+  }
+  return membership.id;
 }
 function frameworkItemBindingBlockers(projection, membershipId) {
   const targetIds = /* @__PURE__ */ new Set([membershipId, ...Object.values(projection.outcomesById || {}).filter((outcome) => outcome.membershipId === membershipId).map((outcome) => outcome.id)]);
@@ -2448,6 +2480,187 @@ function buildFrameworkDiagnostics(projection, frameworkId, today = localDate())
     });
   }
   return diagnostics;
+}
+function reduceCustomFrames(projection, events) {
+  const frames = projection.customFramesById = {};
+  const bindings = projection.customFrameBindingsById = {};
+  const activePairs = /* @__PURE__ */ new Set();
+  const fail = (message) => projection.diagnostics.push(`\u81EA\u5B9A\u4E49\u65F6\u95F4\u5E27\uFF1A${message}`);
+  const validId = (id) => typeof id === "string" && id.trim().length > 0 && !["__proto__", "constructor", "prototype"].includes(id);
+  const validOrder = (value) => Number.isSafeInteger(value) && value >= 0;
+  const validField = (key, value) => key === "order" ? validOrder(value) : typeof value === "string" && (key !== "title" || value.trim().length > 0);
+  for (const event of events.filter((event2) => String(event2.type).startsWith("custom-frame-"))) {
+    const type = event.type.slice("custom-frame-".length);
+    if (!validId(event.frameId)) {
+      fail("\u5E27 ID \u65E0\u6548");
+      continue;
+    }
+    const frame = frames[event.frameId];
+    if (type === "create") {
+      if (frame || !validId(event.frameworkId) || !projection.frameworksById[event.frameworkId] || !validField("title", event.title) || !validField("order", event.order) || typeof event.timeDescription !== "string" || typeof event.description !== "string") {
+        fail("\u521B\u5EFA\u4E8B\u4EF6\u5B57\u6BB5\u65E0\u6548\u6216\u5E27 ID \u5DF2\u4F7F\u7528");
+        continue;
+      }
+      frames[event.frameId] = {
+        id: event.frameId,
+        frameworkId: event.frameworkId,
+        title: event.title,
+        timeDescription: event.timeDescription,
+        description: event.description,
+        order: event.order,
+        status: "active",
+        createdAt: event.createdAt,
+        updatedAt: event.createdAt
+      };
+    } else if (["revise", "archive", "restore"].includes(type)) {
+      const expected = type === "restore" ? "archived" : "active";
+      if (!frame || frame.status !== expected) {
+        fail("\u5E27\u751F\u547D\u5468\u671F\u65E0\u6548");
+        continue;
+      }
+      if (type === "revise") {
+        const patch = event.patch;
+        if (!patch || typeof patch !== "object" || Array.isArray(patch) || !Object.keys(patch).length || Object.entries(patch).some(([key, value]) => !["title", "timeDescription", "description", "order"].includes(key) || !validField(key, value))) {
+          fail("\u4FEE\u6539\u4E8B\u4EF6\u5B57\u6BB5\u65E0\u6548");
+          continue;
+        }
+        applyPatch(frame, patch, ["title", "timeDescription", "description", "order"]);
+      } else frame.status = type === "archive" ? "archived" : "active";
+      frame.updatedAt = event.createdAt;
+    } else if (type === "bind") {
+      if (!frame || frame.status !== "active" || !validId(event.bindingId) || !validId(event.outcomeId) || bindings[event.bindingId] || !projection.outcomesById[event.outcomeId] || projection.outcomesById[event.outcomeId].frameworkId !== frame.frameworkId) {
+        fail("\u5173\u8054\u4E8B\u4EF6\u8EAB\u4EFD\u6216\u751F\u547D\u5468\u671F\u65E0\u6548");
+        continue;
+      }
+      const pair = JSON.stringify([event.frameId, event.outcomeId]);
+      if (activePairs.has(pair)) {
+        fail("\u91CD\u590D\u7684\u6D3B\u8DC3\u5173\u8054\u4E8B\u4EF6");
+        continue;
+      }
+      activePairs.add(pair);
+      bindings[event.bindingId] = { id: event.bindingId, frameId: event.frameId, outcomeId: event.outcomeId, status: "active" };
+    } else if (type === "unbind") {
+      const binding = validId(event.bindingId) ? bindings[event.bindingId] : null;
+      if (!frame || frame.status !== "active" || !binding || binding.status !== "active" || binding.frameId !== event.frameId) {
+        fail("\u89E3\u9664\u5173\u8054\u76EE\u6807\u6216\u751F\u547D\u5468\u671F\u65E0\u6548");
+        continue;
+      }
+      activePairs.delete(JSON.stringify([binding.frameId, binding.outcomeId]));
+      binding.status = "unbound";
+    } else fail(`\u672A\u77E5\u4E8B\u4EF6 ${type}`);
+  }
+  for (const frame of Object.values(frames)) {
+    if (!projection.frameworksById[frame.frameworkId] || !text(frame.title) || !Number.isFinite(frame.order) || typeof frame.timeDescription !== "string" || typeof frame.description !== "string") fail("\u5E27\u5185\u5BB9\u65E0\u6548");
+  }
+  const pairs = /* @__PURE__ */ new Set();
+  for (const binding of Object.values(bindings)) {
+    const frame = frames[binding.frameId], outcome = projection.outcomesById[binding.outcomeId];
+    if (!frame || !outcome || outcome.frameworkId !== frame.frameworkId) fail("\u8DE8\u6846\u67B6\u6216\u7F3A\u5931\u6210\u679C\u5173\u8054");
+    if (binding.status === "active") {
+      const key = JSON.stringify([binding.frameId, binding.outcomeId]);
+      if (pairs.has(key)) fail("\u91CD\u590D\u7684\u6D3B\u8DC3\u5173\u8054");
+      pairs.add(key);
+    }
+  }
+}
+function customFrameForWrite(store, frameId, allowArchived = false) {
+  const projection = reduceTemporalStore(store), frame = projection.customFramesById[frameId];
+  if (!frame || !allowArchived && frame.status !== "active" || projection.frameworksById[frame.frameworkId]?.status !== "active") throw new Error("\u65F6\u95F4\u5E27\u5DF2\u5F52\u6863\u6216\u4E0D\u5B58\u5728");
+  return { frame, projection };
+}
+function createCustomFrame(store, input, options = {}) {
+  const projection = reduceTemporalStore(store), title = text(input.title);
+  if (!title) throw new Error("\u8BF7\u586B\u5199\u65F6\u95F4\u5E27\u540D\u79F0");
+  if (projection.frameworksById[input.frameworkId]?.status !== "active") throw new Error("\u65F6\u95F4\u6846\u67B6\u4E0D\u5B58\u5728");
+  const frameId = options.frameId || stableId("custom_frame");
+  if (projection.customFramesById[frameId]) throw new Error("\u65F6\u95F4\u5E27 ID \u5DF2\u4F7F\u7528");
+  migrateLocalDirections(store, options);
+  store.schemaVersion = Math.max(store.schemaVersion, CUSTOM_FRAME_SCHEMA_VERSION);
+  const order = Math.max(-1, ...Object.values(projection.customFramesById).filter((f) => f.frameworkId === input.frameworkId).map((f) => f.order)) + 1;
+  appendDomainEvent(store, "frameworkEventsById", "custom-frame-create", {
+    frameId,
+    frameworkId: input.frameworkId,
+    title,
+    timeDescription: text(input.timeDescription),
+    description: text(input.description),
+    order
+  }, options);
+  return frameId;
+}
+function reviseCustomFrame(store, input, options = {}) {
+  customFrameForWrite(store, input.frameId);
+  const title = text(input.title);
+  if (!title) throw new Error("\u8BF7\u586B\u5199\u65F6\u95F4\u5E27\u540D\u79F0");
+  appendDomainEvent(store, "frameworkEventsById", "custom-frame-revise", {
+    frameId: input.frameId,
+    patch: { title, timeDescription: text(input.timeDescription), description: text(input.description) }
+  }, options);
+}
+function setCustomFrameArchived(store, frameId, archived, options = {}) {
+  const { frame } = customFrameForWrite(store, frameId, true);
+  if (frame.status === (archived ? "archived" : "active")) return;
+  appendDomainEvent(store, "frameworkEventsById", archived ? "custom-frame-archive" : "custom-frame-restore", { frameId }, options);
+}
+function orderedCustomFrames(projection, frameworkId, archived = false) {
+  return Object.values(projection.customFramesById || {}).filter((f) => f.frameworkId === frameworkId && f.status === (archived ? "archived" : "active")).sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+}
+function moveCustomFrame(store, frameId, delta, options = {}) {
+  const { frame, projection } = customFrameForWrite(store, frameId);
+  if (delta !== -1 && delta !== 1) throw new Error("\u6392\u5E8F\u65B9\u5411\u65E0\u6548");
+  const frames = orderedCustomFrames(projection, frame.frameworkId), at = frames.findIndex((f) => f.id === frameId), other = at + delta;
+  if (other < 0 || other >= frames.length) return;
+  [frames[at], frames[other]] = [frames[other], frames[at]];
+  frames.forEach((f, index) => {
+    if (f.order !== index) appendDomainEvent(store, "frameworkEventsById", "custom-frame-revise", { frameId: f.id, patch: { order: index } }, options);
+  });
+}
+function customFrameBindingIndex(projection) {
+  const index = /* @__PURE__ */ new Map();
+  for (const b of Object.values(projection.customFrameBindingsById || {})) {
+    if (b.status !== "active") continue;
+    if (!index.has(b.frameId)) index.set(b.frameId, []);
+    index.get(b.frameId).push(b);
+  }
+  return index;
+}
+function expandCustomFrameSelection(projection, frameworkId, outcomeIds, includeDescendants = false) {
+  const selected = new Set(outcomeIds);
+  for (const id of selected) {
+    const outcome = projection.outcomesById[id];
+    if (!outcome || outcome.status !== "active" || outcome.frameworkId !== frameworkId || projection.membershipsById[outcome.membershipId]?.status !== "active") throw new Error("\u9009\u4E2D\u7684\u6210\u679C\u4E0D\u5728\u5F53\u524D\u6846\u67B6\u6216\u5DF2\u79FB\u9664\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9");
+  }
+  if (includeDescendants) {
+    const children = /* @__PURE__ */ new Map();
+    for (const outcome of Object.values(projection.outcomesById)) {
+      if (outcome.status !== "active" || outcome.frameworkId !== frameworkId || projection.membershipsById[outcome.membershipId]?.status !== "active") continue;
+      if (!children.has(outcome.outlineParentId)) children.set(outcome.outlineParentId, []);
+      children.get(outcome.outlineParentId).push(outcome.id);
+    }
+    const queue = [...selected];
+    for (let i = 0; i < queue.length; i++) for (const child of children.get(queue[i]) || []) {
+      if (!selected.has(child)) {
+        selected.add(child);
+        queue.push(child);
+      }
+    }
+  }
+  return [...selected];
+}
+function bindCustomFrameOutcomes(store, input, options = {}) {
+  const { frame, projection } = customFrameForWrite(store, input.frameId);
+  const ids = expandCustomFrameSelection(projection, frame.frameworkId, input.outcomeIds || [], input.includeDescendants === true);
+  if (!ids.length) throw new Error("\u8BF7\u9009\u62E9\u8981\u5173\u8054\u7684\u6210\u679C");
+  const existing = new Set((customFrameBindingIndex(projection).get(frame.id) || []).map((b) => b.outcomeId));
+  for (const outcomeId of ids) if (!existing.has(outcomeId)) {
+    appendDomainEvent(store, "frameworkEventsById", "custom-frame-bind", { frameId: frame.id, outcomeId, bindingId: stableId("frame_binding") }, options);
+  }
+  return ids;
+}
+function unbindCustomFrameOutcome(store, frameId, outcomeId, options = {}) {
+  const { projection } = customFrameForWrite(store, frameId);
+  for (const binding of customFrameBindingIndex(projection).get(frameId) || []) if (binding.outcomeId === outcomeId) {
+    appendDomainEvent(store, "frameworkEventsById", "custom-frame-unbind", { frameId, bindingId: binding.id }, options);
+  }
 }
 
 // src/keyword-bridge.mjs
@@ -3100,6 +3313,7 @@ function defaultFrameworkDates() {
   return { startDate: `${today.slice(0, 4)}-01-01`, endDateExclusive: `${Number(today.slice(0, 4)) + 3}-01-01` };
 }
 function appendFieldControl(field, value, onChange) {
+  if (field.render) return field.render(value, onChange);
   let control;
   if (field.type === "textarea") {
     control = el("textarea", "tf-textarea");
@@ -3158,13 +3372,14 @@ var TemporalFormModal = class extends import_obsidian.Modal {
     let refreshValidation = () => {
     };
     for (const field of this.options.fields || []) {
-      const wrap = el("label", `tf-field ${field.wide ? "is-wide" : ""}`);
+      const wrap = el(field.render ? "div" : "label", `tf-field ${field.wide ? "is-wide" : ""}`);
       wrap.append(el("span", "tf-field__label", field.label));
       const control = appendFieldControl(field, this.value[field.key], (value) => {
         this.value[field.key] = value;
         this.plugin.drafts.update(this.session, this.value);
         refreshValidation();
       });
+      if (!field.render) control.setAttribute("aria-label", field.label);
       if (field.placeholder) control.placeholder = field.placeholder;
       wrap.append(control);
       form.append(wrap);
@@ -3268,7 +3483,7 @@ var ConfirmationModal = class extends import_obsidian.Modal {
     Object.assign(this, { title, message, action });
   }
   onOpen() {
-    this.modalEl.addClass("tf-modal");
+    this.modalEl.addClass("tf-modal", "is-confirmation-modal");
     this.contentEl.append(el("h2", "", this.title), el("p", "", this.message));
     const actions = el("div", "tf-form-actions");
     const cancel = button("\u53D6\u6D88", "", () => {
@@ -3330,6 +3545,9 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       timeProjection: "structure",
       relationLens: "none"
     };
+    this.customTimeMode = "frames";
+    this.customFrameSelection = /* @__PURE__ */ new Map();
+    this.customFrameCollapsed = /* @__PURE__ */ new Set();
     this.renderGeneration = 0;
     this.renderRevision = 0;
     this.activeRailInteraction = null;
@@ -3357,12 +3575,14 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     return "calendar-range";
   }
   async onOpen() {
+    this.customFramesClosed = false;
     this.contentEl.addClass("tf-view");
     this.unsubscribe = this.plugin.store.onDirty(() => this.renderPreservingView());
     this.plugin.refreshKeywordProvider?.();
     await this.render();
   }
   async onClose() {
+    this.customFramesClosed = true;
     this.cancelRailInteraction();
     this.disposeTimeToc({ clearExplicit: true });
     this.disposeOutcomeToc();
@@ -3371,6 +3591,8 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     this.clearOutcomeOverviewReturnHighlight();
     this.outcomeOverviewCollapsedIds.clear();
     this.timeTreeCollapsedKeys.clear();
+    this.customFrameCollapsed.clear();
+    this.customFrameSelection.clear();
     this.pendingCurrentTimeFocus = false;
     this.unsubscribe?.();
   }
@@ -3380,6 +3602,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
   async applyEnvironmentState(value = {}) {
     this.outcomeOverviewReturnQueue.clear();
     this.clearOutcomeOverviewReturnHighlight();
+    this.customTimeMode = "frames";
     this.environment = {
       version: 1,
       mode: ["time", "outcome", "effect"].includes(value.mode) ? value.mode : "time",
@@ -3390,7 +3613,8 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       timeProjection: "structure",
       relationLens: "none"
     };
-    this.pendingCurrentTimeFocus = this.environment.mode === "time" && this.environment.timePath.length === 0 && !this.pendingExplicitTimeAnchor;
+    this.customTimeMode = this.environment.timePath.length || this.environment.outcomePath.length ? "calendar" : "frames";
+    this.pendingCurrentTimeFocus = this.customTimeMode === "calendar" && this.environment.mode === "time" && this.environment.timePath.length === 0 && !this.pendingExplicitTimeAnchor;
     await this.render();
   }
   async renderPreservingView() {
@@ -3450,10 +3674,10 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       shell.append(this.environment.mode === "time" ? this.renderTimeView(framework, projection) : this.environment.mode === "effect" ? this.renderEffectView(framework, projection) : this.renderOutcomeView(framework, projection));
     }
     this.contentEl.append(shell);
-    if (this.environment.mode === "time") {
+    if (this.environment.mode === "time" && this.customTimeMode !== "frames") {
       this.setupTimeToc();
       this.focusCurrentTimePeriod(frameworks.find((item) => item.id === this.environment.frameworkId) || null);
-    } else if (this.environment.mode === "outcome" && !this.environment.outcomePath.length) this.setupOutcomeToc();
+    } else if (this.environment.mode === "outcome" && !this.environment.outcomePath.length || this.environment.mode === "time" && this.customTimeMode === "frames") this.setupOutcomeToc();
   }
   renderTopbar(frameworks) {
     const bar = el("header", "tf-topbar");
@@ -3518,7 +3742,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       this.render();
     }, "is-crumb");
     timeCrumbs.append(root);
-    this.environment.timePath.forEach((box, index) => {
+    (this.environment.mode === "time" && this.customTimeMode === "frames" ? [] : this.environment.timePath).forEach((box, index) => {
       timeCrumbs.append(el("span", "tf-crumb-separator", "/"));
       timeCrumbs.append(button(box.label, "", () => {
         this.environment.timePath = this.environment.timePath.slice(0, index + 1);
@@ -3529,7 +3753,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const outcomeCrumbs = el("div", "tf-breadcrumbs");
     outcomeCrumbs.append(el("span", "tf-breadcrumbs__label", "\u6210\u679C"));
     outcomeCrumbs.append(button("\u5168\u90E8\u65B9\u5411", "layers-3", () => this.returnToOutcomeOverview(framework, projection), "is-crumb"));
-    this.environment.outcomePath.forEach((outcomeId, index) => {
+    (this.environment.mode === "time" && this.customTimeMode === "frames" ? [] : this.environment.outcomePath).forEach((outcomeId, index) => {
       const outcome = projection.outcomesById[outcomeId];
       if (!outcome) return;
       outcomeCrumbs.append(el("span", "tf-crumb-separator", "/"));
@@ -3545,8 +3769,375 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const current = this.environment.timePath.at(-1);
     return current ? { startDate: current.startDate, endDateExclusive: current.endDateExclusive } : framework;
   }
+  renderCustomFrames(framework, projection) {
+    const section = el("main", "tf-main tf-custom-frames");
+    const layout = el("div", "tf-custom-layout");
+    const sidebar = el("aside", "tf-custom-sidebar"), main = el("div", "tf-custom-main");
+    const toc = el("nav", "tf-outcome-toc tf-custom-toc");
+    toc.setAttribute("aria-label", "\u5F53\u524D\u65F6\u95F4\u5E27\u6846\u67B6\u6761\u76EE\u4E0E\u4E0A\u5C42\u7EA7\u65B9\u5411\u5BFC\u822A");
+    toc.append(el("div", "tf-outcome-toc__eyebrow", "\u6846\u67B6\u6761\u76EE \xB7 \u4E0A\u5C42\u7EA7\u65B9\u5411"), el("div", "tf-outcome-toc__items"));
+    const index = customFrameBindingIndex(projection), revision = this.renderRevision;
+    const data = (frame) => (index.get(frame.id) || []).map((b) => projection.outcomesById[b.outcomeId]).filter(Boolean);
+    const isVisible = (o) => o.status === "active" && projection.membershipsById[o.membershipId]?.status === "active";
+    let archived = false, query = "";
+    const header = el("div", "tf-custom-sidebar-head");
+    header.append(el("strong", "", "\u65F6\u95F4\u5E27"), button("\u65B0\u5EFA", "plus", () => this.plugin.openCustomFrameModal(framework.id, null, this), "is-primary"));
+    const search = el("input", "tf-input");
+    search.placeholder = "\u641C\u7D22\u5E27\u540D\u79F0\u6216\u65F6\u95F4\u63CF\u8FF0";
+    search.setAttribute("aria-label", search.placeholder);
+    const archivedToggle = button("\u67E5\u770B\u5DF2\u5F52\u6863", "archive", () => {
+      archived = !archived;
+      archivedToggle.textContent = archived ? "\u8FD4\u56DE\u5F53\u524D\u65F6\u95F4\u5E27" : "\u67E5\u770B\u5DF2\u5F52\u6863";
+      draw();
+    }, "is-quiet");
+    const list = el("nav", "tf-custom-list");
+    list.setAttribute("aria-label", "\u81EA\u5B9A\u4E49\u65F6\u95F4\u5E27");
+    sidebar.append(header, search, archivedToggle, list);
+    layout.append(sidebar, main, toc);
+    section.append(layout);
+    const commit = (reason, fn) => this.plugin.mutate(reason, fn, { expectedRevision: revision });
+    const run = (reason, fn) => commit(reason, fn).catch((error) => new import_obsidian.Notice(error.message, 9e3));
+    const drawMain = (frame) => {
+      this.disposeOutcomeToc();
+      main.replaceChildren();
+      delete main.dataset.anchorKey;
+      toc.querySelector(".tf-outcome-toc__items").replaceChildren();
+      toc.hidden = true;
+      layout.classList.remove("has-toc");
+      const tocEntries = [];
+      if (!frame) {
+        main.append(el("div", "tf-inline-empty", archived ? "\u6682\u65E0\u5DF2\u5F52\u6863\u7684\u65F6\u95F4\u5E27\u3002" : "\u5EFA\u7ACB\u4E00\u4E2A\u65F6\u95F4\u5E27\uFF0C\u628A\u8FD9\u6BB5\u9636\u6BB5\u8981\u63A8\u8FDB\u7684\u6210\u679C\u653E\u5728\u4E00\u8D77\u3002\u65F6\u95F4\u8303\u56F4\u53EF\u4EE5\u7528\u81EA\u5DF1\u7684\u8BDD\u63CF\u8FF0\u3002"));
+        return;
+      }
+      main.dataset.anchorKey = `custom-frame:${frame.id}`;
+      const heading = el("header", "tf-custom-heading");
+      heading.append(el("h2", "", frame.title), el("div", "tf-custom-time-description", frame.timeDescription || "\u672A\u586B\u5199\u65F6\u95F4\u63CF\u8FF0"));
+      if (frame.description) heading.append(el("p", "tf-custom-description", frame.description));
+      const rows = data(frame), active = rows.filter(isVisible), retained = rows.filter((o) => !isVisible(o));
+      heading.append(el("div", "tf-custom-summary", `\u5173\u8054\u6210\u679C ${active.length}${retained.length ? ` \xB7 \u5DF2\u79FB\u9664\u6216\u65B9\u5411\u505C\u7528 ${retained.length}` : ""}${archived ? " \xB7 \u6B64\u5E27\u5DF2\u5F52\u6863" : ""}`));
+      const actions = el("div", "tf-custom-actions");
+      if (!archived) {
+        actions.append(button("\u5173\u8054\u5DF2\u6709\u6210\u679C", "link", () => this.plugin.openCustomFrameBindingModal(frame.id, this), "is-primary"));
+        actions.append(button("\u65B0\u5EFA\u6210\u679C", "plus", () => this.plugin.openCustomFrameOutcomeModal(frame.id)));
+        actions.append(button("\u7F16\u8F91\u5E27", "pencil", () => this.plugin.openCustomFrameModal(framework.id, frame, this)));
+        actions.append(button("\u5F52\u6863", "archive", () => new ConfirmationModal(this.plugin, "\u5F52\u6863\u65F6\u95F4\u5E27", `\u5F52\u6863\u201C${frame.title}\u201D\uFF0C\u4FDD\u7559\u5E27\u5185\u5BB9\u3001\u5173\u8054\u548C\u6210\u679C\uFF0C\u53EF\u4ECE\u5DF2\u5F52\u6863\u5217\u8868\u6062\u590D\u3002`, () => commit("custom-frame-archive", (draft) => setCustomFrameArchived(draft, frame.id, true))).open(), "is-quiet"));
+      } else actions.append(button("\u6062\u590D\u65F6\u95F4\u5E27", "archive-restore", () => run("custom-frame-restore", (draft) => setCustomFrameArchived(draft, frame.id, false)), "is-primary"));
+      heading.append(actions);
+      main.append(heading);
+      const groups = /* @__PURE__ */ new Map();
+      for (const outcome of active) {
+        if (!groups.has(outcome.membershipId)) groups.set(outcome.membershipId, []);
+        groups.get(outcome.membershipId).push(outcome.id);
+      }
+      const itemGroups = /* @__PURE__ */ new Map();
+      for (const [id, ids] of groups) {
+        const direction = projection.membershipsById[id], item = projection.frameworkItemsById[direction.frameworkItemId];
+        const key = item?.id || "unassigned";
+        if (!itemGroups.has(key)) itemGroups.set(key, { item, directions: [] });
+        itemGroups.get(key).directions.push({ direction, ids });
+      }
+      for (const { item, directions } of itemGroups.values()) {
+        const group = el("section", "tf-custom-item");
+        group.append(el("h3", "", item?.title || "\u672A\u5F52\u5C5E\u6846\u67B6\u6761\u76EE"));
+        group.dataset.anchorKey = `custom-frame:${frame.id}:item:${item?.id || "unassigned"}`;
+        tocEntries.push({
+          id: item?.id || "unassigned",
+          label: item?.title || "\u672A\u5F52\u5C5E\u6846\u67B6\u6761\u76EE",
+          membershipCount: directions.length,
+          target: group,
+          kind: "framework"
+        });
+        for (const { direction, ids } of directions) {
+          const card = el("section", "tf-custom-direction");
+          card.dataset.anchorKey = `custom-frame:${frame.id}:direction:${direction.id}`;
+          tocEntries.push({
+            id: direction.id,
+            label: direction.lastKnownLabel || direction.id,
+            target: card,
+            kind: "membership",
+            domain: "direction"
+          });
+          card.append(el("h4", "", `${direction.lastKnownLabel} \xB7 ${ids.length} \u4E2A\u5173\u8054\u6210\u679C`));
+          const tree = this.renderMembershipOutcomeTree(projection, direction, null, {
+            selectedOutcomeIds: ids,
+            rootLabel: "\u5E27\u5185\u6210\u679C",
+            rootSummary: `${ids.length} \u4E2A\u5173\u8054\u6210\u679C`,
+            collapsedKeys: this.customFrameCollapsed,
+            collapseKeyForOutcome: (id) => `${frame.id}:${id}`,
+            treeInstanceKey: `frame:${frame.id}:${direction.id}`,
+            decorateCard: (node, outcome, isContext) => {
+              node.prepend(el("span", "tf-custom-node-label", isContext ? "\u7ED3\u6784\u4E0A\u4E0B\u6587 \xB7 \u672A\u5173\u8054\u6B64\u5E27" : "\u5DF2\u5173\u8054\u6B64\u5E27"));
+              if (!archived && !isContext) node.append(button("\u79FB\u51FA\u6B64\u5E27", "unlink", () => new ConfirmationModal(
+                this.plugin,
+                "\u89E3\u9664\u6210\u679C\u5173\u8054",
+                `\u4EC5\u628A\u201C${outcome.title}\u201D\u79FB\u51FA\u6B64\u5E27\uFF0C\u4FDD\u7559\u6210\u679C\u53CA\u5176\u4ED6\u5E27\u7684\u5173\u8054\u3002`,
+                () => commit("custom-frame-unbind", (draft) => unbindCustomFrameOutcome(draft, frame.id, outcome.id))
+              ).open(), "is-quiet tf-custom-unbind"));
+            }
+          });
+          if (tree) card.append(tree);
+          group.append(card);
+        }
+        main.append(group);
+      }
+      if (!active.length) main.append(el("div", "tf-inline-empty", "\u6B64\u5E27\u5C1A\u65E0\u6D3B\u8DC3\u6210\u679C\uFF0C\u53EF\u4EE5\u5173\u8054\u5DF2\u6709\u6210\u679C\u6216\u65B0\u5EFA\u6210\u679C\u3002"));
+      if (retained.length) {
+        const details = el("details", "tf-custom-retained");
+        details.append(el("summary", "", `\u67E5\u770B\u4FDD\u7559\u7684\u5386\u53F2\u5173\u8054 \xB7 ${retained.length}`));
+        for (const outcome of retained) {
+          const row = el("div", "tf-custom-actions");
+          row.append(el("span", "", `${outcome.title} \xB7 ${outcome.status === "active" ? "\u65B9\u5411\u5DF2\u505C\u7528" : "\u6210\u679C\u5DF2\u79FB\u9664"}`));
+          if (!archived) row.append(button("\u89E3\u9664\u5173\u8054", "unlink", () => run("custom-frame-unbind", (draft) => unbindCustomFrameOutcome(draft, frame.id, outcome.id)), "is-quiet"));
+          details.append(row);
+        }
+        main.append(details);
+      }
+      heading.append(this.renderFrameOutcomeSearch(main, projection));
+      if (tocEntries.length) {
+        toc.hidden = false;
+        layout.classList.add("has-toc");
+        this.outcomeToc = {
+          entries: tocEntries,
+          toc,
+          content: main,
+          currentIndex: -1,
+          metrics: null,
+          scrollHandler: null,
+          resizeObserver: null,
+          rafId: null
+        };
+        if (toc.isConnected) this.setupOutcomeToc();
+      }
+    };
+    const draw = (refreshMain = true) => {
+      list.replaceChildren();
+      const frames = orderedCustomFrames(projection, framework.id, archived);
+      const previous = this.customFrameSelection.get(framework.id);
+      const current = frames.find((f) => f.id === previous) || frames[0];
+      if (current) this.customFrameSelection.set(framework.id, current.id);
+      for (const frame of frames.filter((f) => `${f.title} ${f.timeDescription}`.toLocaleLowerCase().includes(query))) {
+        const row = el("div", "tf-custom-list-row");
+        const select = button("", "", () => {
+          this.customFrameSelection.set(framework.id, frame.id);
+          draw();
+        }, frame.id === current?.id ? "is-active" : "");
+        select.setAttribute("aria-pressed", String(frame.id === current?.id));
+        select.append(el("strong", "", frame.title), el("small", "", frame.timeDescription || "\u81EA\u7531\u65F6\u95F4\u5E27"), el("span", "tf-custom-count", data(frame).filter(isVisible).length));
+        row.append(select);
+        if (!archived) {
+          const ordering = el("div", "tf-custom-order");
+          for (const [delta, label, icon] of [[-1, "\u4E0A\u79FB", "chevron-up"], [1, "\u4E0B\u79FB", "chevron-down"]]) {
+            const move = iconButton(`${label}\uFF1A${frame.title}`, icon, () => run("custom-frame-order", (draft) => moveCustomFrame(draft, frame.id, delta)));
+            move.disabled = frames.indexOf(frame) + delta < 0 || frames.indexOf(frame) + delta >= frames.length;
+            ordering.append(move);
+          }
+          row.append(ordering);
+        }
+        list.append(row);
+      }
+      if (!list.children.length) list.append(el("p", "", query ? "\u6CA1\u6709\u5339\u914D\u7684\u65F6\u95F4\u5E27" : "\u6682\u65E0\u65F6\u95F4\u5E27"));
+      if (refreshMain) drawMain(current);
+    };
+    search.addEventListener("input", () => {
+      query = search.value.trim().toLocaleLowerCase();
+      draw(false);
+    });
+    draw();
+    return section;
+  }
+  renderFrameOutcomeSearch(main, projection) {
+    const normalize = (value) => String(value || "").normalize("NFKC").toLocaleLowerCase("zh-CN").replace(/\s+/gu, " ").trim();
+    const entries = [...main.querySelectorAll(".tf-outcome-card[data-outcome-id], .tf-overview-tree-continuation__list [data-outcome-id]")].map((target) => {
+      const outcome = projection.outcomesById[target.dataset.outcomeId];
+      if (!outcome) return null;
+      const direction = projection.membershipsById[outcome.membershipId];
+      const item = projection.frameworkItemsById[direction?.frameworkItemId];
+      const context = `${item?.title || "\u672A\u5F52\u5C5E\u6846\u67B6\u6761\u76EE"} \xB7 ${direction?.lastKnownLabel || ""}`;
+      return { target, title: outcome.title, context, text: normalize(`${outcome.title} ${context}`) };
+    }).filter(Boolean);
+    const wrap = el("div", "tf-outcome-search tf-frame-outcome-search");
+    const field = el("div", "tf-outcome-search__field");
+    const input = el("input", "tf-outcome-search__input");
+    input.type = "search";
+    input.placeholder = "\u641C\u7D22\u5E27\u5185\u6210\u679C\uFF0C\u5B9A\u4F4D\u5230\u539F\u4F4D\u7F6E";
+    input.autocomplete = "off";
+    input.setAttribute("aria-label", "\u641C\u7D22\u5E27\u5185\u6210\u679C");
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-autocomplete", "list");
+    const panel = el("div", "tf-outcome-search__panel");
+    const list = el("div", "tf-outcome-search__listbox");
+    list.id = `tf-frame-search-${this.outcomeOverviewTreeInstanceId}-${this.renderGeneration}`;
+    list.setAttribute("role", "listbox");
+    list.setAttribute("aria-label", "\u5E27\u5185\u6210\u679C\u641C\u7D22\u7ED3\u679C");
+    input.setAttribute("aria-controls", list.id);
+    const footer = el("div", "tf-outcome-search__actions");
+    const status = el("span", "tf-frame-search-status");
+    status.setAttribute("aria-live", "polite");
+    let matches = [], shown = 30, active = 0, composing = false;
+    const clearHighlight = () => main.querySelectorAll(".is-frame-search-target").forEach((node) => node.classList.remove("is-frame-search-target"));
+    const close = () => {
+      panel.hidden = true;
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+    };
+    const selectActive = () => {
+      [...list.children].forEach((node, index) => {
+        node.classList.toggle("is-active", index === active);
+        if (node.getAttribute("role") === "option") node.setAttribute("aria-selected", String(index === active));
+      });
+      const option = list.children[active];
+      if (option?.getAttribute("role") === "option") {
+        input.setAttribute("aria-activedescendant", option.id);
+        const delta = option.getBoundingClientRect().top - list.getBoundingClientRect().top;
+        if (delta < 0) list.scrollTop += delta;
+        else if (delta + option.offsetHeight > list.clientHeight) list.scrollTop += delta + option.offsetHeight - list.clientHeight;
+      } else input.removeAttribute("aria-activedescendant");
+    };
+    const locate = (entry) => {
+      if (!entry?.target.isConnected || !main.contains(entry.target)) return;
+      close();
+      clearHighlight();
+      const ancestors = [];
+      let branch = entry.target.parentElement?.closest(".tf-overview-tree-branch");
+      if (entry.target.matches(".tf-outcome-card")) branch = branch?.parentElement?.closest(".tf-overview-tree-branch");
+      while (branch && main.contains(branch)) {
+        ancestors.unshift(branch);
+        branch = branch.parentElement?.closest(".tf-overview-tree-branch");
+      }
+      for (const ancestor of ancestors) {
+        if (ancestor.classList.contains("is-collapsed")) ancestor.querySelector(":scope > .tf-overview-tree-node-wrap > .tf-overview-tree-toggle")?.click();
+      }
+      const target = entry.target, viewport = target.closest(".tf-overview-tree-viewport");
+      target.classList.add("is-frame-search-target");
+      target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+      if (viewport) {
+        const rect2 = target.getBoundingClientRect(), box = viewport.getBoundingClientRect();
+        viewport.scrollTo({ left: Math.max(0, viewport.scrollLeft + rect2.left - box.left - Math.max(16, (viewport.clientWidth - rect2.width) / 2)), behavior: "smooth" });
+      }
+      const rect = target.getBoundingClientRect(), root = this.contentEl.getBoundingClientRect();
+      this.contentEl.scrollTo({ top: Math.max(0, this.contentEl.scrollTop + rect.top - root.top - this.timeTocOcclusionHeight() - 28), behavior: "smooth" });
+      if (this.outcomeToc) this.outcomeToc.metrics = null;
+      this.scheduleOutcomeTocUpdate();
+    };
+    const draw = () => {
+      list.replaceChildren();
+      footer.replaceChildren();
+      const visible = matches.slice(0, shown);
+      for (const [index, entry] of visible.entries()) {
+        const option = el("div", "tf-outcome-search__option");
+        option.id = `${list.id}-${index}`;
+        option.setAttribute("role", "option");
+        option.append(el("strong", "tf-outcome-search__title", entry.title), el("div", "tf-outcome-search__context", entry.context));
+        option.addEventListener("pointerdown", (event) => event.preventDefault());
+        option.addEventListener("click", () => locate(entry));
+        option.addEventListener("mouseenter", () => {
+          active = index;
+          selectActive();
+        });
+        list.append(option);
+      }
+      if (!visible.length) list.append(el("div", "tf-outcome-search__empty", "\u5F53\u524D\u65F6\u95F4\u5E27\u5185\u6CA1\u6709\u5339\u914D\u6210\u679C"));
+      status.textContent = `${matches.length} \u4E2A\u5339\u914D \xB7 \u9009\u62E9\u540E\u5B9A\u4F4D\uFF0C\u4FDD\u7559\u5B8C\u6574\u6210\u679C\u56FE`;
+      footer.append(status);
+      if (matches.length > shown) footer.append(button("\u663E\u793A\u66F4\u591A", "chevron-down", () => {
+        shown += 30;
+        draw();
+      }, "is-quiet"));
+      selectActive();
+    };
+    const update = () => {
+      const tokens = normalize(input.value).split(" ").filter(Boolean);
+      clearHighlight();
+      active = 0;
+      shown = 30;
+      clear.hidden = !input.value;
+      if (!tokens.length) {
+        matches = [];
+        close();
+        return;
+      }
+      matches = entries.filter((entry) => tokens.every((token) => entry.text.includes(token)));
+      panel.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      draw();
+    };
+    const clear = iconButton("\u6E05\u7A7A\u5E27\u5185\u6210\u679C\u641C\u7D22", "x", () => {
+      input.value = "";
+      update();
+      input.focus();
+    }, "tf-outcome-search__clear");
+    const searchIcon = el("span", "tf-outcome-search__icon");
+    (0, import_obsidian.setIcon)(searchIcon, "search");
+    clear.hidden = true;
+    field.append(searchIcon, input, clear);
+    panel.append(list, footer);
+    wrap.append(field, panel);
+    close();
+    input.addEventListener("compositionstart", () => {
+      composing = true;
+    });
+    input.addEventListener("compositionend", () => {
+      composing = false;
+      update();
+    });
+    input.addEventListener("input", (event) => {
+      if (!composing && !event.isComposing) update();
+    });
+    input.addEventListener("focus", () => {
+      if (!composing && input.value.trim()) update();
+    });
+    input.addEventListener("keydown", (event) => {
+      if (composing || event.isComposing) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        return;
+      }
+      if (!["ArrowDown", "ArrowUp", "Enter"].includes(event.key)) return;
+      event.preventDefault();
+      if (panel.hidden) {
+        update();
+        if (panel.hidden) return;
+      }
+      if (event.key === "Enter") {
+        locate(matches[active]);
+        return;
+      }
+      const count = Math.min(shown, matches.length);
+      if (count) active = (active + (event.key === "ArrowDown" ? 1 : -1) + count) % count;
+      selectActive();
+    });
+    wrap.addEventListener("focusout", (event) => {
+      if (!wrap.contains(event.relatedTarget)) close();
+    });
+    return wrap;
+  }
   renderTimeView(framework, projection) {
+    const tabs = el("div", "tf-custom-time-tabs tf-segmented");
+    for (const [key, label] of [["calendar", "\u65E5\u5386\u5C3A\u5EA6"], ["frames", "\u81EA\u5B9A\u4E49\u65F6\u95F4\u5E27"]]) {
+      tabs.append(button(label, key === "frames" ? "panels-left-bottom" : "calendar", () => {
+        this.customTimeMode = key;
+        if (key === "frames") {
+          this.environment.timePath = [];
+          this.environment.outcomePath = [];
+          this.outcomeOverviewReturnQueue.clear();
+          this.clearOutcomeOverviewReturnHighlight();
+        }
+        this.clearPendingExplicitTimeAnchor();
+        this.clearPendingOutcomeHighlight();
+        this.pendingCurrentTimeFocus = key === "calendar";
+        this.render();
+      }, this.customTimeMode === key ? "is-active" : ""));
+    }
+    if (this.customTimeMode === "frames") {
+      const section2 = this.renderCustomFrames(framework, projection);
+      section2.prepend(tabs);
+      return section2;
+    }
     const section = el("main", "tf-main tf-time-view");
+    section.append(tabs);
     const range = this.currentTimeRange(framework);
     const toolbar = el("div", "tf-view-toolbar");
     toolbar.append(el("div", "tf-range-title", `${SCALE_LABELS[this.environment.scale]}\u5C3A\u5EA6 \xB7 ${dateRange(range.startDate, range.endDateExclusive)}`));
@@ -3738,6 +4329,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     this.clearPendingOutcomeHighlight();
     this.pendingCurrentTimeFocus = false;
     this.environment.mode = "time";
+    this.customTimeMode = "calendar";
     this.environment.timePath = [];
     this.environment.outcomePath = [...entry.pathOutcomeIds];
     this.outcomeSearchQuery = entry.title;
@@ -4273,6 +4865,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       const compareMemberships = (left, right) => compareMembershipsByMilestoneOrder(milestoneOrderIndex, left.id, right.id, () => (membershipProjectionIndex.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (membershipProjectionIndex.get(right.id) ?? Number.MAX_SAFE_INTEGER) || left.lastKnownLabel.localeCompare(right.lastKnownLabel, "zh-CN") || left.id.localeCompare(right.id));
       const itemToolbar = el("div", "tf-framework-item-toolbar");
       itemToolbar.append(el("div", "tf-range-title", "\u6846\u67B6\u6761\u76EE\u4E0E\u4E0A\u5C42\u7EA7\u65B9\u5411"), button("\u65B0\u5EFA\u6846\u67B6\u6761\u76EE", "plus", () => this.plugin.openFrameworkItemModal(framework.id), "is-primary"));
+      itemToolbar.append(button("\u5DF2\u79FB\u51FA\u65B9\u5411", "archive-restore", () => this.plugin.openExitedDirections(framework.id), "is-quiet"));
       section.append(itemToolbar);
       const layout = el("div", "tf-outcome-layout");
       const content = el("div", "tf-outcome-framework-list");
@@ -4442,15 +5035,9 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     headerActions.append(iconButton("\u8C03\u6574\u6846\u67B6\u6761\u76EE\u5F52\u5C5E", "folder-input", () => this.plugin.openMembershipAssignmentModal(framework.id, membership.id)));
     if (membership.frameworkItemId) headerActions.append(iconButton("\u5173\u8054\u6846\u67B6\u91CC\u7A0B\u7891", "flag", () => this.plugin.openMilestoneBindingModal(framework.id, "membership", membership.id)));
     const exitBlockers = membershipExitBlockers(projection, membership.id);
-    const historicalOutcomes = Object.values(projection.outcomesById || {}).filter((item) => item.membershipId === membership.id);
-    if (!historicalOutcomes.length) {
-      const remove = iconButton("\u79FB\u51FA\u65F6\u95F4\u6846\u67B6", "trash-2", () => this.plugin.openMembershipExitModal(framework.id, membership.id));
-      if (exitBlockers.length) {
-        remove.disabled = true;
-        remove.title = exitBlockers.map((blocker) => blocker.message).join("\uFF1B");
-      }
-      headerActions.append(remove);
-    }
+    const remove = iconButton("\u79FB\u51FA\u65F6\u95F4\u6846\u67B6", "trash-2", () => this.plugin.openMembershipExitModal(framework.id, membership.id));
+    if (exitBlockers.length) remove.title = `\u79FB\u51FA\u65F6\u95F4\u6846\u67B6\uFF1A${exitBlockers.map((blocker) => blocker.message).join("\uFF1B")}`;
+    headerActions.append(remove);
     headerActions.append(iconButton("\u65B0\u589E\u9996\u5C42\u9636\u6BB5\u6210\u679C", "plus", () => this.plugin.openOutcomeModal(framework.id, { membershipId: membership.id })));
     header.append(headerActions);
     card.append(header);
@@ -4476,7 +5063,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
     const canvas = el("div", "tf-overview-tree-canvas");
     const virtualRoot = el("div", "tf-overview-tree-virtual-root");
     const rootLabel = el("div", "tf-overview-tree-root-label");
-    rootLabel.append(el("strong", "", options.rootLabel || "\u6210\u679C\u7ED3\u6784"), el("span", "", `${model.selectedOutcomeIds.length}/${model.visibleOutcomeIds.length}`));
+    rootLabel.append(el("strong", "", options.rootLabel || "\u6210\u679C\u7ED3\u6784"), el("span", "", options.rootSummary ?? `${model.selectedOutcomeIds.length}/${model.visibleOutcomeIds.length}`));
     const roots = el("div", "tf-overview-tree-roots");
     virtualRoot.append(rootLabel, roots);
     canvas.append(virtualRoot);
@@ -4536,6 +5123,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
       const outcomeCard = this.renderOutcomeCard(projection, outcome, placementByOutcomeId.get(outcomeId) || null, "", {
         anchorKey: `${treeInstanceKey}:${outcomeId}`
       });
+      options.decorateCard?.(outcomeCard, outcome, contextSet.has(outcomeId));
       nodeWrap.append(outcomeCard);
       branch.append(nodeWrap);
       if (childIds.length) {
@@ -4553,7 +5141,9 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
             if (!descendant) continue;
             visited.add(descendantId);
             continuationEvidence.add(descendantId);
-            continuationList.append(button(this.outcomePathLabel(projection, descendantId), "arrow-right", () => this.openOutcome(descendantId, projection), "is-link"));
+            const evidenceLink = button(this.outcomePathLabel(projection, descendantId), "arrow-right", () => this.openOutcome(descendantId, projection), "is-link");
+            evidenceLink.dataset.outcomeId = descendantId;
+            continuationList.append(evidenceLink);
           }
           continuation.append(continuationList);
           children.append(continuation);
@@ -4673,7 +5263,7 @@ var TemporalFrameworkView = class extends import_obsidian.ItemView {
   }
   setupOutcomeToc() {
     const state = this.outcomeToc;
-    if (!state?.toc?.isConnected) return;
+    if (!state?.toc?.isConnected || state.scrollHandler) return;
     const sections = state.entries.map((entry) => entry.target);
     if (!sections.length) {
       state.toc.hidden = true;
@@ -5098,7 +5688,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     const adapter = this.app.vault.adapter;
     if (typeof adapter.getBasePath !== "function") throw new Error("\u65F6\u95F4\u6846\u67B6\u9700\u8981\u684C\u9762\u6587\u4EF6\u7CFB\u7EDF\u9002\u914D\u5668");
     this.directory = import_node_path3.default.join(adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id);
-    this.store = new TemporalStore(this.directory, { hook: (name, payload) => console.debug(`[TemporalFramework][store.${name}]`, payload) });
+    this.store = new TemporalStore(this.directory);
     const status = await this.store.init();
     await this.loadUiState();
     this.drafts = new DraftStore(this.directory);
@@ -5120,7 +5710,9 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
         view.openOutcome(id, projection);
         return true;
       },
-      report: (event, fields) => console.debug(`[TemporalFramework][keywords.${event}]`, fields)
+      report: (event, fields) => {
+        if (event.endsWith("-failed")) console.warn(`[TemporalFramework][keywords.${event}]`, fields);
+      }
     });
     this.register(this.store.onDirty(() => {
       void this.keywordBridge.refresh().catch((error) => console.warn("[TemporalFramework][keywords.refresh-failed]", error.message));
@@ -5143,9 +5735,10 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     this.registerEvent(this.app.workspace.on("layout-change", () => this.refreshKeywordProvider()));
     this.addCommand({ id: "view-retained-drafts", name: "\u67E5\u770B\u4FDD\u7559\u7684\u8F93\u5165\u8349\u7A3F", callback: () => this.openRetainedDrafts() });
     this.addCommand({ id: "view-removed-outcomes", name: "\u67E5\u770B\u4E0E\u6062\u590D\u5DF2\u79FB\u9664\u6210\u679C", callback: () => this.openRemovedOutcomes() });
+    this.addCommand({ id: "view-exited-directions", name: "\u67E5\u770B\u4E0E\u6062\u590D\u5DF2\u79FB\u51FA\u65B9\u5411", callback: () => this.openExitedDirections() });
     this.addCommand({ id: "migrate-local-directions", name: "\u5C06\u73B0\u6709\u76EE\u6807\u4E0E\u9879\u76EE\u8FC1\u4E3A\u4E0A\u5C42\u7EA7\u65B9\u5411", callback: async () => {
       const store = await this.store.read();
-      if (store.schemaVersion === 3) return new import_obsidian.Notice("\u5DF2\u7ECF\u4F7F\u7528\u4E0A\u5C42\u7EA7\u65B9\u5411");
+      if (store.schemaVersion >= 3) return new import_obsidian.Notice("\u5DF2\u7ECF\u4F7F\u7528\u4E0A\u5C42\u7EA7\u65B9\u5411");
       new ConfirmationModal(this, "\u8FC1\u4E3A\u4E0A\u5C42\u7EA7\u65B9\u5411", "\u4FDD\u7559\u6240\u6709\u6210\u679C\u3001\u5B50\u6210\u679C\u3001\u65F6\u95F4\u548C\u91CC\u7A0B\u7891\uFF0C\u89E3\u9664\u5BF9\u5916\u90E8\u4E3B\u952E\u7684\u4F9D\u8D56\u3002", () => this.mutate("direction-migration", () => {
       }, { expectedRevision: store.revision })).open();
     } });
@@ -5224,7 +5817,7 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
         const store = await this.store.read();
         const projection = projectLocalDirections(store);
         const frameworkId = options.frameworkId || Object.keys(projection.frameworksById)[0] || null;
-        return { ok: true, schemaVersion: 3, storedSchemaVersion: store.schemaVersion, revision: store.revision, frameworkId, projection: structuredClone(projection) };
+        return { ok: true, schemaVersion: Math.max(3, store.schemaVersion), storedSchemaVersion: store.schemaVersion, revision: store.revision, frameworkId, projection: structuredClone(projection) };
       }
     };
     if (typeof window !== "undefined") window[API_KEY] = api;
@@ -5275,6 +5868,29 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     new ConfirmationModal(this, "\u5B8C\u6210\u5E76\u79FB\u9664\u6210\u679C", `\u786E\u8BA4\u5B8C\u6210\u5E76\u79FB\u9664\u201C${outcome.title}\u201D\uFF1F${count ? ` ${count} \u4E2A\u5B50\u6210\u679C\u4F1A\u4FDD\u7559\u3002` : ""}`, async () => {
       await this.mutate("outcome-complete-remove", (draft) => completeAndRemoveOutcome(draft, { outcomeId: outcome.id }), { expectedRevision });
       new import_obsidian.Notice("\u6210\u679C\u5DF2\u79FB\u9664");
+    }).open();
+  }
+  async openExitedDirections(frameworkId = null) {
+    const store = await this.store.read(), projection = projectLocalDirections(store);
+    new ReadOnlyListModal(this, "\u5DF2\u79FB\u51FA\u65B9\u5411", (modal) => {
+      const items = Object.values(projection.membershipsById).filter((item) => item.status === "exited" && (!frameworkId || item.frameworkId === frameworkId));
+      if (!items.length) modal.contentEl.append(el("p", "", "\u6CA1\u6709\u5DF2\u79FB\u51FA\u7684\u65B9\u5411"));
+      for (const direction of items) {
+        const row = el("div", "tf-recovery-row");
+        row.append(el("strong", "", direction.lastKnownLabel), el("small", "", projection.frameworksById[direction.frameworkId]?.title || ""));
+        const restore = button("\u6062\u590D\u65B9\u5411", "undo-2", async () => {
+          restore.disabled = true;
+          try {
+            await this.mutate("direction-reinstate", (draft) => reinstateMembership(draft, { membershipId: direction.id }), { expectedRevision: store.revision });
+            modal.close();
+          } catch (error) {
+            new import_obsidian.Notice(error.message, 9e3);
+            restore.disabled = false;
+          }
+        });
+        row.append(restore);
+        modal.contentEl.append(row);
+      }
     }).open();
   }
   async openRemovedOutcomes() {
@@ -5510,23 +6126,12 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     const membership = projection.membershipsById[membershipId];
     const blockers = membershipExitBlockers(projection, membershipId);
     if (blockers.length) return new import_obsidian.Notice(blockers.map((blocker) => blocker.message).join("\uFF1B"), 9e3);
-    new TemporalFormModal(this, {
-      title: "\u79FB\u51FA\u65F6\u95F4\u6846\u67B6",
-      message: `\u201C${membership.lastKnownLabel}\u201D\u5C06\u4ECE\u5F53\u524D\u65F6\u95F4\u6846\u67B6\u79FB\u51FA\uFF0C\u5386\u53F2\u4E8B\u4EF6\u4ECD\u4F1A\u4FDD\u7559\u3002`,
-      recordType: "membership-exit",
-      recordId: membershipId,
-      baseRevision: store.revision,
-      baseHash: hashValue(membership),
-      initial: { reason: "" },
-      fields: [{ key: "reason", label: "\u79FB\u51FA\u539F\u56E0", type: "textarea", wide: true, placeholder: "\u8BF4\u660E\u4E3A\u4EC0\u4E48\u5F53\u524D\u4E0D\u518D\u7EB3\u5165\u65F6\u95F4\u6846\u67B6" }],
-      submitLabel: "\u79FB\u51FA\u65F6\u95F4\u6846\u67B6",
-      submitIcon: "trash-2",
-      validate: (value) => ({ valid: Boolean(String(value.reason || "").trim()), message: String(value.reason || "").trim() ? "\u53EF\u4EE5\u79FB\u51FA" : "\u8BF7\u586B\u5199\u79FB\u51FA\u539F\u56E0" }),
-      onSubmit: async (value, session) => {
-        if (!window.confirm("\u786E\u8BA4\u79FB\u51FA\u8BE5\u4E0A\u5C42\u7EA7\u65B9\u5411\uFF1F\u5386\u53F2\u8BB0\u5F55\u4F1A\u4FDD\u7559\u3002")) throw new Error("\u5DF2\u53D6\u6D88\u79FB\u51FA\u65F6\u95F4\u6846\u67B6");
-        await this.mutate("membership-exit", (draft) => exitMembership(draft, { membershipId, reason: value.reason }), { expectedRevision: session.identity.baseRevision });
-      }
-    }).open();
+    new ConfirmationModal(
+      this,
+      "\u79FB\u51FA\u65F6\u95F4\u6846\u67B6",
+      `\u786E\u8BA4\u79FB\u51FA\u201C${membership.lastKnownLabel}\u201D\uFF1F\u53EF\u4ECE\u201C\u5DF2\u79FB\u51FA\u65B9\u5411\u201D\u6062\u590D\u3002`,
+      () => this.mutate("membership-exit", (draft) => exitMembership(draft, { membershipId }), { expectedRevision: store.revision })
+    ).open();
   }
   async openFrameworkItemModal(frameworkId, item = null) {
     const { store, projection, framework } = await this.projectionFor(frameworkId);
@@ -5556,23 +6161,12 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async openArchiveFrameworkItemModal(item) {
     const store = await this.store.read();
-    new TemporalFormModal(this, {
-      title: "\u505C\u7528\u6846\u67B6\u6761\u76EE",
-      message: `\u53EA\u6709\u4E0D\u518D\u5305\u542B\u6709\u6548\u65B9\u5411\u6216\u91CC\u7A0B\u7891\u7684\u201C${item.title}\u201D\u624D\u80FD\u505C\u7528\u3002\u5386\u53F2\u4E0D\u4F1A\u5220\u9664\u3002`,
-      recordType: "framework-item-archive",
-      recordId: item.id,
-      baseRevision: store.revision,
-      baseHash: hashValue(item),
-      initial: { reason: "" },
-      fields: [{ key: "reason", label: "\u505C\u7528\u539F\u56E0", type: "textarea", rows: 3, wide: true }],
-      submitLabel: "\u505C\u7528\u6846\u67B6\u6761\u76EE",
-      submitIcon: "archive",
-      validate: (value) => ({ valid: Boolean(String(value.reason || "").trim()), message: String(value.reason || "").trim() ? "\u53EF\u4EE5\u505C\u7528" : "\u8BF7\u586B\u5199\u505C\u7528\u539F\u56E0" }),
-      onSubmit: async (value, session) => {
-        await this.mutate("framework-item-archive", (draft) => archiveFrameworkItem(draft, { frameworkItemId: item.id, reason: value.reason }), { expectedRevision: session.identity.baseRevision });
-        await this.getActiveView()?.renderPreservingView();
-      }
-    }).open();
+    new ConfirmationModal(
+      this,
+      "\u505C\u7528\u6846\u67B6\u6761\u76EE",
+      `\u786E\u8BA4\u505C\u7528\u201C${item.title}\u201D\uFF1F`,
+      () => this.mutate("framework-item-archive", (draft) => archiveFrameworkItem(draft, { frameworkItemId: item.id }), { expectedRevision: store.revision })
+    ).open();
   }
   async openFrameworkMilestoneModal(frameworkItemId, milestone = null) {
     const store = await this.store.read();
@@ -5608,23 +6202,12 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
   }
   async openArchiveFrameworkMilestoneModal(milestone) {
     const store = await this.store.read();
-    new TemporalFormModal(this, {
-      title: "\u505C\u7528\u6846\u67B6\u91CC\u7A0B\u7891",
-      message: `\u201C${frameworkMilestoneSentence(milestone)}\u201D\u4ECD\u6709\u5173\u8054\u8282\u70B9\u65F6\u4E0D\u80FD\u505C\u7528\uFF0C\u8BF7\u5148\u9010\u9879\u89E3\u9664\u3002\u5386\u53F2\u4E0D\u4F1A\u5220\u9664\u3002`,
-      recordType: "framework-milestone-archive",
-      recordId: milestone.id,
-      baseRevision: store.revision,
-      baseHash: hashValue(milestone),
-      initial: { reason: "" },
-      fields: [{ key: "reason", label: "\u505C\u7528\u539F\u56E0", type: "textarea", rows: 3, wide: true }],
-      submitLabel: "\u505C\u7528\u91CC\u7A0B\u7891",
-      submitIcon: "archive",
-      validate: (value) => ({ valid: Boolean(String(value.reason || "").trim()), message: String(value.reason || "").trim() ? "\u53EF\u4EE5\u505C\u7528" : "\u8BF7\u586B\u5199\u505C\u7528\u539F\u56E0" }),
-      onSubmit: async (value, session) => {
-        await this.mutate("framework-milestone-archive", (draft) => archiveFrameworkMilestone(draft, { milestoneId: milestone.id, reason: value.reason }), { expectedRevision: session.identity.baseRevision });
-        await this.getActiveView()?.renderPreservingView();
-      }
-    }).open();
+    new ConfirmationModal(
+      this,
+      "\u505C\u7528\u6846\u67B6\u91CC\u7A0B\u7891",
+      `\u786E\u8BA4\u505C\u7528\u201C${frameworkMilestoneSentence(milestone)}\u201D\uFF1F`,
+      () => this.mutate("framework-milestone-archive", (draft) => archiveFrameworkMilestone(draft, { milestoneId: milestone.id }), { expectedRevision: store.revision })
+    ).open();
   }
   async openMembershipAssignmentModal(frameworkId, membershipId) {
     const { store, projection } = await this.projectionFor(frameworkId);
@@ -5723,6 +6306,141 @@ var TemporalFrameworkPlugin = class extends import_obsidian.Plugin {
     const store = await this.store.read();
     const projection = projectLocalDirections(store);
     return { store, projection, framework: projection.frameworksById[frameworkId] };
+  }
+  async openCustomFrameModal(frameworkId, frame = null, sourceView = null) {
+    const { store, projection } = await this.projectionFor(frameworkId);
+    if (frame) {
+      frame = projection.customFramesById[frame.id];
+      if (!frame || frame.status !== "active") return new import_obsidian.Notice("\u65F6\u95F4\u5E27\u5DF2\u5F52\u6863\u6216\u4E0D\u5B58\u5728");
+    }
+    new TemporalFormModal(this, {
+      title: frame ? "\u7F16\u8F91\u65F6\u95F4\u5E27" : "\u65B0\u5EFA\u65F6\u95F4\u5E27",
+      modalClass: "is-custom-frame-modal",
+      message: "\u65F6\u95F4\u63CF\u8FF0\u53EF\u4EE5\u586B\u5199\u201C11\u670815\u65E5\u523012\u6708\u521D\u201D\u6216\u201C\u9A8C\u6536\u51C6\u5907\u9636\u6BB5\u201D\uFF0C\u65E0\u9700\u7CBE\u786E\u65E5\u671F\u3002",
+      recordType: "custom-frame-edit",
+      recordId: frame?.id || frameworkId,
+      baseRevision: store.revision,
+      baseHash: hashValue(frame || { frameworkId }),
+      initial: { title: frame?.title || "", timeDescription: frame?.timeDescription || "", description: frame?.description || "" },
+      fields: [
+        { key: "title", label: "\u5E27\u540D\u79F0", wide: true },
+        { key: "timeDescription", label: "\u65F6\u95F4\u63CF\u8FF0\uFF08\u53EF\u9009\uFF09", wide: true, placeholder: "11\u670815\u65E5\u523012\u6708\u521D" },
+        { key: "description", label: "\u9636\u6BB5\u8BF4\u660E\uFF08\u53EF\u9009\uFF09", type: "textarea", rows: 4, wide: true }
+      ],
+      validate: (value) => ({ valid: Boolean(value.title.trim()), message: value.title.trim() ? "\u4FDD\u5B58\u540E\u53EF\u5173\u8054\u6210\u679C" : "\u8BF7\u586B\u5199\u5E27\u540D\u79F0" }),
+      onSubmit: async (value, session) => {
+        let id = frame?.id;
+        await this.mutate(frame ? "custom-frame-revise" : "custom-frame-create", (draft) => {
+          if (frame) reviseCustomFrame(draft, { frameId: frame.id, ...value });
+          else id = createCustomFrame(draft, { frameworkId, ...value });
+        }, { expectedRevision: session.identity.baseRevision });
+        if (sourceView && !sourceView.customFramesClosed && id) {
+          sourceView.customFrameSelection.set(frameworkId, id);
+          try {
+            await sourceView.renderPreservingView();
+          } catch (error) {
+            console.warn("[TemporalFramework][custom-frame.refresh-failed]", { frameId: id, message: error.message });
+            new import_obsidian.Notice("\u65F6\u95F4\u5E27\u5DF2\u4FDD\u5B58\uFF0C\u754C\u9762\u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u70B9\u51FB\u5237\u65B0\u3002", 9e3);
+          }
+        }
+      }
+    }).open();
+  }
+  async openCustomFrameBindingModal(frameId, sourceView) {
+    const store = await this.store.read(), projection = projectLocalDirections(store), frame = projection.customFramesById[frameId];
+    if (!frame || frame.status !== "active") return new import_obsidian.Notice("\u65F6\u95F4\u5E27\u5DF2\u5F52\u6863\u6216\u4E0D\u5B58\u5728");
+    const linked = new Set((customFrameBindingIndex(projection).get(frameId) || []).map((b) => b.outcomeId));
+    const entries = activeValues2(projection.outcomesById).filter((o) => o.frameworkId === frame.frameworkId && projection.membershipsById[o.membershipId]?.status === "active").map((o) => ({ id: o.id, label: `${projection.membershipsById[o.membershipId]?.lastKnownLabel || ""} / ${sourceView.outcomePathLabel(projection, o.id)}`, linked: linked.has(o.id) })).sort((a, b) => a.label.localeCompare(b.label, "zh-CN") || a.id.localeCompare(b.id));
+    new TemporalFormModal(this, {
+      title: `\u5173\u8054\u6210\u679C \xB7 ${frame.title}`,
+      modalClass: "is-custom-frame-modal",
+      recordType: "custom-frame-bind",
+      recordId: frameId,
+      baseRevision: store.revision,
+      baseHash: hashValue({ frame, revision: store.revision }),
+      initial: { outcomeIds: [], scope: "self" },
+      message: "\u5173\u8054\u540C\u4E00\u4EFD\u6210\u679C\uFF0C\u4E0D\u590D\u5236\u6B63\u6587\u3002\u5DF2\u5173\u8054\u7684\u7236\u6210\u679C\u4ECD\u53EF\u9009\uFF0C\u7528\u4E8E\u8865\u5145\u5176\u5F53\u524D\u5B50\u6210\u679C\u3002",
+      fields: [{ key: "outcomeIds", label: "\u9009\u62E9\u6210\u679C\uFF08\u53EF\u591A\u9009\uFF09", wide: true, render: (value, onChange) => {
+        const root = el("div", "tf-custom-picker"), selected = new Set(value || []);
+        const input = el("input", "tf-input");
+        input.placeholder = "\u641C\u7D22\u6210\u679C\u540D\u79F0\u3001\u65B9\u5411\u6216\u4E0A\u7EA7\u8DEF\u5F84";
+        input.setAttribute("aria-label", input.placeholder);
+        const summary = el("div", "tf-custom-summary"), list = el("div", "tf-custom-picker-list"), pager = el("div", "tf-custom-actions");
+        let page = 0;
+        const draw = () => {
+          const query = input.value.trim().toLocaleLowerCase(), matches = entries.filter((o) => o.label.toLocaleLowerCase().includes(query));
+          page = Math.max(0, Math.min(page, Math.ceil(matches.length / 60) - 1));
+          list.replaceChildren();
+          pager.replaceChildren();
+          summary.textContent = `\u5DF2\u9009 ${selected.size} \xB7 \u5339\u914D ${matches.length} \u4E2A\u6210\u679C`;
+          for (const entry of matches.slice(page * 60, (page + 1) * 60)) {
+            const row = el("label", "tf-custom-picker-row"), check = el("input");
+            check.type = "checkbox";
+            check.checked = selected.has(entry.id);
+            check.addEventListener("change", () => {
+              check.checked ? selected.add(entry.id) : selected.delete(entry.id);
+              onChange([...selected]);
+              summary.textContent = `\u5DF2\u9009 ${selected.size} \xB7 \u5339\u914D ${matches.length} \u4E2A\u6210\u679C`;
+            });
+            row.append(check, el("span", "", entry.label));
+            if (entry.linked) row.append(el("small", "", "\u5DF2\u5173\u8054"));
+            list.append(row);
+          }
+          for (const [delta, label] of [[-1, "\u4E0A\u4E00\u9875"], [1, "\u4E0B\u4E00\u9875"]]) {
+            const b = button(label, "", () => {
+              page += delta;
+              draw();
+            });
+            b.disabled = page + delta < 0 || (page + delta) * 60 >= matches.length;
+            pager.append(b);
+          }
+          pager.append(el("span", "", `${page + 1} / ${Math.max(1, Math.ceil(matches.length / 60))}`));
+        };
+        input.addEventListener("input", () => {
+          page = 0;
+          draw();
+        });
+        root.append(input, summary, list, pager);
+        draw();
+        return root;
+      } }, { key: "scope", label: "\u5173\u8054\u8303\u56F4", type: "select", wide: true, options: [["self", "\u4EC5\u9009\u4E2D\u7684\u6210\u679C"], ["subtree", "\u9009\u4E2D\u6210\u679C\u53CA\u5176\u5F53\u524D\u5B50\u6210\u679C"]] }],
+      validate: (value) => {
+        try {
+          const ids = expandCustomFrameSelection(projection, frame.frameworkId, value.outcomeIds, value.scope === "subtree");
+          const count = ids.filter((id) => !linked.has(id)).length;
+          return { valid: count > 0, message: count ? `\u5C06\u65B0\u589E ${count} \u4E2A\u5173\u8054\uFF1B\u4EE5\u540E\u65B0\u5EFA\u7684\u5B50\u6210\u679C\u4E0D\u4F1A\u81EA\u52A8\u52A0\u5165\u3002` : "\u8BF7\u9009\u62E9\u5C1A\u672A\u5173\u8054\u7684\u6210\u679C\uFF0C\u6216\u9009\u62E9\u7236\u6210\u679C\u5E76\u5305\u542B\u5F53\u524D\u5B50\u6210\u679C\u3002" };
+        } catch (error) {
+          return { valid: false, message: error.message };
+        }
+      },
+      onSubmit: (value, session) => this.mutate("custom-frame-bind", (draft) => bindCustomFrameOutcomes(draft, { frameId, outcomeIds: value.outcomeIds, includeDescendants: value.scope === "subtree" }), { expectedRevision: session.identity.baseRevision })
+    }).open();
+  }
+  async openCustomFrameOutcomeModal(frameId) {
+    const store = await this.store.read(), projection = projectLocalDirections(store), frame = projection.customFramesById[frameId];
+    if (!frame || frame.status !== "active") return new import_obsidian.Notice("\u65F6\u95F4\u5E27\u5DF2\u5F52\u6863\u6216\u4E0D\u5B58\u5728");
+    const directions = activeValues2(projection.membershipsById).filter((d) => d.frameworkId === frame.frameworkId);
+    if (!directions.length) return new import_obsidian.Notice("\u8BF7\u5148\u5728\u9876\u90E8\u65B0\u589E\u4E0A\u5C42\u7EA7\u65B9\u5411\uFF0C\u518D\u4E3A\u65F6\u95F4\u5E27\u521B\u5EFA\u6210\u679C\u3002");
+    new TemporalFormModal(this, {
+      title: `\u65B0\u5EFA\u6210\u679C \xB7 ${frame.title}`,
+      modalClass: "is-custom-frame-modal",
+      message: "\u521B\u5EFA\u540E\u52A0\u5165\u5F53\u524D\u5E27\uFF0C\u6682\u4E0D\u5B89\u6392\u7CBE\u786E\u65E5\u671F\u3002\u9700\u8981\u65F6\u53EF\u5728\u6210\u679C\u5361\u7247\u4E0A\u8BBE\u7F6E\u6392\u671F\u3002",
+      recordType: "custom-frame-outcome",
+      recordId: frameId,
+      baseRevision: store.revision,
+      baseHash: hashValue(frame),
+      initial: { membershipId: directions[0].id, title: "", acceptance: "" },
+      fields: [
+        { key: "membershipId", label: "\u6240\u5C5E\u65B9\u5411", type: "select", wide: true, options: directions.map((d) => [d.id, d.lastKnownLabel]) },
+        { key: "title", label: "\u6210\u679C\u540D\u79F0", wide: true },
+        { key: "acceptance", label: "\u9A8C\u6536\u6761\u4EF6", type: "textarea", rows: 3, wide: true }
+      ],
+      validate: (value) => ({ valid: Boolean(value.title.trim()), message: value.title.trim() ? "\u521B\u5EFA\u6210\u679C\u5E76\u5173\u8054\u5230\u5F53\u524D\u5E27" : "\u8BF7\u586B\u5199\u6210\u679C\u540D\u79F0" }),
+      onSubmit: (value, session) => this.mutate("custom-frame-outcome-create", (draft) => {
+        const id = createOutcome(draft, { frameworkId: frame.frameworkId, ...value });
+        bindCustomFrameOutcomes(draft, { frameId, outcomeIds: [id] });
+      }, { expectedRevision: session.identity.baseRevision })
+    }).open();
   }
   async openOutcomeModal(frameworkId, context = {}) {
     const { store, projection, framework } = await this.projectionFor(frameworkId);

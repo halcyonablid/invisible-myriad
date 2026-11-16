@@ -19,8 +19,8 @@
     },
     {
       "path": "CURRENT_BASELINE.md",
-      "bytes": 6464,
-      "sha256": "b14ec28ddb5bf722c13ab1e802229c35933eafc6761e6681056ae8c6b1d2ab7d",
+      "bytes": 6642,
+      "sha256": "b3cb8d27b24e3a23d99d21eef83c812087485717cdb4689ecd17a02eb2ee44f2",
       "source_kind": "release-entry-and-evidence"
     },
     {
@@ -718,6 +718,6 @@
       "sha256": "7c228a96e8dd332e0570c79f464e3c5df032adf553729c68d673313f6873e65f"
     }
   ],
-  "updated_at": "2026-11-04T00:54:42.347652+08:00",
+  "updated_at": "2026-11-16T14:58:35.172036+08:00",
   "release_note": "PEO_AUTONOMY.md"
 }

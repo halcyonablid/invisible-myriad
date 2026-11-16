@@ -1,0 +1,9 @@
+{
+  "id": "experience-note-tags",
+  "name": "经验回看",
+  "version": "0.1.8",
+  "minAppVersion": "1.5.0",
+  "description": "独立回看明确标定的工程经验片段：正文标签、建立日期、已阅、复制跳转、批量标签与快捷收录。",
+  "author": "Personal Tools",
+  "isDesktopOnly": true
+}

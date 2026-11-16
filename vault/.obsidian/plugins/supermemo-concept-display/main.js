@@ -2,8 +2,8 @@ const obsidian = require("obsidian");
 const { ItemView, Plugin, PluginSettingTab, Setting, setIcon } = obsidian;
 
 const VIEW_TYPE_SUPERMEMO_CONCEPT_DISPLAY = "supermemo-concept-display-view";
-const CONCEPT_TREE_MODEL_FILE = "supermemo-concept-tree-model.js";
-const ANTINET_TREE_MODEL_FILE = "supermemo-antinet-tree-model.js";
+const CONCEPT_TREE_MODEL_FILE = "supermemo-concept-tree-model.sm-dl047.js";
+const ANTINET_TREE_MODEL_FILE = "supermemo-antinet-tree-model.sm-dl047.js";
 const REQUIRED_CONCEPT_TREE_MODEL_METHODS = [
   "addStableIdToRawConceptRoot",
   "advanceDeleteTransaction",
@@ -27,7 +27,7 @@ const REQUIRED_CONCEPT_TREE_MODEL_METHODS = [
   "validateTreeStore",
 ];
 const REQUIRED_ANTINET_TREE_MODEL_METHODS = [
-  "composeDrawerTree",
+  "composeDrawerTree", "composeLazyDrawerTree",
   "attachNodeToDrawer",
   "archiveSubtree",
   "collectDescendantIds",
@@ -294,7 +294,7 @@ module.exports = class SuperMemoConceptDisplayPlugin extends Plugin {
   }
 
   async loadVaultStorageModule() {
-    const code = await this.app.vault.adapter.read(`${this.getPluginDataDir()}/vault-concept-storage.cjs`);
+    const code = await this.app.vault.adapter.read(`${this.getPluginDataDir()}/vault-concept-storage.sm-dl047.cjs`);
     const module = {exports:{}};
     new Function("module", "exports", "require", code)(module, module.exports, require);
     if (typeof module.exports.createStorage !== "function") throw new Error("独立存储模块不可用");
@@ -304,8 +304,8 @@ module.exports = class SuperMemoConceptDisplayPlugin extends Plugin {
   async loadEngineRunner(storage) {
     if (!storage || typeof storage.getItem !== "function") throw new Error("当前库独立存储尚未就绪");
     const candidatePaths = [
-      `${this.getPluginDataDir()}/supermemo-concept-display-engine.js`,
-      `.obsidian/plugins/${this.manifest.id}/supermemo-concept-display-engine.js`,
+      `${this.getPluginDataDir()}/supermemo-concept-display-engine.sm-dl047.js`,
+      `.obsidian/plugins/${this.manifest.id}/supermemo-concept-display-engine.sm-dl047.js`,
     ];
     let code = "";
     let loadedPath = "";
@@ -319,11 +319,11 @@ module.exports = class SuperMemoConceptDisplayPlugin extends Plugin {
         console.warn("[SuperMemo Concept Display][engine-load-candidate-fail]", { path: candidatePath, message: error?.message || String(error) });
       }
     }
-    if (!code) throw new Error(`Cannot load supermemo-concept-display-engine.js from: ${candidatePaths.join(", ")}`);
+    if (!code) throw new Error(`Cannot load supermemo-concept-display-engine.sm-dl047.js from: ${candidatePaths.join(", ")}`);
     const module = { exports: {} };
     const factory = new Function("module", "exports", "require", "localStorage", `${code}\n;return module.exports;`);
     const runner = factory(module, module.exports, require, storage);
-    if (typeof runner !== "function") throw new Error(`supermemo-concept-display-engine.js did not export a runner: ${loadedPath}`);
+    if (typeof runner !== "function") throw new Error(`supermemo-concept-display-engine.sm-dl047.js did not export a runner: ${loadedPath}`);
     console.info("[SuperMemo Concept Display][engine-load]", { status: "OK", path: loadedPath, chars: code.length });
     return runner;
   }

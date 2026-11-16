@@ -1,7 +1,7 @@
 {
   "format": "obsidian-vault-backup-v1",
-  "count": 4321,
-  "bytes": 216673618,
+  "count": 4364,
+  "bytes": 225125953,
   "files": [
     {
       "path": ".gitignore",
@@ -55,13 +55,13 @@
     },
     {
       "path": ".obsidian/plugins/antinet-tree-structure/main.js",
-      "bytes": 76893,
-      "sha256": "be3ea22057c97695ccdf85cb1f1c17461d8faa181de48d94bb94a3794cc5c05d"
+      "bytes": 3040905,
+      "sha256": "76ffc9022d0b9b974d93933d5d365c0b65323814e887edd4b728b4b218f51fad"
     },
     {
       "path": ".obsidian/plugins/antinet-tree-structure/manifest.json",
-      "bytes": 306,
-      "sha256": "008c4c0b64ae912aa68f45ad79e2d978380d9dd3391d2467803e1f2a9c59b62d"
+      "bytes": 305,
+      "sha256": "6015a251919bff0e6e599dd04fb8045788abc70ba9e280b3b3d5456c182b3cc5"
     },
     {
       "path": ".obsidian/plugins/antinet-tree-structure/styles.css",
@@ -574,6 +574,26 @@
       "sha256": "17b0757e7e76387a73bb5c108384170a3ebf865b3b6f8aea7c22958d43c60c17"
     },
     {
+      "path": ".obsidian/plugins/experience-note-tags/README.md",
+      "bytes": 18263,
+      "sha256": "fa681ea365d75022ff91621fb336bafe5d4e9cc082f7b607d9d13c5be549bcc6"
+    },
+    {
+      "path": ".obsidian/plugins/experience-note-tags/main.js",
+      "bytes": 316006,
+      "sha256": "3543020fcaac71fd0fee02f3a31e404f97dc0b3b937d97fc0abe3c2714f9de1a"
+    },
+    {
+      "path": ".obsidian/plugins/experience-note-tags/manifest.json",
+      "bytes": 328,
+      "sha256": "2f299d7dba7f7b5d88d977ad2177c14bfe5632a74085bc7f5066f4ff91e6c23e"
+    },
+    {
+      "path": ".obsidian/plugins/experience-note-tags/styles.css",
+      "bytes": 9609,
+      "sha256": "90150ba9fecd066e56e302996ef23a71ed406ade1cbf475cc2e6610d22b6e1cb"
+    },
+    {
       "path": ".obsidian/plugins/file-tree-alternative/data.json",
       "bytes": 805,
       "sha256": "ff63db53b7d97abe40ebafbd76275317f6acf1524207e041ccb487d8e15bffe4"
@@ -709,6 +729,11 @@
       "sha256": "6fdd3e52f7df3ff4a74297d346fb4832309406d2aa061f7c9dc12591cb89a72f"
     },
     {
+      "path": ".obsidian/plugins/keyword-index-plugin/README.md",
+      "bytes": 1072,
+      "sha256": "55e65617de15eed325108cbc4ae4e66ed9986c007a56c620569f9b8d6539d2c3"
+    },
+    {
       "path": ".obsidian/plugins/keyword-index-plugin/data.json",
       "bytes": 744,
       "sha256": "a7d83e4c002d450e70a6c1c1737385260d002a387b16bee7998b5bad670bb452"
@@ -720,13 +745,13 @@
     },
     {
       "path": ".obsidian/plugins/keyword-index-plugin/main.js",
-      "bytes": 308713,
-      "sha256": "1d3b889849baf8795f4adb5d54a6c6e43bda8462836811e6bb6e08a668272f7f"
+      "bytes": 326029,
+      "sha256": "ee167813571c6e06b08645b315111cb4154cba5b099f5bde56b8e65065c5b0ec"
     },
     {
       "path": ".obsidian/plugins/keyword-index-plugin/manifest.json",
-      "bytes": 277,
-      "sha256": "cad43d5ef919ede5dddb6670d5ff2c4c1ca4158618a256c49758dc653ddf2a43"
+      "bytes": 286,
+      "sha256": "25cce5e4fcc5d4ad7dd2053f4cbb5962f058230e2aede6db3c818cfda10bc931"
     },
     {
       "path": ".obsidian/plugins/keyword-index-plugin/scan-source-cache.json",
@@ -764,9 +789,14 @@
       "sha256": "92cb036eefd5b5b13aa372d7c50e51b0426bc818063ed69c02c356ce6de81116"
     },
     {
+      "path": ".obsidian/plugins/keyword-index-plugin/versions.json",
+      "bytes": 501,
+      "sha256": "a0f49d4192be5f378b0afa2ce1cf8ae33a0823ae250f2734b2e222d4ab06ca1b"
+    },
+    {
       "path": ".obsidian/plugins/mandala-time-blocks/README.md",
-      "bytes": 3562,
-      "sha256": "59c23035cb4c724c07ce195916ae3ee926d4128629cb30a259fb64096a0416a2"
+      "bytes": 9558,
+      "sha256": "25388178f93ff0eae489a84536fbd4f48288199e6ca1ea1304909f883776a8af"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/binding-anchor.cjs",
@@ -785,8 +815,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/center-mandala-projection.cjs",
-      "bytes": 30583,
-      "sha256": "4d61b8636c182e0bebb438386637ad2bc7df392c00ab71da2909405ffde71324"
+      "bytes": 30768,
+      "sha256": "8bb1da75165c33cf5ff8eddcd095a80a927cac5a47102ca36b03a7bd0b6eb3db"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/data.json",
@@ -800,13 +830,23 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/main.js",
-      "bytes": 1629296,
-      "sha256": "f8a6f921be0d8ac936fcdf5598df170fb42174589d605dddc3006f58fbed835c"
+      "bytes": 1764334,
+      "sha256": "ef058641d35d83bc461ebcac291f12c2bae797657514fad96bc27accc7bd053c"
+    },
+    {
+      "path": ".obsidian/plugins/mandala-time-blocks/mandala-board-draft.cjs",
+      "bytes": 1935,
+      "sha256": "f46a440e4dc32b403a7300e1215735e569ed39610da563daa7e56a9219cd8fb6"
+    },
+    {
+      "path": ".obsidian/plugins/mandala-time-blocks/mandala-board-model.cjs",
+      "bytes": 7173,
+      "sha256": "94b30641531d081a205e05b33919dd35cb67f104490d502c577ac314c8186a62"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/manifest.json",
-      "bytes": 290,
-      "sha256": "41dc279356df3d51a433b934f4193861ba3721264f4050b4740933b75a47ca55"
+      "bytes": 300,
+      "sha256": "ae44146440fa024c2b7b0653946ca41859a72837105ccff1e8f9ff3713d13b87"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/participant-snapshot.cjs",
@@ -820,8 +860,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/styles.css",
-      "bytes": 106174,
-      "sha256": "fcebae673da7fe7d5802b6ab909b700aea8fa8cb0d5c712812ec391e143daa42"
+      "bytes": 120915,
+      "sha256": "b72b5a64498f9ca3a9fc3981f0a9625afbd73c1672911f57090d74bccc108585"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/tracking-state-reader.cjs",
@@ -830,8 +870,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/versions.json",
-      "bytes": 203,
-      "sha256": "13dc9791321d52f843e5950c1c6a7741d9e79dc0f45a03bef42c52aff3f74247"
+      "bytes": 535,
+      "sha256": "6b12d1004c35b351a959c41c6ecff8830f8fa69a225dbcbdc6b502badfef34b2"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/core-script.js",
@@ -20750,13 +20790,18 @@
     },
     {
       "path": ".obsidian/plugins/project-execution-overview/main.js",
-      "bytes": 698627,
-      "sha256": "30fd7e12eed7399babc29088da34659b35d1d143c0e04128876d536b53d20006"
+      "bytes": 720787,
+      "sha256": "82be43ac7f13063bc966300c112d0e692c9a94612fd55b98be5bcbf41acfee23"
+    },
+    {
+      "path": ".obsidian/plugins/project-execution-overview/mandala-board-model.cjs",
+      "bytes": 7173,
+      "sha256": "94b30641531d081a205e05b33919dd35cb67f104490d502c577ac314c8186a62"
     },
     {
       "path": ".obsidian/plugins/project-execution-overview/manifest.json",
-      "bytes": 307,
-      "sha256": "e25ae3b0c5950f5855c4064116a66583e99dc0ab80f3f8d02c3e0af09dfb2f4c"
+      "bytes": 308,
+      "sha256": "169d1ce6ec94ee17e9922d4c3214edf4249a3ffb7dd212465fc97b19d3f806f6"
     },
     {
       "path": ".obsidian/plugins/project-execution-overview/participant-snapshot.cjs",
@@ -20809,49 +20854,99 @@
       "sha256": "2ee49c92ab0bb848221a09626f7ba676bbe85372c4c8065ee7790b0832cb3ddb"
     },
     {
+      "path": ".obsidian/plugins/reference-graph-widget/README.md",
+      "bytes": 4065,
+      "sha256": "93a1b8cf72eec4811207005d5dde71b770111995fefcc70efc76ca4f58d97283"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/THIRD-PARTY-NOTICES.md",
+      "bytes": 1561,
+      "sha256": "01444198edf06fc801d1084dd05acd5c7e0001682096a6a5366da7b9ddbf1947"
+    },
+    {
       "path": ".obsidian/plugins/reference-graph-widget/collective-graph.cjs",
       "bytes": 30212,
       "sha256": "76370980cfe9307267b76c205c2e5296a026b40f1d942103a1d28a0c11578dab"
     },
     {
       "path": ".obsidian/plugins/reference-graph-widget/core-script.js",
-      "bytes": 76201,
-      "sha256": "9468b3c7365e411cbee50e9b3fe9f7de003661987ba62da74ed0c037115a1fb3"
+      "bytes": 3230,
+      "sha256": "27323d6805025faee01aaa1e7d78767b2e8ba1a2dc18824bf1cd398e10b18021"
     },
     {
       "path": ".obsidian/plugins/reference-graph-widget/main.js",
-      "bytes": 10993,
-      "sha256": "70f32d1eb4e0c9d58edb80fe2d8d33a497dfe6ca7c2c17bb3d7f8e17ba875955"
+      "bytes": 10199,
+      "sha256": "d4256ab24a219c2ac7227220a1c6d318c78ab54bede7e1a678bef51c4198c5c9"
     },
     {
       "path": ".obsidian/plugins/reference-graph-widget/manifest.json",
-      "bytes": 291,
-      "sha256": "46a9aed3ba8e870ca87c8259512ec45bbf0e6f6b8862aae64a1ac7d74b77ab47"
+      "bytes": 317,
+      "sha256": "1cf7d150d54e8e10d8640f987ae2a8d89c23b9ecf4d8822e1b8bd2b534031568"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/mermaid-engine.cjs",
+      "bytes": 2967358,
+      "sha256": "87aef2ee408d4c52d9057c2120498925448de36e2ff8114ce083b495da85dc27"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/mermaid-renderer.cjs",
+      "bytes": 9361,
+      "sha256": "961ccb01d67c1c1a0af10eee74292d75d5e4138bd37143ea3e6f6ae2aa0c3b5e"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/note-navigation.cjs",
+      "bytes": 2938,
+      "sha256": "703319f82bd0d694514fec5ae9175fc47312730c5dde719729697ae64ba058cb"
     },
     {
       "path": ".obsidian/plugins/reference-graph-widget/persistent-cache.cjs",
-      "bytes": 7272,
-      "sha256": "a69a6a8745681c38351c3587ccfdd7fa7f4af10890ccfdbc6f3d1098228bcfbc"
+      "bytes": 8862,
+      "sha256": "7ec5b784a5ca4cea5048e5e36ca990c2701bac5893a5d05cc28b6bc082689854"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/rule-layout.cjs",
+      "bytes": 12453,
+      "sha256": "62f5ecbaa3899f0ec8ea6fb1d13bd831b3e24fed70a2bb464e34f5164e2879ed"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/rule-model.cjs",
+      "bytes": 16148,
+      "sha256": "22887e2e9db2c5c10a96cff17b0a6a0ba30c15600bcc238e056b5ec24983dc89"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/rule-view.cjs",
+      "bytes": 19605,
+      "sha256": "7b1f1a886e5a916d3f6c3384f1a21ec5a1f15fd924033aafa1443147dc7d7d2f"
     },
     {
       "path": ".obsidian/plugins/reference-graph-widget/session-cache.cjs",
-      "bytes": 9113,
-      "sha256": "0a99e91cdd8f0d79b21134815d791b33cf175fa7146707d5512d07fcebc2193e"
+      "bytes": 8929,
+      "sha256": "5fce3dff1fb0155d4f6ba4363bc91cf9dfa6e6a3d811b297671102a0a8cdf380"
     },
     {
       "path": ".obsidian/plugins/reference-graph-widget/styles.css",
-      "bytes": 172,
-      "sha256": "452d50f4f6e2b91acbe866e269d7df13ca45b8c071f72891c6ee97516d29d55e"
+      "bytes": 7735,
+      "sha256": "e9104de9e18aadfbabf194e65779dd329c4cd49a798cc4d0088f450319e08233"
+    },
+    {
+      "path": ".obsidian/plugins/reference-graph-widget/versions.json",
+      "bytes": 110,
+      "sha256": "8652b8d225a64662273650c1abd85c50bc9b3afe06690f2f9597ab2f28115d6e"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/README.md",
+      "bytes": 8710,
+      "sha256": "2f6a6d4d555266e0251e1fce89cec6046ab71089cb33f840553bfd54bd30fc44"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/main.js",
-      "bytes": 13881,
-      "sha256": "d5afb4282551598be1070041dd21707f38318ece83034bb4bc70bba10094b5b8"
+      "bytes": 14317,
+      "sha256": "bf885fb10bafe2b449a5c96a479f741c59b76a093e9b924551970a0cdb7a90a5"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/manifest.json",
-      "bytes": 294,
-      "sha256": "9d589b7344be246cc432e4b908c1a407e5dd740effe69e35eda243c9c04b5853"
+      "bytes": 303,
+      "sha256": "5cf12157b600c4d3ec58036a5a485607ca3dd50cbca9e45aa2f034e527f27a72"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/showcase-concept-initialized.json",
@@ -20865,18 +20960,68 @@
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/styles.css",
-      "bytes": 31991,
-      "sha256": "5bdec314252b244e473e44cfd24a1e8818d54598ce5d1ff8ba1974015833f9cf"
+      "bytes": 35525,
+      "sha256": "fb2b92863ae2cb0bb9eb8143138718056f105f02d6d0604e1b62cfde5786493d"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/supermemo-antinet-tree-model.js",
-      "bytes": 19569,
-      "sha256": "7085adb70db56366ccbd96cd7d3f4fd91650224caeb18524b599b749ec43f16b"
+      "bytes": 22899,
+      "sha256": "ba66b3684d7950057c2319ab9f991bd51a0af8b3bd0ad1230c0e61cbdeff9b14"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-antinet-tree-model.sm-dl043.js",
+      "bytes": 27778,
+      "sha256": "6cd2bbd51003a6def0275c7233830913d74a5803912866f1a8a311bfef68b283"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-antinet-tree-model.sm-dl044.js",
+      "bytes": 27778,
+      "sha256": "6cd2bbd51003a6def0275c7233830913d74a5803912866f1a8a311bfef68b283"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-antinet-tree-model.sm-dl045.js",
+      "bytes": 27778,
+      "sha256": "6cd2bbd51003a6def0275c7233830913d74a5803912866f1a8a311bfef68b283"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-antinet-tree-model.sm-dl046.js",
+      "bytes": 27778,
+      "sha256": "6cd2bbd51003a6def0275c7233830913d74a5803912866f1a8a311bfef68b283"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-antinet-tree-model.sm-dl047.js",
+      "bytes": 27778,
+      "sha256": "6cd2bbd51003a6def0275c7233830913d74a5803912866f1a8a311bfef68b283"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-display-engine.js",
-      "bytes": 280914,
-      "sha256": "b618fb7beb390ae659db3a9a4332eca520db8a7753187cb04f476da15b25cadd"
+      "bytes": 287664,
+      "sha256": "42a8c4290d2d43f2fd9542c8a6d488dcc11a10298f7790ec996026e5ba63c8d6"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-display-engine.sm-dl043.js",
+      "bytes": 302610,
+      "sha256": "e4195ebcef77ecdd998c12512aee24c9b35f37ab0868fa23ffa36f3aa3a06ba3"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-display-engine.sm-dl044.js",
+      "bytes": 314044,
+      "sha256": "cdf0be5fb0c1ce786752727e52592381777a859a3114bc50684eceeffc8df999"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-display-engine.sm-dl045.js",
+      "bytes": 320746,
+      "sha256": "67e506f11ad3b65240a287bd3a406e2c517f5d7781ad391dfa6b90c3aede76e4"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-display-engine.sm-dl046.js",
+      "bytes": 323043,
+      "sha256": "35015de566e349e22879d4733be28048991d9288dacc7814d233374b15d0a39a"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-display-engine.sm-dl047.js",
+      "bytes": 327621,
+      "sha256": "7640fc708cebde84997428f53ce8bdddfd2865aecf7bed2109991e4e5423f38a"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-loader.test.js",
@@ -20885,8 +21030,33 @@
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-model.js",
-      "bytes": 21201,
-      "sha256": "07379f7cd8e09f5f485d2cd03784f0e72f32fd522841af60a45af1c9e5299517"
+      "bytes": 24479,
+      "sha256": "a2aebae66b6ed592c5618e0a5799e89f171a4053bebe91ebc1d0d55bfb44698b"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-model.sm-dl043.js",
+      "bytes": 24479,
+      "sha256": "a2aebae66b6ed592c5618e0a5799e89f171a4053bebe91ebc1d0d55bfb44698b"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-model.sm-dl044.js",
+      "bytes": 24479,
+      "sha256": "a2aebae66b6ed592c5618e0a5799e89f171a4053bebe91ebc1d0d55bfb44698b"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-model.sm-dl045.js",
+      "bytes": 24479,
+      "sha256": "a2aebae66b6ed592c5618e0a5799e89f171a4053bebe91ebc1d0d55bfb44698b"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-model.sm-dl046.js",
+      "bytes": 24479,
+      "sha256": "a2aebae66b6ed592c5618e0a5799e89f171a4053bebe91ebc1d0d55bfb44698b"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-model.sm-dl047.js",
+      "bytes": 24479,
+      "sha256": "a2aebae66b6ed592c5618e0a5799e89f171a4053bebe91ebc1d0d55bfb44698b"
     },
     {
       "path": ".obsidian/plugins/supermemo-concept-display/supermemo-concept-tree-model.test.js",
@@ -20914,9 +21084,39 @@
       "sha256": "f809cd1e167530ce67ccaf6efb50c985a058e1494496474b074a78f8cf46a4af"
     },
     {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-storage.sm-dl043.cjs",
+      "bytes": 6362,
+      "sha256": "f809cd1e167530ce67ccaf6efb50c985a058e1494496474b074a78f8cf46a4af"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-storage.sm-dl044.cjs",
+      "bytes": 6362,
+      "sha256": "f809cd1e167530ce67ccaf6efb50c985a058e1494496474b074a78f8cf46a4af"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-storage.sm-dl045.cjs",
+      "bytes": 6362,
+      "sha256": "f809cd1e167530ce67ccaf6efb50c985a058e1494496474b074a78f8cf46a4af"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-storage.sm-dl046.cjs",
+      "bytes": 6362,
+      "sha256": "f809cd1e167530ce67ccaf6efb50c985a058e1494496474b074a78f8cf46a4af"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-storage.sm-dl047.cjs",
+      "bytes": 6362,
+      "sha256": "f809cd1e167530ce67ccaf6efb50c985a058e1494496474b074a78f8cf46a4af"
+    },
+    {
       "path": ".obsidian/plugins/supermemo-concept-display/vault-concept-ui.json",
       "bytes": 673,
       "sha256": "69645ae5043ee4cace88848d82af8548f2d57d1105aaf89e462f773b072debb1"
+    },
+    {
+      "path": ".obsidian/plugins/supermemo-concept-display/versions.json",
+      "bytes": 257,
+      "sha256": "b18aaa8f1b43b986a45e85a718ae135374337e307b4342e42a9e57e276de38a6"
     },
     {
       "path": ".obsidian/plugins/supermemo-plan/data.json",
@@ -20990,18 +21190,23 @@
     },
     {
       "path": ".obsidian/plugins/temporal-framework/main.js",
-      "bytes": 335432,
-      "sha256": "61a898145e585bec9099ed287d8c426a0a62e39461bbea5fc32ac9c4ea962599"
+      "bytes": 379005,
+      "sha256": "a6590f3e645224e8ce00c3d66e2cbd5d75209c75cdffba93d7a1aa3daf72406b"
     },
     {
       "path": ".obsidian/plugins/temporal-framework/manifest.json",
-      "bytes": 263,
-      "sha256": "2ba104e90ddf43916b9795a8d56f42306a73a4a79ee43650f1ac425a2d853746"
+      "bytes": 272,
+      "sha256": "f63c45edd2a186c2b364725d7c8a6cd8d779eeaf62cd6845e88db9da1c284af6"
     },
     {
       "path": ".obsidian/plugins/temporal-framework/styles.css",
-      "bytes": 60514,
-      "sha256": "f2850dab8684aae83943131af5e349cb86b50b450db8be4fa4044d32da35e7cc"
+      "bytes": 66240,
+      "sha256": "119f739b3f296132ff0f0be961ec8c919a2a700df07bdb6bdc0ffbc113b3e875"
+    },
+    {
+      "path": ".obsidian/plugins/temporal-framework/versions.json",
+      "bytes": 152,
+      "sha256": "4687fabd1f9594a13bce42da7dacb56236687808fadf9fda05c404cbe261cdb4"
     },
     {
       "path": ".obsidian/plugins/timeline-planner/data.json",
@@ -21039,24 +21244,34 @@
       "sha256": "80e8ee02d7fb99c82b947d7ad93ac2dfb0663f4850b6148c7de38037efe44a34"
     },
     {
+      "path": ".obsidian/plugins/view-group-hub/README.md",
+      "bytes": 4549,
+      "sha256": "e8170ae6a72c922a00ffa1eec5c3a58149794c52b8ec2d63b9d7c0119e6b9e3f"
+    },
+    {
       "path": ".obsidian/plugins/view-group-hub/data.json",
       "bytes": 565,
       "sha256": "b6c2e71b01176f291fee5d3b50b24c496d5d490ae01a128be8aea4a94cec7778"
     },
     {
       "path": ".obsidian/plugins/view-group-hub/main.js",
-      "bytes": 54946,
-      "sha256": "b2d671680212331831522ce1b1d1acd6e254b51b77b8f0bc0f6de954d9c2a242"
+      "bytes": 55263,
+      "sha256": "bb0a19343d4c594cf21c728cf7d467fb4110eec7f5bdb1064885653c074dc0c2"
     },
     {
       "path": ".obsidian/plugins/view-group-hub/manifest.json",
-      "bytes": 325,
-      "sha256": "0fd689256a17f9e1b9990f20f54f1d76df948dba05a55464a4f3e71fd6821022"
+      "bytes": 310,
+      "sha256": "faae9eedf540a44a4b07d0106c7fc35c69aff3edccbe95f56e438d8df83b1ee4"
     },
     {
       "path": ".obsidian/plugins/view-group-hub/styles.css",
-      "bytes": 4614,
-      "sha256": "800c067f8083b4d3edd2732cd9858d810e890fe46c012c60c4920ef87b71979b"
+      "bytes": 4404,
+      "sha256": "e7983ba58e08183f284e35b3400608125968944704ee5ccaa9f74668f2bb7f07"
+    },
+    {
+      "path": ".obsidian/plugins/view-group-hub/versions.json",
+      "bytes": 83,
+      "sha256": "370de64a4e3bb761917d5d2495a5fd05159fcfd495ab4e5e2d7bd928054d3445"
     },
     {
       "path": ".obsidian/plugins/workspace-mount/binding-anchor.cjs",
@@ -21632,6 +21847,7 @@
     ".obsidian/plugins/eva-cross-view-relations",
     ".obsidian/plugins/eva-incremental-indexer",
     ".obsidian/plugins/eva-tree-view",
+    ".obsidian/plugins/experience-note-tags",
     ".obsidian/plugins/file-tree-alternative",
     ".obsidian/plugins/floating-toc",
     ".obsidian/plugins/gtd-task-manager",
@@ -22110,7 +22326,7 @@
     "Templates",
     "tools"
   ],
-  "captured_at": "2026-11-04T00:54:42.347652+08:00",
+  "captured_at": "2026-11-16T14:58:35.172036+08:00",
   "source": "D:\\han\\最新的\\大千-协作实验版-20261005\\大千-协作实验版",
   "stable": true
 }

@@ -1,3 +1,113 @@
+const MandalaBoardModel=(()=>{'use strict';const module={exports:{}};const exports=module.exports;
+'use strict';
+const FIELD='mandalaBoardsV1',CAPABILITY='mandala-declared-forest-v1';
+const isBoardRootId=id=>typeof id==='string'&&/^board-[0-9a-f-]{36}$/.test(id);
+const slots=new Set(['0','1','2','3','5','6','7','8']);
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x),copy=x=>JSON.parse(JSON.stringify(x));
+function fail(code){throw Object.assign(Error(code),{code})}
+function roots(db){
+ if(!plain(db)||!plain(db.root)||db.root.id!=='root'||!plain(db.root.children))fail('BOARD_DB_ROOT');
+ const meta=db.root[FIELD];if(meta===undefined)return ['root'];
+ if(!plain(meta)||meta.version!==1||!Array.isArray(meta.rootIds)||meta.rootIds.length<1||meta.rootIds.length>128||meta.rootIds[0]!=='root')fail('BOARD_CATALOG_SCHEMA');
+ const ids=meta.rootIds;if(new Set(ids).size!==ids.length)fail('BOARD_CATALOG_DUPLICATE');
+ if(ids.slice(1).some(id=>!isBoardRootId(id)))fail('BOARD_CATALOG_ID_FORMAT');
+ for(const id of ids)if(typeof id!=='string'||!id||id!==id.trim()||['__proto__','prototype','constructor'].includes(id)||!own(db,id)||!plain(db[id])||db[id].id!==id||!plain(db[id].children))fail('BOARD_CATALOG_ROOT_MISSING');
+ const set=new Set(ids);for(const node of Object.values(db))for(const child of Object.values(node?.children||{}))if(set.has(child))fail('BOARD_ROOT_HAS_PARENT');
+ return [...ids];
+}
+function inspect(db){
+ const rootIds=roots(db),rootSet=new Set(rootIds),incoming=new Map(),diagnostics=[];
+ for(const [id,node]of Object.entries(db)){
+  if(!plain(node)||node.id!==id||!plain(node.children)){diagnostics.push({code:'node-schema',id});continue}
+  for(const [slot,child]of Object.entries(node.children)){
+   if(child==null||child==='')continue;
+   if(!slots.has(slot))diagnostics.push({code:'invalid-slot',id,slot,child});
+   if(typeof child!=='string'||!own(db,child)){diagnostics.push({code:'missing-child',id,slot,child});continue}
+   const refs=incoming.get(child)||[];refs.push({nodeId:child,parentNodeId:id,slotIndex:Number(slot),rawSlot:slot});incoming.set(child,refs);
+  }
+ }
+ const boardByNode=new Map(),unassigned=new Set();
+ function ancestry(id){
+  if(!own(db,id))fail('BOARD_NODE_MISSING');const chain=[],seen=new Set();let at=id;
+  while(true){
+   if(!plain(db[at])||db[at].id!==at||!plain(db[at].children))fail('BOARD_NODE_SCHEMA');
+   if(rootSet.has(at))break;
+   if(seen.has(at))fail('BOARD_TREE_CYCLE');seen.add(at);
+   const refs=incoming.get(at)||[];if(refs.length!==1)fail('BOARD_PARENT_AMBIGUOUS');
+   if(!slots.has(refs[0].rawSlot))fail('BOARD_SLOT_INVALID');
+   chain.push({nodeId:at,parentNodeId:refs[0].parentNodeId,slotIndex:refs[0].slotIndex});at=refs[0].parentNodeId;
+  }
+  if((incoming.get(at)||[]).length)fail('BOARD_ROOT_HAS_PARENT');
+  return {rootId:at,ancestry:chain};
+ }
+ // Memoize ownership in a single walk per edge. Full ancestry is only materialized
+ // for an actual write target / directory path, never once per rendered cell.
+ const rejected=new Map();
+ function assign(id){
+  const chain=[],seen=new Set();let at=id,root,code;
+  while(true){
+   if(boardByNode.has(at)){root=boardByNode.get(at);break}
+   if(rejected.has(at)){code=rejected.get(at);break}
+   const node=db[at];
+   if(!plain(node)||node.id!==at||!plain(node.children)){code='BOARD_NODE_SCHEMA';break}
+   if(rootSet.has(at)){
+    if((incoming.get(at)||[]).length)code='BOARD_ROOT_HAS_PARENT';else{root=at;boardByNode.set(at,at)}break;
+   }
+   if(seen.has(at)){code='BOARD_TREE_CYCLE';break}seen.add(at);chain.push(at);
+   const refs=incoming.get(at)||[];if(refs.length!==1){code='BOARD_PARENT_AMBIGUOUS';break}
+   if(!slots.has(refs[0].rawSlot)){code='BOARD_SLOT_INVALID';break}at=refs[0].parentNodeId;
+  }
+  for(const k of chain)if(code)rejected.set(k,code);else boardByNode.set(k,root);
+  if(code)rejected.set(id,code);else boardByNode.set(id,root);
+ }
+ for(const id of Object.keys(db)){
+  const refs=incoming.get(id)||[];
+  if(rootSet.has(id)&&refs.length||!rootSet.has(id)&&refs.length!==1)diagnostics.push({code:'parent-count',id,refs});
+  assign(id);if(rejected.has(id)){unassigned.add(id);diagnostics.push({code:rejected.get(id),id})}
+ }
+ return {rootIds,rootSet,incoming,boardByNode,unassigned,diagnostics,ancestry};
+}
+function isRoot(db,id){return roots(db).includes(id)}
+function rootFor(db,id){return inspect(db).ancestry(id).rootId}
+function assertOrdinary(db,id){if(isRoot(db,id))fail('BOARD_ROOT_IS_CONTAINER');return inspect(db).ancestry(id)}
+function stable(x){if(Array.isArray(x))return '['+x.map(stable).join(',')+']';if(plain(x))return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+stable(x[k])).join(',')+'}';return JSON.stringify(x)}
+function transition(before,after,{allowNewRoot=false}={}){
+ const a=inspect(before),b=inspect(after),oldProblems=new Set(a.diagnostics.map(stable));
+ for(const error of b.diagnostics)if(!oldProblems.has(stable(error)))fail('BOARD_NEW_TOPOLOGY_ERROR');
+ for(const id of a.unassigned)if(stable(before[id])!==stable(after[id])||stable(a.incoming.get(id)||[])!==stable(b.incoming.get(id)||[]))fail('BOARD_LEGACY_COMPONENT_CHANGED');
+ for(const error of a.diagnostics)if(error.id&&stable(before[error.id])!==stable(after[error.id]))fail('BOARD_LEGACY_COMPONENT_CHANGED');
+ for(const id of a.rootIds)if(!b.rootSet.has(id))fail('BOARD_ROOT_REMOVAL_UNSUPPORTED');
+ for(const id of b.rootIds)if(!a.rootSet.has(id)&&(!allowNewRoot||own(before,id)))fail('BOARD_ROOT_REGISTRATION_INVALID');
+ for(const [id,root]of a.boardByNode)if(own(after,id)&&b.boardByNode.get(id)!==root)fail('BOARD_CROSS_TREE_MOVE');
+ return b;
+}
+function add(db,{id,title,requestId}){
+ if(!isBoardRootId(id)||!/^board-request-[0-9a-f-]{36}$/.test(requestId)||typeof title!=='string'||!title.trim()||title.trim().length>120)fail('BOARD_CREATE_INPUT');
+ const list=roots(db);
+ if(own(db,id)){
+  const receipt=db[id].mandalaBoardCreationV1;
+  if(!list.includes(id)||!plain(receipt)||receipt.version!==1||receipt.requestId!==requestId)fail('BOARD_ID_COLLISION');
+  return {db:copy(db),id,noOp:true};
+ }
+ if(list.length>=128)fail('BOARD_CAPACITY');
+ const next=copy(db);next.root[FIELD]={...(next.root[FIELD]||{}),version:1,rootIds:[...list,id]};
+ next[id]={id,title:title.trim(),note:'',children:{},comment:'',image:'',shortcuts:[],noteBinding:null,renameHistory:[],mandalaBoardCreationV1:{version:1,requestId}};
+ transition(db,next,{allowNewRoot:true});return {db:next,id,noOp:false};
+}
+function parentDirectory(db){
+ const graph=inspect(db),out=[];
+ for(const [id,node]of Object.entries(db)){
+  const boardRootId=graph.boardByNode.get(id);if(!boardRootId||!plain(node.children))continue;
+  const emptySlots=[...slots].filter(slot=>!node.children[slot]).map(Number);if(!emptySlots.length)continue;
+  const chain=graph.ancestry(id).ancestry.map(e=>e.nodeId).reverse(),names=chain.map(k=>String(db[k].title||k));
+  const boardTitle=String(db[boardRootId].title||boardRootId),nodePath=names.join(' / ');
+  out.push({id,boardRootId,boardTitle,path:nodePath,emptySlots,label:boardTitle+(nodePath?' / '+nodePath:' / 中心')});
+ }
+ return out;
+}
+module.exports={FIELD,CAPABILITY,isBoardRootId,roots,inspect,isRoot,rootFor,assertOrdinary,transition,add,parentDirectory};
+
+return module.exports;})();
 const __PeoSnapshotKeys=(()=>{const module={exports:{}};
 'use strict';
 // Flat, owner-derived display projection. It is not an identity registry or write grant.
@@ -1556,9 +1666,10 @@ function derive(txId,evidence,dbRaw,keywordRaw){
     if(!plain(n)||n.id!==id||!plain(n.children))fail('TOPOLOGY');
     for(const [slot,child] of Object.entries(n.children)){if(child===null||child==='')continue;if(!/^[01235678]$/.test(slot)||typeof child!=='string'||!Object.hasOwn(db,child))fail('TOPOLOGY');const refs=incoming.get(child)||[];refs.push({parentNodeId:id,slotIndex:Number(slot)});incoming.set(child,refs)}
   }
+  MandalaBoardModel.assertOrdinary(db,e.nodeId); const boardRoots=new Set(MandalaBoardModel.roots(db));
   const ancestry=[],seen=new Set();let cursor=e.nodeId;
-  while(cursor!=='root'){if(seen.has(cursor))fail('TOPOLOGY');seen.add(cursor);const refs=incoming.get(cursor)||[];if(refs.length!==1)fail('TOPOLOGY');ancestry.push({nodeId:cursor,...refs[0]});cursor=refs[0].parentNodeId}
-  if(!Object.hasOwn(db,'root')||incoming.has('root')||!equal(ancestry,e.ancestry))fail('TOPOLOGY');
+  while(!boardRoots.has(cursor)){if(seen.has(cursor))fail('TOPOLOGY');seen.add(cursor);const refs=incoming.get(cursor)||[];if(refs.length!==1)fail('TOPOLOGY');ancestry.push({nodeId:cursor,...refs[0]});cursor=refs[0].parentNodeId}
+  if(!Object.hasOwn(db,'root')||[...boardRoots].some(id=>incoming.has(id))||!equal(ancestry,e.ancestry))fail('TOPOLOGY');
   if(kw.version!==1||!plain(kw.nodeKeywords)||!plain(kw.keywordToNode)||!plain(kw.keywordMeta))fail('KEYWORD_SCHEMA');
   const index=new Map();for(const [id,values] of Object.entries(kw.nodeKeywords)){if(!Object.hasOwn(db,id)||!Array.isArray(values))fail('KEYWORD_MAP');for(const v of values){if(typeof v!=='string'||!v.trim()||index.has(key(v)))fail('KEYWORD_MAP');index.set(key(v),{nodeId:id,keyword:v})}}
   if(index.size!==Object.keys(kw.keywordToNode).length)fail('KEYWORD_MAP');for(const [k,v] of Object.entries(kw.keywordToNode)){const x=index.get(k);if(!x||v.nodeId!==x.nodeId||v.keyword!==x.keyword)fail('KEYWORD_MAP')}
@@ -2179,7 +2290,16 @@ class CreationProductionCoordinator {
  copy(x){return JSON.parse(JSON.stringify(x))}
  fail(c){throw Object.assign(Error(c),{code:c})}
  async audit(call){let timer;try{return await Promise.race([Promise.resolve().then(call),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('CREATE_AUDIT_TIMEOUT')),1000)})])}finally{clearTimeout(timer)}}
- async parents(){this.guard();const m=this.owner.app.plugins?.plugins?.['mandala-time-blocks'],api=window.__mandalaTimeBlocksPluginApi;if(!m||!api)this.fail('CREATE_MANDALA_UNAVAILABLE');const paths=JSON.stringify(m.getPaths()),raw=await m.app.vault.adapter.read(m.getPaths().db);this.guard();if(this.owner.app.plugins.plugins['mandala-time-blocks']!==m||window.__mandalaTimeBlocksPluginApi!==api||m.isUnloading||JSON.stringify(m.getPaths())!==paths)this.fail('CREATE_SOURCE_CHANGED');if(typeof raw!=='string'||Buffer.byteLength(raw)>16*1024*1024)this.fail('CREATE_PARENT_DATA');const db=JSON.parse(raw);if(!db||Array.isArray(db)||typeof db!=='object'||Object.keys(db).length>10000)this.fail('CREATE_PARENT_DATA');return Object.entries(db).filter(([id,n])=>n&&n.id===id&&n.children&&typeof n.children==='object'&&[0,1,2,3,5,6,7,8].some(slot=>!n.children[slot])).map(([id,n])=>({id,label:String(n.title||id)}))}
+ async parents(){
+  this.guard();const m=this.owner.app.plugins?.plugins?.['mandala-time-blocks'];
+  if(typeof m?.getMandalaBoardParentDirectoryV1!=='function')this.fail('CREATE_MANDALA_BOARD_API_UNAVAILABLE');
+  const api=m.getMandalaBoardParentDirectoryV1,paths=JSON.stringify(m.getPaths());
+  const result=await api.call(m);this.guard();
+  if(this.owner.app.plugins.plugins['mandala-time-blocks']!==m||m.isUnloading||m.getMandalaBoardParentDirectoryV1!==api||JSON.stringify(m.getPaths())!==paths)this.fail('CREATE_SOURCE_CHANGED');
+  if(result?.version!==1||result.schema!==MandalaBoardModel.CAPABILITY||result.sourceNotePath!==m.getPaths().sourceNotePath||!Array.isArray(result.items))this.fail('CREATE_PARENT_DIRECTORY');
+  return result.items.map(({id,label})=>({id,label}));
+ }
+
  guard(){const o=this.owner;if(o.contextCarrierUnloading||o.creationProductionCoordinator!==this||o.projectExecutionOverviewPublicApi!==this.api||window.__projectExecutionOverviewPluginApi!==this.api||o.operationalContextSnapshotProviderGeneration!==this.generation)this.fail('CREATE_COORDINATOR_CLOSED')}
  capture(){this.guard();const o=this.owner,ids=['workspace-mount','gtd-task-manager','collection-card-view','mandala-time-blocks','eva-cross-view-relations'],globals=['__workspaceMountPluginApi','__gtdTaskManagerPluginApi','__collectionCardViewPluginApi','__mandalaTimeBlocksPluginApi','evaCrossViewRelations'],methods=[['prepareProjectCreationV1','prepareContextCarrierCreationV1','inspectCreationStep','commitCreationStep'],['prepareManagedContextCreationV1','inspectCreationStep','commitCreationStep'],['prepareContextCarrierCreationV1','inspectCreationStep','commitCreationStep'],['prepareManagedContextCreationV1','inspectManagedContextCreationV1','commitManagedContextCreationV1','listEffectiveOperationalContextKeys','listEffectiveGoalOperationalContextKeys'],['prepareManagedContextCreationV1','inspectManagedContextCreationV1','commitManagedContextCreationV1']];
   const peers=ids.map((id,i)=>{const plugin=o.app.plugins?.plugins?.[id],api=window[globals[i]];if(!plugin||api?.creationContractVersion!==1||methods[i].some(k=>typeof api[k]!=='function'))this.fail('CREATE_PROVIDER_UNAVAILABLE: '+id);return {id,plugin,api,global:globals[i],functions:methods[i].map(k=>[k,api[k]])}});
@@ -2251,7 +2371,40 @@ class ManagedContextCreationModal extends Modal {
  saveDraft(){if(!this.fields)return true;try{const raw=JSON.stringify(this.draft());window.localStorage.setItem(this.draftKey,raw);return window.localStorage.getItem(this.draftKey)===raw}catch{return false}}
  async onOpen(){this.contentEl.empty();this.el('h2',this.options.pending?'继续未完成的创建':this.domain==='goal'?'新增九宫格目标':'新增项目');this.el('p','先预览各插件的创建范围，再确认保存。中途失败会保留进度；继续时核对原对象，不重复创建。');this.status=this.el('p','');this.details=this.el('div');this.adoption=this.el('div');this.fields=this.options.pending?null:{};
   if(!this.options.pending){let draft={};try{draft=JSON.parse(window.localStorage.getItem(this.draftKey)||'{}')}catch{}for(const [key,label,value] of [['projectName','项目 / 目标名称',''],['contextKey','有效操作上下文主键（含编号）',''],['importanceGroup','重要度：0、A、B、C、CZ','A'],['weekId','追踪周（例如 2026-W42）',this.options.weekId||this.isoWeek()],...([])]){this.el('label',label);const field=this.el('input');field.type='text';field.style.width='100%';field.maxLength=512;field.value=typeof draft[key]==='string'?draft[key]:value;field.oninput=()=>{this.token=null;this.confirmButton.disabled=true;this.saveDraft()};this.fields[key]=field}
-   if(this.domain==='goal'){this.el('label','放入哪个九宫格');const field=this.el('select');field.style.width='100%';field.disabled=true;this.fields.parentNodeId=field;this.el('option','正在读取可用九宫格…',field);try{const parents=await this.service.parents();if(this.closed)return;field.replaceChildren();for(const item of parents){const option=this.el('option',item.label,field);option.value=item.id}const preferred=draft.parentNodeId||this.options.parentNodeId;if(parents.some(p=>p.id===preferred))field.value=preferred;field.disabled=false;if(!parents.length)this.setStatus('没有空位，请先在九宫格中留出一个位置。')}catch(e){this.setStatus('无法读取九宫格：'+(e.code||e.message))}field.onchange=()=>{this.token=null;this.confirmButton.disabled=true;this.saveDraft()}}
+   if(this.domain==='goal'){
+    this.el('label','放入哪个九宫格');
+    const search=this.el('input');search.type='search';search.className='peo-parent-search';search.placeholder='搜索板名、节点或路径…';search.setAttribute('aria-label','搜索九宫格位置');search.style.width='100%';search.style.marginBottom='6px';search.disabled=true;search.maxLength=200;
+    const field=this.el('select');field.className='peo-parent-select';field.setAttribute('aria-label','放入哪个九宫格');field.style.width='100%';field.style.maxWidth='100%';field.disabled=true;this.fields.parentNodeId=field;
+    this.el('option','正在读取可用九宫格…',field).value=draft.parentNodeId||this.options.parentNodeId||'';
+    const hint=this.el('p','正在读取可用位置…');hint.className='peo-parent-search-hint';hint.setAttribute('role','status');hint.style.cssText='font-size:var(--font-smallest,12px);color:var(--text-muted);margin:6px 0 2px;';
+    const selected=this.el('p','');selected.className='peo-parent-selected';selected.style.cssText='font-size:var(--font-smallest,12px);color:var(--text-muted);margin:2px 0 10px;overflow-wrap:anywhere;';
+    try{
+     const parents=await this.service.parents();if(this.closed)return;
+     const entries=parents.map(item=>({id:item.id,label:item.label,searchText:String(item.label).toLocaleLowerCase()}));
+     let selectedId=entries.some(item=>item.id===(draft.parentNodeId||this.options.parentNodeId))?(draft.parentNodeId||this.options.parentNodeId):(entries[0]?.id||'');
+     const paint=()=>{
+      if(this.closed)return;
+      const words=search.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+      const matches=words.length?entries.filter(item=>words.every(word=>item.searchText.includes(word))):entries;
+      const shown=words.length?matches.slice(0,80):matches;
+      const current=entries.find(item=>item.id===selectedId),pinned=current&&!shown.some(item=>item.id===selectedId);
+      const visible=pinned?[current,...shown]:shown;
+      field.replaceChildren();for(const item of visible){const option=this.el('option',(pinned&&item.id===selectedId?'已选 · ':'')+item.label,field);option.value=item.id;option.title=item.label}
+      field.value=selectedId;field.size=words.length?Math.min(6,Math.max(2,visible.length)):1;
+      // Obsidian gives all selects a single-line height; size alone cannot expand search results.
+      for(const [property,value] of [['height','auto'],['min-height','0'],['max-height','none'],['padding','4px 8px'],['background-image','none']]){
+       if(words.length)field.style.setProperty(property,value,'important');else field.style.removeProperty(property);
+      }
+      hint.textContent=!entries.length?'没有可用位置，请先在九宫格中留出空位。':!words.length?`共 ${entries.length} 个可用位置；可输入名称或路径筛选。`:!matches.length?'没有匹配的位置；当前选择保持不变。':`匹配 ${matches.length} / ${entries.length} 个位置${matches.length>shown.length?'；显示前 80 项，请继续输入缩小范围':''}${pinned?'；已选位置保留在首项':''}。`;
+      selected.textContent=current?'已选择：'+current.label:'';field.title=current?.label||'';
+     };
+     search.oninput=event=>{if(!event.isComposing)paint()};search.addEventListener('compositionend',paint);
+     search.onkeydown=event=>{if(event.isComposing||event.keyCode===229)return;if(event.key==='ArrowDown'&&!field.disabled){event.preventDefault();field.focus()}if(event.key==='Enter')event.preventDefault()};
+     field.onchange=()=>{if(this.closed||field.disabled)return;selectedId=field.value;this.token=null;if(this.confirmButton)this.confirmButton.disabled=true;this.saveDraft();paint()};
+     paint();field.disabled=!entries.length;search.disabled=!entries.length;
+     if(!entries.length)this.setStatus('没有空位，请先在九宫格中留出一个位置。');
+    }catch(e){if(this.closed)return;field.replaceChildren();this.el('option','位置暂不可用',field);hint.textContent='读取失败，可关闭窗口后重试。';this.setStatus('无法读取九宫格：'+(e.code||e.message))}
+   }
    this.previewButton=this.el('button','预览创建范围');this.confirmButton=this.el('button','确认创建并同步');this.confirmButton.disabled=true;this.previewButton.onclick=()=>this.run(async()=>{const d=this.draft(),stamp=JSON.stringify(d),r=await this.service.preview(d);if(this.closed||JSON.stringify(this.draft())!==stamp)return;this.token=r.token;this.render(r);this.confirmButton.disabled=false;this.setStatus('请核对名称、来源和创建步骤；尚未创建任何业务内容。')});this.confirmButton.onclick=()=>this.run(async()=>{if(!this.token)return;const token=this.token;this.setStatus('正在确认并创建同步，请稍候；请勿重复创建。');for(const f of Object.values(this.fields||{}))f.disabled=true;this.previewButton.disabled=true;this.confirmButton.disabled=true;let r;try{r=await this.service.confirm(token)}catch(e){for(const f of Object.values(this.fields||{}))f.disabled=false;this.previewButton.disabled=false;this.token=null;throw e}this.txId=r.txId;this.ownedDraftTx=r.txId;this.token=null;this.confirmButton.disabled=true;for(const f of Object.values(this.fields||{}))f.disabled=true;this.previewButton.disabled=true;this.render(await this.service.resume(this.txId))});
   }
   this.resumeButton=this.el('button','核验并继续创建');this.resumeButton.disabled=true;this.resumeButton.onclick=()=>this.run(async()=>{if(this.txId){this.setStatus('正在核验并继续已确认的创建，请稍候…');this.render(await this.service.resume(this.txId))}});
@@ -11226,3 +11379,5 @@ module.exports = class ProjectExecutionOverviewPlugin extends Plugin {
     return Math.max(0, Math.min(6, pathLabel.split(/\s*\/\s*|\s*>\s*/).length - 1));
   }
 };
+
+module.exports.prototype.getMandalaBoardCapabilitiesV1=function(){return {version:1,schema:MandalaBoardModel.CAPABILITY}};

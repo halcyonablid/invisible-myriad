@@ -52,15 +52,13 @@ function createSession(app, limits={}) {
     if(nativeMode&&(!valid()||(native&&!store.same(native,after))))throw Error('reference-source-changed');
     counters.parses++;const value=parser(raw),bytes=raw.length*2+JSON.stringify(value).length*2;
     if(valid()&&stamp&&bytes<=maxFileBytes){files.set(key,{path:file.path,stamp,value,bytes,native:after,parserHash:nativeMode?parserHash:null});fileBytes+=bytes;trimFiles();schedule();}
+    if(!valid())throw Error('reference-source-changed');
     return clone(value);
   }
   function trimFiles(){let coldBytes=[...coldFiles.values()].reduce((n,e)=>n+JSON.stringify(e.value).length*2,0);while(coldFiles.size&&(coldFiles.size+files.size>maxFiles||coldBytes+fileBytes>maxFileBytes)){const k=coldFiles.keys().next().value;coldBytes-=JSON.stringify(coldFiles.get(k).value).length*2;coldFiles.delete(k);}while(files.size>maxFiles||fileBytes>maxFileBytes){const k=files.keys().next().value;fileBytes-=files.get(k).bytes;files.delete(k);}}
   function find(path,settings){
-    const exact=queries.get(JSON.stringify([path,settings]));let entry;
-    const preferred=hint;hint=null;
-    if(preferred?.path===path){const e=graphs.get(preferred.id);if(e?.settings===settings&&e.paths.includes(path))entry=e;}
-    if(!entry&&exact)entry=graphs.get(exact.id);
-    if(!entry)for(const id of [...(members.get(path)||[])].reverse()){const e=graphs.get(id);if(e?.settings===settings){entry=e;break;}}
+    const exact=queries.get(JSON.stringify([path,settings]));
+    const entry=exact?graphs.get(exact.id):null; hint=null;
     if(!entry)return null;
     graphs.delete(entry.id);graphs.set(entry.id,entry);counters.snapshotHits++;
     const fresh=!entry.restored&&exact?.id===entry.id&&exact.epoch===epoch&&Date.now()-exact.time<30000&&!entry.dynamic;
@@ -68,11 +66,11 @@ function createSession(app, limits={}) {
   }
   function put(path,settings,graph,signature,start){
     if(disposed||epoch!==start||graph.annotationAmbiguous)return null;
-    const paths=[...new Set(graph.nodes.map(n=>n.filePath).filter(Boolean))];
-    if(!paths.includes(path))return null;
+    if(graph.schema!==2||graph.queryPath!==path)return null;
+    const paths=[path];
     const bytes=JSON.stringify(graph).length*2+signature.length*2;if(bytes>maxGraphBytes)return null;
-    let entry=[...graphs.values()].find(e=>(hydrating||!e.restored)&&e.settings===settings&&e.signature===signature);
-    if(!entry){entry={id:'g'+(++serial),settings,graph:clone(graph),signature,paths,bytes,dynamic:graph.nodes.some(n=>n.nodeKey)};graphs.set(entry.id,entry);graphBytes+=bytes;for(const p of paths){if(!members.has(p))members.set(p,new Set());members.get(p).add(entry.id);}}
+    let entry=[...graphs.values()].find(e=>(hydrating||!e.restored)&&e.settings===settings&&e.graph.queryPath===path&&e.signature===signature);
+    if(!entry){entry={id:'g'+(++serial),settings,graph:clone(graph),signature,paths,bytes,dynamic:false};graphs.set(entry.id,entry);graphBytes+=bytes;for(const p of paths){if(!members.has(p))members.set(p,new Set());members.get(p).add(entry.id);}}
     else {graphs.delete(entry.id);graphs.set(entry.id,entry);}
     entry.restored=false;
     queries.set(JSON.stringify([path,settings]),{id:entry.id,epoch,time:Date.now()});

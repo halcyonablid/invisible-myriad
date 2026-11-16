@@ -1,3 +1,136 @@
+const __getMandalaBoardDraft=(()=>{let cached;return ()=>cached||(cached=(()=>{'use strict';const module={exports:{}};const exports=module.exports;
+'use strict';
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
+exports.open=function(owner,source){
+ const vault=owner.app.vault.adapter.getBasePath?.();if(!vault)throw Error('BOARD_DRAFT_VAULT');
+ const base=path.resolve(vault),dir=path.resolve(base,owner.manifest.dir||`${owner.app.vault.configDir||'.obsidian'}/plugins/mandala-time-blocks`);
+ const relative=path.relative(base,dir);if(!relative||relative.startsWith('..')||path.isAbsolute(relative))throw Error('BOARD_DRAFT_PATH');
+ const folder=path.join(dir,'.board-create-drafts-v1');fs.mkdirSync(folder,{recursive:true});
+ const file=path.join(folder,crypto.createHash('sha256').update(JSON.stringify([base,source])).digest('hex')+'.json');
+ const valid=d=>d?.version===1&&d.source===source&&typeof d.title==='string'&&d.title.length<=120&&/^board-[0-9a-f-]{36}$/.test(d.id)&&/^board-request-[0-9a-f-]{36}$/.test(d.requestId);
+ if(!fs.existsSync(file)){
+  const d={version:1,source,title:'',id:'board-'+crypto.randomUUID(),requestId:'board-request-'+crypto.randomUUID()};
+  try{fs.writeFileSync(file,JSON.stringify(d),{encoding:'utf8',flag:'wx'})}catch(e){if(e.code!=='EEXIST')throw e}
+ }
+ let raw=fs.readFileSync(file,'utf8'),value=JSON.parse(raw);if(!valid(value))throw Error('BOARD_DRAFT_INVALID');
+ const check=()=>{if(fs.readFileSync(file,'utf8')!==raw)throw Error('BOARD_DRAFT_CHANGED')};
+ return {get value(){return JSON.parse(JSON.stringify(value))},save(title){check();const next={...value,title};if(!valid(next))throw Error('BOARD_DRAFT_INPUT');
+  const encoded=JSON.stringify(next),temp=file+'.'+crypto.randomUUID()+'.tmp';
+  fs.writeFileSync(temp,encoded,{encoding:'utf8',flag:'wx'});try{check();fs.renameSync(temp,file)}catch(e){try{fs.unlinkSync(temp)}catch(_){}throw e}raw=encoded;value=next;
+ },flush(){check();const fd=fs.openSync(file,'r+');try{fs.fsyncSync(fd)}finally{fs.closeSync(fd)}check();},clear(){check();fs.unlinkSync(file)}};
+};
+
+return module.exports;})());})();
+const MandalaBoardModel=(()=>{'use strict';const module={exports:{}};const exports=module.exports;
+'use strict';
+const FIELD='mandalaBoardsV1',CAPABILITY='mandala-declared-forest-v1';
+const isBoardRootId=id=>typeof id==='string'&&/^board-[0-9a-f-]{36}$/.test(id);
+const slots=new Set(['0','1','2','3','5','6','7','8']);
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x),copy=x=>JSON.parse(JSON.stringify(x));
+function fail(code){throw Object.assign(Error(code),{code})}
+function roots(db){
+ if(!plain(db)||!plain(db.root)||db.root.id!=='root'||!plain(db.root.children))fail('BOARD_DB_ROOT');
+ const meta=db.root[FIELD];if(meta===undefined)return ['root'];
+ if(!plain(meta)||meta.version!==1||!Array.isArray(meta.rootIds)||meta.rootIds.length<1||meta.rootIds.length>128||meta.rootIds[0]!=='root')fail('BOARD_CATALOG_SCHEMA');
+ const ids=meta.rootIds;if(new Set(ids).size!==ids.length)fail('BOARD_CATALOG_DUPLICATE');
+ if(ids.slice(1).some(id=>!isBoardRootId(id)))fail('BOARD_CATALOG_ID_FORMAT');
+ for(const id of ids)if(typeof id!=='string'||!id||id!==id.trim()||['__proto__','prototype','constructor'].includes(id)||!own(db,id)||!plain(db[id])||db[id].id!==id||!plain(db[id].children))fail('BOARD_CATALOG_ROOT_MISSING');
+ const set=new Set(ids);for(const node of Object.values(db))for(const child of Object.values(node?.children||{}))if(set.has(child))fail('BOARD_ROOT_HAS_PARENT');
+ return [...ids];
+}
+function inspect(db){
+ const rootIds=roots(db),rootSet=new Set(rootIds),incoming=new Map(),diagnostics=[];
+ for(const [id,node]of Object.entries(db)){
+  if(!plain(node)||node.id!==id||!plain(node.children)){diagnostics.push({code:'node-schema',id});continue}
+  for(const [slot,child]of Object.entries(node.children)){
+   if(child==null||child==='')continue;
+   if(!slots.has(slot))diagnostics.push({code:'invalid-slot',id,slot,child});
+   if(typeof child!=='string'||!own(db,child)){diagnostics.push({code:'missing-child',id,slot,child});continue}
+   const refs=incoming.get(child)||[];refs.push({nodeId:child,parentNodeId:id,slotIndex:Number(slot),rawSlot:slot});incoming.set(child,refs);
+  }
+ }
+ const boardByNode=new Map(),unassigned=new Set();
+ function ancestry(id){
+  if(!own(db,id))fail('BOARD_NODE_MISSING');const chain=[],seen=new Set();let at=id;
+  while(true){
+   if(!plain(db[at])||db[at].id!==at||!plain(db[at].children))fail('BOARD_NODE_SCHEMA');
+   if(rootSet.has(at))break;
+   if(seen.has(at))fail('BOARD_TREE_CYCLE');seen.add(at);
+   const refs=incoming.get(at)||[];if(refs.length!==1)fail('BOARD_PARENT_AMBIGUOUS');
+   if(!slots.has(refs[0].rawSlot))fail('BOARD_SLOT_INVALID');
+   chain.push({nodeId:at,parentNodeId:refs[0].parentNodeId,slotIndex:refs[0].slotIndex});at=refs[0].parentNodeId;
+  }
+  if((incoming.get(at)||[]).length)fail('BOARD_ROOT_HAS_PARENT');
+  return {rootId:at,ancestry:chain};
+ }
+ // Memoize ownership in a single walk per edge. Full ancestry is only materialized
+ // for an actual write target / directory path, never once per rendered cell.
+ const rejected=new Map();
+ function assign(id){
+  const chain=[],seen=new Set();let at=id,root,code;
+  while(true){
+   if(boardByNode.has(at)){root=boardByNode.get(at);break}
+   if(rejected.has(at)){code=rejected.get(at);break}
+   const node=db[at];
+   if(!plain(node)||node.id!==at||!plain(node.children)){code='BOARD_NODE_SCHEMA';break}
+   if(rootSet.has(at)){
+    if((incoming.get(at)||[]).length)code='BOARD_ROOT_HAS_PARENT';else{root=at;boardByNode.set(at,at)}break;
+   }
+   if(seen.has(at)){code='BOARD_TREE_CYCLE';break}seen.add(at);chain.push(at);
+   const refs=incoming.get(at)||[];if(refs.length!==1){code='BOARD_PARENT_AMBIGUOUS';break}
+   if(!slots.has(refs[0].rawSlot)){code='BOARD_SLOT_INVALID';break}at=refs[0].parentNodeId;
+  }
+  for(const k of chain)if(code)rejected.set(k,code);else boardByNode.set(k,root);
+  if(code)rejected.set(id,code);else boardByNode.set(id,root);
+ }
+ for(const id of Object.keys(db)){
+  const refs=incoming.get(id)||[];
+  if(rootSet.has(id)&&refs.length||!rootSet.has(id)&&refs.length!==1)diagnostics.push({code:'parent-count',id,refs});
+  assign(id);if(rejected.has(id)){unassigned.add(id);diagnostics.push({code:rejected.get(id),id})}
+ }
+ return {rootIds,rootSet,incoming,boardByNode,unassigned,diagnostics,ancestry};
+}
+function isRoot(db,id){return roots(db).includes(id)}
+function rootFor(db,id){return inspect(db).ancestry(id).rootId}
+function assertOrdinary(db,id){if(isRoot(db,id))fail('BOARD_ROOT_IS_CONTAINER');return inspect(db).ancestry(id)}
+function stable(x){if(Array.isArray(x))return '['+x.map(stable).join(',')+']';if(plain(x))return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+stable(x[k])).join(',')+'}';return JSON.stringify(x)}
+function transition(before,after,{allowNewRoot=false}={}){
+ const a=inspect(before),b=inspect(after),oldProblems=new Set(a.diagnostics.map(stable));
+ for(const error of b.diagnostics)if(!oldProblems.has(stable(error)))fail('BOARD_NEW_TOPOLOGY_ERROR');
+ for(const id of a.unassigned)if(stable(before[id])!==stable(after[id])||stable(a.incoming.get(id)||[])!==stable(b.incoming.get(id)||[]))fail('BOARD_LEGACY_COMPONENT_CHANGED');
+ for(const error of a.diagnostics)if(error.id&&stable(before[error.id])!==stable(after[error.id]))fail('BOARD_LEGACY_COMPONENT_CHANGED');
+ for(const id of a.rootIds)if(!b.rootSet.has(id))fail('BOARD_ROOT_REMOVAL_UNSUPPORTED');
+ for(const id of b.rootIds)if(!a.rootSet.has(id)&&(!allowNewRoot||own(before,id)))fail('BOARD_ROOT_REGISTRATION_INVALID');
+ for(const [id,root]of a.boardByNode)if(own(after,id)&&b.boardByNode.get(id)!==root)fail('BOARD_CROSS_TREE_MOVE');
+ return b;
+}
+function add(db,{id,title,requestId}){
+ if(!isBoardRootId(id)||!/^board-request-[0-9a-f-]{36}$/.test(requestId)||typeof title!=='string'||!title.trim()||title.trim().length>120)fail('BOARD_CREATE_INPUT');
+ const list=roots(db);
+ if(own(db,id)){
+  const receipt=db[id].mandalaBoardCreationV1;
+  if(!list.includes(id)||!plain(receipt)||receipt.version!==1||receipt.requestId!==requestId)fail('BOARD_ID_COLLISION');
+  return {db:copy(db),id,noOp:true};
+ }
+ if(list.length>=128)fail('BOARD_CAPACITY');
+ const next=copy(db);next.root[FIELD]={...(next.root[FIELD]||{}),version:1,rootIds:[...list,id]};
+ next[id]={id,title:title.trim(),note:'',children:{},comment:'',image:'',shortcuts:[],noteBinding:null,renameHistory:[],mandalaBoardCreationV1:{version:1,requestId}};
+ transition(db,next,{allowNewRoot:true});return {db:next,id,noOp:false};
+}
+function parentDirectory(db){
+ const graph=inspect(db),out=[];
+ for(const [id,node]of Object.entries(db)){
+  const boardRootId=graph.boardByNode.get(id);if(!boardRootId||!plain(node.children))continue;
+  const emptySlots=[...slots].filter(slot=>!node.children[slot]).map(Number);if(!emptySlots.length)continue;
+  const chain=graph.ancestry(id).ancestry.map(e=>e.nodeId).reverse(),names=chain.map(k=>String(db[k].title||k));
+  const boardTitle=String(db[boardRootId].title||boardRootId),nodePath=names.join(' / ');
+  out.push({id,boardRootId,boardTitle,path:nodePath,emptySlots,label:boardTitle+(nodePath?' / '+nodePath:' / 中心')});
+ }
+ return out;
+}
+module.exports={FIELD,CAPABILITY,isBoardRootId,roots,inspect,isRoot,rootFor,assertOrdinary,transition,add,parentDirectory};
+
+return module.exports;})();
 function __MandalaVisibilityV1(overviewItem, ownerPresent, row) {
   const copy = d => Object.freeze({contextKeyId:d.contextKeyId,displayLabel:d.displayLabel});
   const currentDeclarations = Object.freeze((Array.isArray(overviewItem?.declarations) ? overviewItem.declarations : []).filter(d=>d?.archivedByAddress!==true).map(copy));
@@ -2752,6 +2885,7 @@ const clear = (element) => {
 };
 const kids = (node) => (!node || typeof node.children !== "object" ? [] : Object.values(node.children).filter(Boolean));
 const isCompleteMandalaOwnerDb = (db) => {
+  try { MandalaBoardModel.roots(db); } catch (_) { return false; }
   if (!db || typeof db !== "object" || Array.isArray(db)) return false;
   const entries = Object.entries(db);
   const root = db.root;
@@ -4175,7 +4309,7 @@ class PickerModal extends Modal {
   getKeywordIndex() {
     const entries = [];
     Object.values(this.mandala.nodeById || {}).forEach((node) => {
-      if (!node?.id || node.id === "root") return;
+      if (!node?.id || this.mandala.boardGraph.rootSet.has(node.id)) return;
       normalizeMandalaKeywords(node.keywords || []).forEach((keyword) => {
         entries.push({ keyword, nodeId: node.id, nodeTitle: node.title || node.id });
       });
@@ -4252,6 +4386,10 @@ class PickerModal extends Modal {
     clear(content);
     const current = this.mandala.nodeById[this.currentId] || this.mandala.nodeById.root;
     make(content, "h3", { text: "选择九宫格节点" });
+    const boards = make(content, "select", { attr: {"aria-label":"选择九宫格"} });
+    for(const id of this.mandala.boardGraph.rootIds) make(boards,"option",{text:this.mandala.nodeById[id].title || id,attr:{value:id}});
+    boards.value=this.mandala.boardGraph.boardByNode.get(current.id)||"root";
+    boards.onchange=()=>{this.currentId=boards.value;this.history=[];this.render();};
     make(content, "div", { cls: "mtb-picker-path", text: this.mandala.getPath(current.id) });
     const actions = make(content, "div", { cls: "mtb-picker-actions" });
     const back = make(actions, "button", { text: "⬅ 上一级" });
@@ -4262,7 +4400,7 @@ class PickerModal extends Modal {
       this.render();
     };
     make(actions, "button", { text: "回到根" }).onclick = () => {
-      this.currentId = "root";
+      this.currentId = this.mandala.boardGraph.boardByNode.get(current.id) || "root";
       this.history = [];
       this.render();
     };
@@ -5533,6 +5671,7 @@ class GoalContextManagementService extends ContextKeyManagementService {
     const raw = JSON.parse(weeklyText), state = this.validateRaw(raw, ref, weekId);
     const dbText = await this.bytes(paths.db); this.guard(ref, paths, weekId);
     const db = JSON.parse(dbText), nodeId = this.parse(ref);
+    MandalaBoardModel.assertOrdinary(db,nodeId);
     if (!isCompleteMandalaOwnerDb(db) || !Object.prototype.hasOwnProperty.call(db, nodeId) || db[nodeId].id !== nodeId) this.fail("GOAL_OWNER_MISSING");
     const node = db[nodeId], weeklyHash = this.hash(weeklyText), dbHash = this.hash(dbText);
     return { paths, weekId, raw, state, nodeId, node, weeklyHash, dbHash,
@@ -5720,14 +5859,15 @@ GoalContextManagementService.prototype.prepareRenamePrimary = async function(inp
       const refs = incoming.get(child) || []; refs.push({parentNodeId:id,slotIndex:Number(slot)}); incoming.set(child,refs);
     }
   }
+  MandalaBoardModel.assertOrdinary(db,nodeId); const boardRoots = new Set(MandalaBoardModel.roots(db));
   let cursor = nodeId; const seen = new Set(), ancestry = [];
-  while (cursor !== "root") {
+  while (!boardRoots.has(cursor)) {
     if (seen.has(cursor)) fail("GOAL_PARENT_CYCLE"); seen.add(cursor);
     const parents = incoming.get(cursor) || [];
     if (parents.length !== 1) fail("GOAL_PARENT_AMBIGUOUS");
     ancestry.push({nodeId:cursor,...parents[0]}); cursor=parents[0].parentNodeId;
   }
-  if ((incoming.get("root") || []).length) fail("GOAL_PARENT_CYCLE");
+  if ([...boardRoots].some(id => (incoming.get(id) || []).length)) fail("GOAL_PARENT_CYCLE");
   if (!plain(store) || store.version !== 1 || !plain(store.nodeKeywords) || !plain(store.keywordToNode) || !plain(store.keywordMeta)) fail("GOAL_KEYWORD_SCHEMA_INVALID");
   const index = new Map();
   for (const [id,values] of Object.entries(store.nodeKeywords)) {
@@ -9815,6 +9955,151 @@ class CaptureHistoryModal extends Modal {
   onClose() { clear(this.contentEl); }
 }
 
+// Native capture-only, view-local read projection. Never changes owner records.
+function createTimeCommentJournal(chart, memory) {
+  let active=true, groups=new Map(), dates=[], scope='', isCurrent=()=>false;
+  let rows=[], signature=null, observer=null, observedColumn=null, observedWidths=null;
+  const doc=chart.ownerDocument, win=doc.defaultView;
+  const row=doc.createElement('div');row.className='mtb-comment-row';row.hidden=true;
+  const panel=doc.createElement('section');panel.className='mtb-comment-panel';row.append(panel);chart.append(row);
+  const column=()=>Array.from(chart.children).find(n=>n.classList.contains('mtb-day-col')&&n.getAttribute('data-drop-date')===memory.date);
+  const valid=()=>active&&isCurrent()&&memory.source===scope;
+  function stopObserver(){observer?.disconnect();observer=null;observedColumn=null;observedWidths=null;}
+  function align(){
+    const col=column();if(!valid()||row.hidden||!col||!chart.isConnected||chart.clientWidth<=0||!chart.getClientRects().length)return;
+    const c=col.getBoundingClientRect(),r=row.getBoundingClientRect();if(c.width<=0||r.width<=0)return;
+    const available=Math.max(r.width,chart.clientWidth);
+    const width=Math.min(c.width*1.28,available),left=Math.max(0,Math.min(available-width,c.left-r.left+(c.width-width)/2));
+    panel.style.width=width+'px';panel.style.marginLeft=left+'px';
+  }
+  function watch(){
+    const col=column();if(!col||row.hidden){stopObserver();return;}
+    if(observedColumn===col){align();return;}
+    stopObserver();observedColumn=col;
+    if(win.ResizeObserver){observer=new win.ResizeObserver(()=>{
+      if(!valid()||!chart.isConnected){stopObserver();return;}
+      const sizes=[chart.clientWidth,col.getBoundingClientRect().width];
+      if(observedWidths&&sizes.every((v,i)=>v===observedWidths[i]))return;
+      observedWidths=sizes;align();
+    });observer.observe(chart);observer.observe(col);}
+    align();
+  }
+  function decorate(){
+    for(const col of Array.from(chart.children)){
+      if(!col.classList.contains('mtb-day-col'))continue;
+      const chosen=col.getAttribute('data-drop-date')===memory.date;
+      col.classList.toggle('has-open-comments',chosen);
+      const label=col.querySelector('.mtb-day-label');if(label){label.setAttribute('aria-expanded',String(chosen));label.title=chosen?'收起当天评论':'展开当天评论';}
+    }
+  }
+  function append(start){
+    const list=panel.querySelector('ul');
+    for(const item of rows.slice(start,memory.limit)){const li=doc.createElement('li');li.textContent=String(item.comment);list.append(li);}
+    panel.querySelector('.mtb-comment-more')?.remove();
+    if(rows.length>memory.limit){const more=doc.createElement('button');more.type='button';more.className='mtb-comment-more';more.textContent=`继续显示 · 还有 ${rows.length-memory.limit} 条`;
+      more.onclick=()=>{if(!valid())return;const before=memory.limit;memory.limit+=30;append(before);};panel.append(more);}
+  }
+  function draw(force=false){
+    decorate();
+    if(!memory.date||!dates.includes(memory.date)){row.hidden=true;panel.replaceChildren();signature=null;rows=[];stopObserver();return;}
+    row.hidden=false;panel.setAttribute('aria-label',memory.date+' 评论');
+    const items=(groups.get(memory.date)||[]).filter(r=>String(r.comment||'').trim());
+    const next=JSON.stringify([memory.date,items.map(r=>[r.id,r.normalizedTimestamp,r.comment])]);
+    if(force||signature!==next){
+      // Match the editable record time. Creation/update metadata never determines display order.
+      const entryTime=item=>{
+        const assigned=Date.parse(String(item.normalizedTimestamp||'').replace(' ','T'));
+        return Number.isFinite(assigned)?assigned:Infinity;
+      };
+      signature=next;rows=items.map(item=>({item,time:entryTime(item)}))
+        .sort((a,b)=>a.time-b.time||String(a.item.id||'').localeCompare(String(b.item.id||'')))
+        .map(({item})=>item);
+      panel.replaceChildren();
+      if(rows.length){panel.append(doc.createElement('ul'));append(0);}
+      else{const empty=doc.createElement('p');empty.className='mtb-comment-empty';empty.textContent='这一天暂无文字记录。';panel.append(empty);}
+    }
+    watch();
+  }
+  return {
+    update(byDate,dayKeys,source,current){
+      if(!active)return;
+      groups=byDate;dates=dayKeys;scope=source;isCurrent=current;
+      if(memory.source!==scope){memory.source=scope;memory.date=null;memory.limit=30;}
+      if(memory.date&&!dates.includes(memory.date)){memory.date=null;memory.limit=30;}
+      if(!valid()){row.hidden=true;stopObserver();return;}
+      if(chart.lastElementChild!==row)chart.append(row);
+      draw();
+    },
+    select(date){if(!valid()||!dates.includes(date))return;memory.date=memory.date===date?null:date;memory.limit=30;draw(true);},
+    dispose(){active=false;stopObserver();groups=new Map();rows=[];},
+  };
+}
+
+// View-local navigation only: never persisted to settings or business data.
+function createTimeChartViewport(isCurrent, interactionRoot) {
+  let chart = null, key = null, position = 0, settled = false;
+  let pending = false, cleanup = null, epoch = 0;
+  const capture = () => {
+    if (chart?.isConnected && chart.clientWidth > 0 && settled && !pending) position = chart.scrollLeft;
+  };
+  const detach = () => {
+    capture(); epoch += 1; cleanup?.(); cleanup = null; pending = false; chart = null;
+  };
+  return {
+    capture,
+    detach,
+    dispose() { detach(); key = null; position = 0; settled = false; },
+    bind(nextChart, nextKey, today) {
+      capture();
+      if (chart === nextChart && key === nextKey && settled && !pending) return;
+      detach();
+      if (key !== nextKey) { key = nextKey; position = 0; settled = false; }
+      chart = nextChart;
+      const restore = settled, token = epoch, win = chart.ownerDocument.defaultView;
+      const target = chart.querySelector(`[data-drop-date="${today}"]`);
+      if (!restore && !target) { position = chart.scrollLeft; settled = true; return; }
+      let frame = null, observer = null;
+      const root = interactionRoot || chart;
+      const events = ["pointerdown", "wheel", "touchstart", "keydown"];
+      const clearPending = () => {
+        if (frame !== null) win.cancelAnimationFrame(frame);
+        frame = null; observer?.disconnect(); observer = null;
+        for (const name of events) root.removeEventListener(name, onIntent, true);
+        pending = false; cleanup = null;
+      };
+      const onIntent = event => {
+        if (!event.isTrusted) return;
+        if (event.type === "keydown" && !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+        clearPending(); position = nextChart.scrollLeft; settled = true;
+      };
+      const apply = () => {
+        frame = null;
+        if (epoch !== token || chart !== nextChart) return;
+        if (!isCurrent() || !chart.isConnected) { clearPending(); return; }
+        if (chart.clientWidth <= 0 || !chart.getClientRects().length) {
+          if (!observer && win.ResizeObserver) {
+            observer = new win.ResizeObserver(() => { if (epoch === token && chart === nextChart && frame === null) frame = win.requestAnimationFrame(apply); });
+            observer.observe(chart);
+          }
+          return;
+        }
+        const max = Math.max(0, chart.scrollWidth - chart.clientWidth);
+        let left = position;
+        if (!restore) {
+          const box = target.getBoundingClientRect(), viewport = chart.getBoundingClientRect();
+          left = chart.scrollLeft + box.left + box.width / 2 - viewport.left - chart.clientLeft - chart.clientWidth * 0.382;
+        }
+        // Instant, horizontal-only. Edge dates remain within the real scroll range.
+        chart.scrollTo({ left: Math.max(0, Math.min(max, left)), top: chart.scrollTop, behavior: "instant" });
+        position = chart.scrollLeft; settled = true; clearPending();
+      };
+      pending = true; cleanup = clearPending;
+      for (const name of events) root.addEventListener(name, onIntent, {capture:true, passive:true});
+      frame = win.requestAnimationFrame(apply);
+    }
+  };
+}
+
 class TimeCaptureView extends ItemView {
   constructor(leaf, plugin) {
     super(leaf); this.plugin = plugin; this.captureId = gid(); this.sourceNotePath = "";
@@ -9826,6 +10111,8 @@ class TimeCaptureView extends ItemView {
   getState() { return { captureId: this.captureId, sourceNotePath: this.sourceNotePath }; }
   async setState(state, result) {
     if (this.draftDirty) await this.flushDraft();
+    this.timeCommentJournal?.dispose(); this.timeCommentSelection=null;
+    this.timeChartViewport?.dispose();
     this.generation += 1;
     const id = text(state?.captureId, this.captureId);
     this.captureId = Array.from(this.plugin.captureViews || []).some(v => v !== this && v.captureId === id) ? gid() : id;
@@ -9923,6 +10210,8 @@ class TimeCaptureView extends ItemView {
       this.liveState = state; this.localDirty = false;
       // Read the draft immediately before rendering; typing during awaits must survive.
       this.getDraft();
+      this.timeCommentJournal?.dispose();
+      this.timeChartViewport?.detach();
       clear(this.contentEl);
       const toolbar = make(this.contentEl, "div", { cls: "mtb-inline-row mtb-capture-toolbar" });
       make(toolbar, "strong", { text: "时间帧" });
@@ -9948,6 +10237,8 @@ class TimeCaptureView extends ItemView {
   }
   async onClose() {
     this.closed = true; this.generation += 1;
+    this.timeCommentJournal?.dispose(); this.timeCommentSelection=null;
+    this.timeChartViewport?.dispose();
     this.contentEl.removeEventListener("click", this.guardClick, true);
     try { await this.flushDraft(); this.plugin.captureViews?.delete(this); }
     catch (error) { this.showDraftFailure(error); /* retain failed host for unload retry */ }
@@ -10327,6 +10618,692 @@ function createDailyViewSession(owner, view) {
   return session;
 }
 
+
+// BEGIN MD-T1 bundled daily tags
+/* Pure derived index. Canonical daily text remains the only content authority. */
+function createDailyTagsModel(hash = dailyDigest) {
+  const value = day => String(day?.adjustment || day?.summary || '');
+  function mask(text) {
+    // Same-length mask keeps UTF-16 selection/patch offsets exact.
+    const chars = text.split('');
+    const hide = (a,b) => { for(let i=a;i<b;i++) if(chars[i] !== '\n' && chars[i] !== '\r') chars[i]=' '; };
+    let fence=null, offset=0;
+    for(const line of text.split(/(?<=\n)/)) {
+      const f=line.match(/^ {0,3}(`{3,}|~{3,})/);
+      if(fence) { hide(offset,offset+line.length); if(f && f[1][0]===fence[0] && f[1].length>=fence.length && /^\s*$/.test(line.slice(f[0].length))) fence=null; }
+      else if(f) {fence=f[1];hide(offset,offset+line.length);}
+      else if(/^(?: {4}|\t)/.test(line)) hide(offset,offset+line.length);
+      offset+=line.length;
+    }
+    let visible=chars.join('');
+    // Inline code with matching delimiter lengths; unmatched backticks stay literal.
+    for(const m of visible.matchAll(/(`+)([^`]|`(?!`))*?\1/g)) hide(m.index,m.index+m[0].length);
+    visible=chars.join('');
+    for(const re of [/!?\[\[[\s\S]*?\]\]/g,/!?\[[^\]\n]*\]\([^\n]*?\)/g,/(?:https?:\/\/|obsidian:\/\/|www\.)[^\s<>]+/g,/^ {0,3}#{1,6}(?:\s|$)[^\n]*/gm]) {
+      for(const m of visible.matchAll(re)) hide(m.index,m.index+m[0].length);
+    }
+    return chars.join('');
+  }
+  function parse(raw) {
+    const text=String(raw||''), visible=mask(text), starts=[];
+    for(const m of text.matchAll(/^\d{3}- (?=\S).*$/gm)) if(visible.slice(m.index,m.index+5)===text.slice(m.index,m.index+5)) starts.push(m.index);
+    const rows=[];
+    if(!starts.length || starts[0]>0) {
+      const end=starts[0]??text.length;
+      if(text.slice(0,end).trim()) rows.push({start:0,end,serial:'',unassigned:true});
+    }
+    starts.forEach((start,i)=>rows.push({start,end:starts[i+1]??text.length,serial:text.slice(start,start+3),unassigned:false}));
+    return rows.map((row,ordinal)=>{
+      const body=text.slice(row.start,row.end), spans=[];
+      if(!row.unassigned) for(const m of visible.slice(row.start,row.end).matchAll(/#[^\s#][^\s]*/g)) {
+        const start=row.start+m.index;
+        // Hash inside an existing token is not a second tag; escaped hash excluded.
+        let escapes=0;for(let k=start-1;k>=0&&text[k]==='\\';k--)escapes++;
+        if(escapes%2 || text[start-1]==='#') continue;
+        spans.push({start,end:start+m[0].length,name:text.slice(start+1,start+m[0].length)});
+      }
+      return {...row,ordinal,body,spans,tags:[...new Set(spans.map(s=>s.name))]};
+    });
+  }
+  function names(input) {
+    const list=String(input||'').trim().split(/\s+/).filter(Boolean);
+    if(list.some(t=>!/^#[^\s#][^\s]*$/.test(t))) throw Error('每个标签请以 # 开头，多个标签用空格隔开。');
+    return [...new Set(list.map(t=>t.slice(1)))];
+  }
+  function readRows(raw) {
+    const rows=parse(raw),counts=new Map();
+    for(const row of rows){
+      if(row.unassigned){row.readKey=null;continue;}
+      let text=row.body;
+      for(const span of [...row.spans].reverse())text=text.slice(0,span.start-row.start)+text.slice(span.end-row.start);
+      row.readKey=hash(text.replace(/\s+/g,' ').trim());
+      counts.set(row.readKey,(counts.get(row.readKey)||0)+1);
+    }
+    for(const row of rows)row.readUnique=!!row.readKey&&counts.get(row.readKey)===1;
+    return rows;
+  }
+  class Index {
+    constructor(){this.days=new Map();this.rows=[];this.parsedDays=0;}
+    async update(store,yieldWork=()=>Promise.resolve()) {
+      const next=new Map();let work=0;this.parsedDays=0;
+      for(const [date,day] of Object.entries(store.daysByDate||{})) {
+        const raw=value(day), old=this.days.get(date);
+        const entry=old?.raw===raw?old:{raw,rows:readRows(raw).map(row=>({...row,date,id:date+':'+row.ordinal,raw}))};
+        if(entry!==old){this.parsedDays++;if(++work%16===0)await yieldWork();}
+        next.set(date,entry);
+      }
+      this.days=next;this.rows=[...next.values()].flatMap(x=>x.rows).sort((a,b)=>b.date.localeCompare(a.date)||a.ordinal-b.ordinal);
+      return this.rows;
+    }
+  }
+  function formatRow(raw, row, tags) {
+    const final=names(tags.map(t=>'#'+t).join(' '));
+    let body='',offset=row.start,spanIndex=0;
+    // Edit recognized spans only. Remove a vacated tag-only line, never a normal blank paragraph.
+    for(const line of row.body.split(/(?<=\n)/)) {
+      const spans=[];while(spanIndex<row.spans.length && row.spans[spanIndex].start<offset+line.length)spans.push(row.spans[spanIndex++]);
+      let text=line;
+      for(const span of spans.slice().reverse()) {
+        const start=span.start-offset;let end=span.end-offset;
+        if(text[end]===' ' && (start===0 || /[ \t]/.test(text[start-1])))end++;
+        text=text.slice(0,start)+text.slice(end);
+      }
+      if(!spans.length || !/^\s*$/.test(text))body+=text;
+      offset+=line.length;
+    }
+    const eol=row.body.includes('\r\n')?'\r\n':'\n';
+    if(final.length) {
+      let prefix=body;
+      if(!prefix.endsWith('\n'))prefix+=eol;
+      body=prefix+final.map(t=>'#'+t).join(' ')+(row.end<raw.length || /\n$/.test(row.body)?eol:'');
+    }
+    const check=parse(body);
+    if(check.length!==1 || check[0].unassigned || check[0].serial!==row.serial)throw Error('本条移走标签后没有有效正文，请先补充编号后的正文。');
+    if(check[0].tags.length!==final.length || final.some(t=>!check[0].tags.includes(t)))throw Error('条目末尾的标签无法识别，请先补齐未闭合的代码或链接。');
+    const label=final.map(t=>'#'+t).join(' '),at=final.length?body.lastIndexOf(label)+label.length:body.length;
+    return {text:body,caret:row.start+at,tags:final};
+  }
+  function patch(raw, rows, intent) {
+    const edits=[], wanted=intent.tags||[], parsed=parse(raw),seen=new Set();
+    for(const ref of rows) {
+      const row=parsed[ref.ordinal];
+      if(!row || row.unassigned || ref.raw!==raw || row.body!==ref.body)throw Error('记录已变化，请刷新后重新选择；未写入任何标签。');
+      if(seen.has(row.ordinal))continue;seen.add(row.ordinal);
+      const final=new Set(row.tags);
+      if(intent.kind==='replace'){final.clear();wanted.forEach(t=>final.add(t));}
+      else if(intent.kind==='add')wanted.forEach(t=>final.add(t));
+      else if(intent.kind==='remove')wanted.forEach(t=>final.delete(t));
+      else if(intent.kind==='rename'){if(final.has(intent.from)){final.delete(intent.from);wanted.forEach(t=>final.add(t));}}
+      else throw Error('未知标签操作');
+      edits.push({start:row.start,end:row.end,text:formatRow(raw,row,[...final]).text});
+    }
+    let result=raw;
+    for(const e of edits.sort((a,b)=>b.start-a.start))result=result.slice(0,e.start)+e.text+result.slice(e.end);
+    return result;
+  }
+  function preview(rows,intent) {
+    const dates=new Map();
+    for(const row of rows){if(!dates.has(row.date))dates.set(row.date,[]);dates.get(row.date).push(row);}
+    return [...dates].map(([date,refs])=>({date,before:refs[0].raw,after:patch(refs[0].raw,refs,intent),refs})).filter(x=>x.before!==x.after);
+  }
+  function locate(raw,ref) {
+    const rows=parse(raw);
+    if(raw===ref.raw && rows[ref.ordinal]?.body===ref.body) return rows[ref.ordinal];
+    const matches=rows.filter(r=>r.body===ref.body);
+    return matches.length===1?matches[0]:null;
+  }
+  return {value,mask,parse,names,Index,patch,preview,locate,formatRow,readRows};
+}
+
+/* Bundled factory: no runtime require, no provider scan or polling. */
+// Compiled separately into each owner plugin. No shared runtime or vault writes.
+function createTagDisplayAliases({Modal, Notice}) {
+  const owners = new WeakMap();
+  const canonical = tag => '#' + String(tag).replace(/^#/, '');
+  const keyOf = (scope, tag) => JSON.stringify([scope, canonical(tag)]);
+  const own = (obj, key) => obj && Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : undefined;
+  const get = (data, scope, tag) => { const v=own(data?.tagDisplayAliases,keyOf(scope,tag));return typeof v==='string'?v:''; };
+  const label = (data,scope,tag) => get(data,scope,tag)||canonical(tag);
+  const matches = (data,scope,tag,q) => [canonical(tag),get(data,scope,tag)].some(t=>t.toLocaleLowerCase().includes(String(q).replace(/^#/,'').trim().toLocaleLowerCase()));
+  const sortText = value => String(value).replace(/^#/, '');
+  const compare = (data,scope,a,b) => sortText(label(data,scope,a)).localeCompare(sortText(label(data,scope,b)),'zh-CN',{numeric:true})||canonical(a).localeCompare(canonical(b),'zh-CN');
+  function node(parent,tag,cls,text){const n=parent.ownerDocument.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;parent.appendChild(n);return n;}
+  function paint(target,data,scope,tag,{raw=false}={}) {
+    const alias=get(data,scope,tag);target.replaceChildren();target.classList.add('tag-alias-label');target.dataset.aliasRaw=tag;
+    node(target,'span','tag-alias-text',alias||canonical(tag));if(alias)node(target,'small','tag-alias-badge','义名');
+    if(raw&&alias)node(target,'small','tag-alias-original',canonical(tag));
+    target.title=alias?'义名：'+alias+'\n原文标签：'+canonical(tag):canonical(tag);
+    return target;
+  }
+  function state(cfg){let s=owners.get(cfg.owner);if(!s){s={active:new Map(),drafts:new Map()};owners.set(cfg.owner,s);cfg.owner.register?.(()=>{for(const m of s.active.values())m.close();});}return s;}
+  class AliasModal extends Modal {
+    constructor(cfg,s,key){super(cfg.owner.app);Object.assign(this,{cfg,s,key,closed:false,done:false,busy:false,queue:Promise.resolve()});this.expected=get(cfg.data(),cfg.scope,cfg.tag);}
+    valid(){if(this.closed||!this.cfg.valid())throw Error('来源已切换或页面已关闭。义名草稿已保留，请重新打开。');}
+    onOpen(){
+      const c=this.contentEl;this.modalEl.classList.add('tag-alias-modal');this.titleEl.textContent='修改标签义名';
+      node(c,'p','tag-alias-note','义名只改变本界面的显示；标签筛选、计数和插入仍使用原文标签。');
+      node(c,'div','tag-alias-caption','原文标签');node(c,'div','tag-alias-raw',canonical(this.cfg.tag));
+      const field=node(c,'label','tag-alias-field');node(field,'span','','界面义名 · 仅界面');this.input=node(field,'input');this.input.type='text';this.input.maxLength=100;this.input.placeholder='例如：042-惊天大发现';
+      const saved=this.s.drafts.get(this.key)||own(this.cfg.data().tagDisplayAliasDrafts,this.key);
+      this.input.value=typeof saved?.text==='string'?saved.text:this.expected;
+      this.status=node(c,'p','tag-alias-note',saved?'已恢复未保存的义名草稿。':'取消义名请点击“恢复原名显示”。');this.status.setAttribute('role','status');
+      this.input.oninput=()=>{this.remember();clearTimeout(this.timer);this.timer=setTimeout(()=>this.flush().catch(e=>this.error(e)),250);};
+      this.input.oncompositionstart=()=>{this.composing=true;};this.input.oncompositionend=()=>{this.composing=false;this.input.oninput();};
+      const foot=node(c,'div','tag-alias-actions');
+      this.reset=this.button(foot,'恢复原名显示',()=>this.apply('',true));
+      this.button(foot,'取消',()=>this.close());this.save=this.button(foot,'保存义名',()=>this.apply(this.input.value),'mod-cta');
+      const source=node(c,'section','tag-alias-source');node(source,'strong','','修改原文标签 · 写入原文');
+      node(source,'p','tag-alias-note',this.cfg.sourceScope+'。将先预览修改范围，再确认写入。');
+      this.sourceButton=this.button(source,'修改原文标签…',async()=>{if(this.busy||this.composing)return;this.valid();this.busy=true;this.lock();try{await this.flush();this.valid();this.close();await this.queue.catch(()=>{});if(this.cfg.valid())await this.cfg.sourceEdit();}finally{this.busy=false;this.lock();}});
+      this.input.onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.isComposing&&!this.composing){e.preventDefault();this.apply(this.input.value).catch(error=>this.error(error));}};
+      this.input.focus();
+    }
+    button(parent,text,fn,cls=''){const b=node(parent,'button',cls,text);b.type='button';b.onclick=()=>Promise.resolve().then(fn).catch(e=>this.error(e));return b;}
+    error(e){if(this.status)this.status.textContent=e.message;new Notice(e.message);}
+    lock(){if(!this.input)return;this.input.disabled=this.reset.disabled=this.save.disabled=this.sourceButton.disabled=this.busy;}
+    remember(){const draft={text:this.input?.value??this.expected};this.s.drafts.set(this.key,draft);return draft;}
+    flush(){
+      clearTimeout(this.timer);if(this.done)return this.queue;
+      const draft=this.remember();const task=this.queue.catch(()=>{}).then(()=>this.cfg.mutate('tag-alias-draft',d=>{d.tagDisplayAliasDrafts={...(d.tagDisplayAliasDrafts||{}),[this.key]:draft};return d;}));
+      this.queue=task;return task;
+    }
+    apply(value,clear=false){if(this.applying)return this.applying;this.applying=this.applyNow(value,clear).finally(()=>{this.applying=null;});return this.applying;}
+    async applyNow(value,clear){
+      if(this.busy||this.composing)return;this.valid();const next=value.trim();if(!next&&!clear)throw Error('请填写义名；取消义名请点击“恢复原名显示”。');if(next.length>100)throw Error('义名请控制在 100 字以内。');
+      this.busy=true;this.lock();clearTimeout(this.timer);this.remember();
+      try{
+        await this.queue.catch(()=>{});this.valid();
+        await this.cfg.mutate('tag-alias-save',d=>{this.valid();if(get(d,this.cfg.scope,this.cfg.tag)!==this.expected)throw Error('义名已被另一处修改。草稿已保留，请关闭后重新核对。');
+          d.tagDisplayAliases={...(d.tagDisplayAliases||{})};if(next)d.tagDisplayAliases[this.key]=next;else delete d.tagDisplayAliases[this.key];
+          d.tagDisplayAliasDrafts={...(d.tagDisplayAliasDrafts||{})};delete d.tagDisplayAliasDrafts[this.key];return d;
+        });
+        this.done=true;this.s.drafts.delete(this.key);this.cfg.changed();this.close();new Notice(next?'义名已保存 · 仅界面':'已恢复原名显示');
+      }catch(e){if(!this.closed)await this.flush().catch(()=>{});throw e;}finally{this.busy=false;this.lock();}
+    }
+    onClose(){
+      if(this.closed)return;this.closed=true;clearTimeout(this.timer);
+      const pending=Promise.resolve(this.applying).catch(()=>{}).then(()=>this.done?this.queue:this.flush());
+      // Keep the per-tag lock through the final draft write; reopening cannot lose newer input.
+      pending.catch(e=>new Notice('义名草稿暂未写入磁盘，本次会话仍保留：'+e.message)).finally(()=>{if(this.s.active.get(this.key)===this)this.s.active.delete(this.key);});
+    }
+  }
+  function open(cfg){if(!cfg.valid())throw Error('来源已切换或页面已关闭。');const s=state(cfg),key=keyOf(cfg.scope,cfg.tag),current=s.active.get(key);if(current){if(current.closed)new Notice('正在保存义名草稿，请稍后再打开。');else current.input?.focus();return current;}const modal=new AliasModal(cfg,s,key);s.active.set(key,modal);modal.open();return modal;}
+  return {canonical,keyOf,get,label,matches,sortText,compare,paint,open};
+}
+
+const __TagAliases=createTagDisplayAliases({Modal,Notice});
+
+function createDailyTagsFeature({ItemView,Notice,model:M,project,today,dailyType}) {
+  const TYPE='mandala-daily-tags';
+  const el=(parent,tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=text;parent.append(node);return node;};
+  const button=(parent,label,fn,cls='')=>{const b=el(parent,'button',cls,label);b.type='button';b.onclick=()=>Promise.resolve().then(fn).catch(e=>new Notice(e.message));return b;};
+  const input=(parent,placeholder,type='text')=>{const i=el(parent,'input');i.type=type;i.placeholder=placeholder;i.setAttribute('aria-label',placeholder);return i;};
+  const source=p=>p.getTimeCaptureSourceNotePath();
+  function sessions(p,key=source(p)){return [...new Set([p,...[...(p.dailyViews||[])].filter(v=>!v.closed&&v.sourceNotePath===key).map(v=>v.session)].filter(s=>s && (s!==p || !s.dailyLessonPageBaseline?.sourceNotePath || s.dailyLessonPageBaseline.sourceNotePath===key)))];}
+  function unsafe(s){const h=s.nativeDailyHost;return !!(s.dailyLessonPageDirty || h?.switchComposing || h?.busy || s.dailyLessonImagePendingCount || s.structuredFieldImagePendingCount || [...(s.dailyLessonImageFailures?.values()||[]),...(s.structuredFieldImageFailures?.values()||[])].some(x=>x.requiresRetry));}
+  function assertClean(p){if(sessions(p).some(unsafe))throw Error('日课有未保存编辑或图片任务，请先在原页保存；标签修改已保留。');}
+  const editorLocks=new WeakMap();
+  function lockEditors(p) {
+    const nodes=[...new Set([sessions(p).includes(p)?p.dashboardModal?.contentEl:null,...[...(p.dailyViews||[])].filter(v=>!v.closed&&v.sourceNotePath===source(p)).map(v=>v.bodyEl)].filter(Boolean))];
+    for(const n of nodes){let lock=editorLocks.get(n);if(!lock){lock={count:0,previous:n.inert};editorLocks.set(n,lock);}lock.count++;n.inert=true;}
+    let released=false;
+    return ()=>{if(released)return;released=true;for(const n of nodes){const lock=editorLocks.get(n);if(lock&&--lock.count===0){n.inert=lock.previous;editorLocks.delete(n);}}};
+  }
+  async function commit(p,view,plan) {
+    view.assertSource();assertClean(p);
+    const capturedSource=source(p),release=lockEditors(p);
+    try {
+      return await p.enqueueDailyLessonMutation('daily-tags-batch',async()=>{
+        view.assertSource();assertClean(p);
+        const store=await p.loadDailyLessons(false);view.assertSource();assertClean(p);
+        // All preimages validated before changing any day. The exact store carries owner CAS.
+        for(const change of plan.changes) if(M.value(store.daysByDate?.[change.date])!==change.before)throw Error('预览后原记录已变化，请重新预览；本批未保存。');
+        if(plan.intent.kind==='rename') {
+          const actual=[];for(const [date,day] of Object.entries(store.daysByDate||{}))for(const row of M.parse(M.value(day)))if(row.tags.includes(plan.intent.from))actual.push(date+':'+row.ordinal);
+          if(JSON.stringify(actual.sort())!==JSON.stringify(plan.rows.map(r=>r.id).sort()))throw Error('该标签的记录范围已变化，请重新预览全日期改名。');
+        }
+        if(!plan.changes.length)return {changed:false};
+        for(const c of plan.changes) {const d=store.daysByDate[c.date];d.adjustment=c.after;d.summary=c.after;d.updatedAt=new Date().toISOString();}
+        view.assertSource();assertClean(p);
+        await p.saveDailyLessonsUnlocked(store);
+        // Keep clean mounted editors and their owner baselines aligned, no auto-save/rebuild.
+        for(const s of source(p)===capturedSource?sessions(p,capturedSource):[]) {
+          const ctx=s.dailyLessonPageContext,c=plan.changes.find(x=>x.date===ctx?.date);
+          if(c && ctx?.setCanonicalValue) {ctx.setCanonicalValue(c.after);if(s.dailyLessonPageBaseline){s.dailyLessonPageBaseline.adjustment=c.after;s.dailyLessonPageBaseline.summary=c.after;}}
+        }
+        for(const v of p.dailyTagViews||[])v.invalid=true;
+        return {changed:true};
+      });
+    } finally {release();}
+  }
+  class TagsView extends ItemView {
+    constructor(leaf,p){super(leaf);this.plugin=p;this.sourceNotePath='';this.id=globalThis.crypto?.randomUUID?.()||String(Date.now())+Math.random();this.index=new M.Index();this.filters={q:'',tagq:'',from:'',to:'',mode:'single',tags:[],kind:'all',asc:false};this.selected=new Set();this.limit=30;this.readLimit=30;this.readOpen=false;this.closed=false;this.invalid=true;this.draftQueue=Promise.resolve();}
+    getViewType(){return TYPE;}
+    getDisplayText(){return '日课 · 标签汇总';}
+    getIcon(){return 'tags';}
+    getState(){return {sourceNotePath:this.sourceNotePath,id:this.id,filters:this.filters,scroll:this.contentEl.scrollTop};}
+    async setState(state={},result){if(this.sourceNotePath && state.sourceNotePath && state.sourceNotePath!==this.sourceNotePath)throw Error('标签页不能切换来源。');this.sourceNotePath=state.sourceNotePath||this.sourceNotePath||source(this.plugin);if(!this.received){this.received=true;const duplicate=[...(this.plugin.dailyTagViews||[])].some(v=>v!==this&&v.id===state.id);if(state.id&&!duplicate)this.id=state.id;this.filters={...this.filters,...state.filters};this.savedScroll=Number(state.scroll)||0;}await super.setState(state,result);if(this.ready)await this.initialize();}
+    assertSource(){if(this.closed||this.closing||this.plugin.isUnloading||this.sourceNotePath!==source(this.plugin))throw Error('来源已切换或页面已关闭，请重新打开匹配来源的标签汇总。');}
+    async onOpen(){this.plugin.dailyTagViews||=new Set();this.plugin.dailyTagViews.add(this);this.sourceNotePath||=source(this.plugin);this.contentEl.classList.add('mtb-daily-tags');this.ready=true;
+      this.registerEvent(this.app.vault.on('modify',file=>{if(file.path===this.plugin.getPaths().dailyLessons)this.invalid=true;}));
+      this.registerEvent(this.app.workspace.on('active-leaf-change',leaf=>{if(leaf===this.leaf && this.received && !this.intent && !this.committing && !this.closing)this.refresh().catch(e=>this.error(e));}));
+      this.register(()=>clearTimeout(this.searchTimer));if(this.received)await this.initialize();
+    }
+    async initialize(){if(this.initializing)return this.initializing;this.initializing=(async()=>{this.build();let saved=this.plugin.settings.dailyTagDrafts?.[this.draftKey()];if(!saved){const pending=Object.entries(this.plugin.settings.dailyTagDrafts||{}).find(([key,d])=>d.source===this.sourceNotePath && ![...(this.plugin.dailyTagViews||[])].some(v=>v!==this&&!v.closed&&v.draftKey()===key));if(pending){this.id=pending[0].slice((this.sourceNotePath+'::').length);saved=pending[1];}}if(saved){this.intent=this.unpackDraft(saved);this.renderEditor();this.status.textContent='已恢复未提交的标签操作，请重新预览核对。';}await this.refresh();this.contentEl.scrollTop=this.savedScroll||0;})();return this.initializing;}
+    error(e){if(this.status)this.status.textContent=e.message||String(e);new Notice(e.message||String(e));}
+    build(){this.contentEl.replaceChildren();const head=el(this.contentEl,'div','mtb-tags-heading');el(head,'h2','', '标签汇总');button(head,'返回日课',()=>this.returnDay());button(head,'刷新',()=>this.refresh());this.status=el(this.contentEl,'div','mtb-tags-status','每则以 001- 开头；#标签 到空白结束。');
+      const tools=el(this.contentEl,'div','mtb-tags-tools');this.search=input(tools,'搜索记录内容');this.search.value=this.filters.q;this.search.oncompositionstart=()=>this.composing=true;this.search.oncompositionend=()=>{this.composing=false;this.search.oninput();};this.search.oninput=()=>{if(this.composing)return;clearTimeout(this.searchTimer);this.searchTimer=setTimeout(()=>{this.filters.q=this.search.value;this.changedFilter();},150);};
+      const from=input(tools,'起始日期','date'),to=input(tools,'截止日期','date');from.value=this.filters.from;to.value=this.filters.to;from.onchange=()=>{this.filters.from=from.value;this.changedFilter();};to.onchange=()=>{this.filters.to=to.value;this.changedFilter();};button(tools,'只看今天',()=>{from.value=to.value=this.filters.from=this.filters.to=today();this.changedFilter();});button(tools,'近20天',()=>{const d=new Date(today()+'T12:00:00');d.setDate(d.getDate()-19);from.value=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');to.value=today();this.filters.from=from.value;this.filters.to=to.value;this.changedFilter();});button(tools,'全部日期',()=>{from.value=to.value=this.filters.from=this.filters.to='';this.changedFilter();});this.order=button(tools,this.filters.asc?'由旧到新':'由新到旧',()=>{this.filters.asc=!this.filters.asc;this.order.textContent=this.filters.asc?'由旧到新':'由新到旧';this.changedFilter();});
+      const layout=el(this.contentEl,'div','mtb-tags-layout');const aside=el(layout,'aside','mtb-tags-sidebar');const ts=input(aside,'搜索标签');ts.value=this.filters.tagq;ts.oninput=()=>{this.filters.tagq=ts.value;this.renderTags();};this.tagList=el(aside,'div','mtb-tags-taglist');const main=el(layout,'main','mtb-tags-main');this.resultBar=el(main,'div','mtb-tags-resultbar');this.aliasSelection=el(main,'div','tag-alias-selection');this.bulk=el(main,'div','mtb-tags-bulk');this.editor=el(main,'div','mtb-tags-editor');this.records=el(main,'div','mtb-tags-records');this.more=el(main,'div','mtb-tags-more');}
+    async refresh(force=false){if((this.committing||this.reading)&&!force)return;if(this.editComposing){this.invalid=true;return;}if(this.loading)return this.loading;this.loading=(async()=>{this.assertSource();const started=performance.now();const store=await this.plugin.loadDailyLessons(false);this.assertSource();await this.index.update(store,()=>new Promise(r=>setTimeout(r,0)));this.assertSource();this.invalid=false;this.selected.clear();this.limit=30;this.readLimit=30;this.render();this.metrics={rows:this.index.rows.length,parsedDays:this.index.parsedDays,readAndIndexMs:Math.round(performance.now()-started),domRows:this.records.children.length};})();try{await this.loading;}finally{this.loading=null;}}
+    changedFilter(){if(this.selected.size)this.status.textContent='筛选已变化，已清除之前的勾选。';this.selected.clear();this.limit=30;this.readLimit=30;this.plan=null;this.previewHost?.replaceChildren();this.render();this.leaf.workspace?.requestSaveLayout?.();}
+    baseRows(){const f=this.filters,q=f.q.toLocaleLowerCase();return this.index.rows.filter(r=>(!f.from||r.date>=f.from)&&(!f.to||r.date<=f.to)&&(!q||r.body.toLocaleLowerCase().includes(q)));}
+    matching(){const f=this.filters;let rows=this.baseRows().filter(r=>f.kind==='untagged'?!r.tags.length:f.tags.length?(f.mode==='all'?f.tags.every(t=>r.tags.includes(t)):f.tags.some(t=>r.tags.includes(t))):true);if(f.asc)rows=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||a.ordinal-b.ordinal);return rows;}
+    render(){this.renderTags();this.renderResults();this.renderBulk();if(!this.intent || !this.editInput?.isConnected)this.renderEditor();}
+    manageTag(tag){
+      this.assertSource();const p=this.plugin,scope=this.sourceNotePath;
+      return __TagAliases.open({owner:p,data:()=>p.settings,scope,tag,valid:()=>!this.closed&&!this.closing&&!p.isUnloading&&scope===source(p),
+        mutate:(label,fn)=>p.mutatePluginData(label,fn),sourceScope:'当前日课来源的全日期记录（含已阅），仅此标签',
+        changed:()=>{for(const v of p.dailyTagViews||[])if(!v.closed&&!v.closing&&v.sourceNotePath===scope)v.refreshTagDisplay();__MandalaDailyTagPicker.refreshAliases(p);},
+        sourceEdit:()=>{this.assertSource();return this.startEdit('rename',this.index.rows.filter(r=>r.tags.includes(tag)),tag);}
+      });
+    }
+    refreshTagDisplay(){const top=this.contentEl.scrollTop,side=this.tagList.parentElement,sideTop=side.scrollTop;this.renderTags();for(const n of this.records.querySelectorAll('[data-alias-raw]'))__TagAliases.paint(n,this.plugin.settings,this.sourceNotePath,n.dataset.aliasRaw);this.contentEl.scrollTop=top;side.scrollTop=sideTop;}
+    renderTags(){if(!this.tagList)return;this.tagList.replaceChildren();const base=this.baseRows(),counts=new Map(),data=this.plugin.settings,scope=this.sourceNotePath,A=__TagAliases;let unreadCount=0,untaggedUnread=0;for(const r of base){const unread=!this.readState(r);if(unread){unreadCount++;if(!r.tags.length)untaggedUnread++;}for(const t of r.tags)counts.set(t,(counts.get(t)||0)+(unread?1:0));}
+      const countButton=(parent,label,count,fn,cls,tag)=>{const b=button(parent,'',fn,cls),name=el(b,'span','mtb-tags-tagname',label);if(tag)A.paint(name,data,scope,tag);el(b,'span','mtb-tags-tagcount',String(count));b.setAttribute('aria-label',`${tag?A.label(data,scope,tag):label}，${count} 则未阅记录`);return b;};
+      countButton(this.tagList,'全部记录',unreadCount,()=>{this.filters.tags=[];this.filters.kind='all';this.changedFilter();},this.filters.kind==='all'&&!this.filters.tags.length?'is-active':'');countButton(this.tagList,'未打标签',untaggedUnread,()=>{this.filters.tags=[];this.filters.kind='untagged';this.changedFilter();},this.filters.kind==='untagged'?'is-active':'');
+      for(const [tag,count] of [...counts].sort(([a],[b])=>A.compare(data,scope,a,b))){if(!A.matches(data,scope,tag,this.filters.tagq))continue;const row=el(this.tagList,'div','mtb-tags-tagrow');countButton(row,'#'+tag,count,()=>{const f=this.filters;f.kind='all';f.tags=f.mode==='single'?[tag]:f.tags.includes(tag)?f.tags.filter(t=>t!==tag):[...f.tags,tag];this.changedFilter();},this.filters.tags.includes(tag)?'is-active':'',tag);const rename=button(row,'⋯',()=>this.manageTag(tag));rename.title='管理标签：义名 / 原文标签';rename.setAttribute('aria-label','管理标签 #'+tag);}
+      this.aliasSelection.replaceChildren();for(const tag of this.filters.tags){const row=el(this.aliasSelection,'div','tag-alias-selected');A.paint(el(row,'span',''),data,scope,tag);el(row,'small','tag-alias-original','原文标签：#'+tag);button(row,A.get(data,scope,tag)?'修改义名':'设置义名',()=>this.manageTag(tag));}
+    }
+    renderResults(){
+      this.resultBar.replaceChildren();const rows=this.matching(),unread=rows.filter(r=>!this.readState(r)),read=rows.filter(r=>this.readState(r));
+      el(this.resultBar,'span','',`${rows.length} 则 · 未阅 ${unread.length} · 已阅 ${read.length}`);
+      for(const [mode,label] of [['single','单个标签'],['any','任一包含'],['all','全部包含']])button(this.resultBar,label,()=>{this.filters.mode=mode;if(mode==='single')this.filters.tags=this.filters.tags.slice(0,1);this.changedFilter();},this.filters.mode===mode?'is-active':'');
+      button(this.resultBar,'清除标签筛选',()=>{this.filters.tags=[];this.filters.kind='all';this.changedFilter();});
+      this.records.replaceChildren();this.more.replaceChildren();
+      const section=el(this.records,'section','mtb-tags-unread');el(section,'div','mtb-tags-section-label',`未阅 ${unread.length}`);
+      const pending=el(section,'div','mtb-tags-group'),more=el(section,'div','mtb-tags-more');
+      this.appendRows(unread,0,pending,more,false);
+      if(!unread.length)el(pending,'p','mtb-tags-empty',read.length?'当前筛选的记录已全部读过。':'没有符合条件的记录。');
+      this.readSummary=null;
+      if(read.length){
+        const details=el(this.records,'details','mtb-tags-read-section');details.open=!!this.readOpen;
+        this.readSummary=el(details,'summary','mtb-tags-section-label',`✓ 已阅 ${read.length}`);
+        const group=el(details,'div','mtb-tags-group'),tail=el(details,'div','mtb-tags-more');let built=false;
+        const populate=()=>{if(!built&&details.open){built=true;this.appendRows(read,0,group,tail,true);}};
+        details.ontoggle=()=>{this.readOpen=details.open;populate();};populate();
+      }
+    }
+    appendRows(rows,start,parent,more,read){
+      const limit=read?this.readLimit:this.limit;
+      for(const row of rows.slice(start,limit))this.card(row,parent);
+      more.replaceChildren();if(rows.length>limit)button(more,`再显示30则 · 还有 ${rows.length-limit} 则`,()=>{
+        const before=read?this.readLimit:this.limit;if(read)this.readLimit+=30;else this.limit+=30;
+        this.appendRows(rows,before,parent,more,read);
+      });
+    }
+    card(row,parent=this.records){const card=el(parent,'article','mtb-tags-card');const isRead=this.readState(row);card.classList.toggle('is-read',isRead);card.dataset.recordId=row.id;const head=el(card,'div','mtb-tags-cardhead');if(!row.unassigned){const readButton=button(head,isRead?'↶':'✓',()=>this.setRead([row],!isRead),'mtb-tags-read-toggle mtb-tags-read-action');readButton.title=isRead?'恢复未阅':'标为已阅';readButton.setAttribute('aria-label',readButton.title+' '+row.date+' '+row.serial);readButton.setAttribute('aria-pressed',String(isRead));readButton.dataset.readUnavailable=String(!row.readUnique);readButton.disabled=!row.readUnique||!!this.reading;if(!row.readUnique)readButton.title='同日有相同编号与正文，请先区分记录。';}const check=input(head,'选择 '+row.date+' '+row.serial,'checkbox');check.disabled=row.unassigned;check.checked=this.selected.has(row.id);check.onchange=()=>{check.checked?this.selected.add(row.id):this.selected.delete(row.id);this.renderBulk();};el(head,'span','mtb-tags-meta',`${row.date} · ${row.unassigned?'未分条文字':row.serial}`);if(isRead)el(head,'span','mtb-tags-read-badge','已阅');if(!row.unassigned)button(head,'编辑原文标签',()=>this.startEdit('replace',[row]));button(head,'返回原文',()=>this.returnRecord(row));let displayed=row.body;for(const span of [...row.spans].reverse())displayed=displayed.slice(0,span.start-row.start)+displayed.slice(span.end-row.start);if(!row.unassigned)displayed=displayed.slice(5);const projection=project(displayed);button(head,'复制正文',async()=>{const clipboard=this.contentEl.ownerDocument.defaultView.navigator.clipboard;if(!clipboard?.writeText)throw Error('剪贴板不可用，请选中正文后按 Ctrl+C 复制。');await clipboard.writeText(projection.text.trim());new Notice('正文已复制');});const body=el(card,'div','mtb-tags-body',projection.text.trim());if(projection.records?.length)el(card,'div','mtb-tags-meta','含图片 · 返回原文查看');if(row.body.length>280||row.body.split('\n').length>6){body.classList.add('is-clamped');const b=button(card,'展开全文',()=>{body.classList.toggle('is-clamped');b.textContent=body.classList.contains('is-clamped')?'展开全文':'收起全文';},'mtb-tags-expand');}const chips=el(card,'div','mtb-tags-chips');for(const tag of row.tags)__TagAliases.paint(button(chips,'',()=>{this.filters.tags=[tag];this.filters.kind='all';this.changedFilter();}),this.plugin.settings,this.sourceNotePath,tag);}
+    renderBulk(){this.bulk.replaceChildren();this.bulk.hidden=!this.selected.size;if(!this.selected.size)return;el(this.bulk,'span','',`已选 ${this.selected.size} 则`);for(const [k,l] of [['add','批量添加'],['remove','批量移除']])button(this.bulk,l,()=>this.startEdit(k,this.index.rows.filter(r=>this.selected.has(r.id))));for(const [read,label]of [[true,'标为已阅'],[false,'恢复未阅']]){const b=button(this.bulk,label,()=>this.setRead(this.index.rows.filter(r=>this.selected.has(r.id)),read),'mtb-tags-read-action');b.disabled=!!this.reading;}button(this.bulk,'取消勾选',()=>{this.selected.clear();this.renderResults();this.renderBulk();});}
+    readState(row){return !!(row.readUnique&&row.readKey&&this.plugin.settings.dailyTagReadStateV1?.[this.sourceNotePath]?.[row.date]?.[row.readKey]);}
+    setRead(rows,read){
+      if(this.readPromise)return Promise.reject(Error('正在保存已阅状态，请稍候再操作。'));
+      this.readPromise=this.setReadNow(rows,read).finally(()=>{this.readPromise=null;});return this.readPromise;
+    }
+    async setReadNow(rows,read){
+      this.assertSource();if(this.intent||this.committing)throw Error('请先保存或取消当前标签操作。');
+      if(!rows.length)return;
+      const p=this.plugin,key=this.sourceNotePath;assertClean(p);
+      if(rows.some(r=>r.unassigned||!r.readKey||!r.readUnique))throw Error('存在无法区分的重复记录，请先调整编号或正文后刷新。');
+      const release=lockEditors(p);this.reading=true;this.resultBar.setAttribute('aria-busy','true');
+      const previousStatus=this.status.textContent;this.status.textContent='正在保存已阅状态…';
+      for(const b of this.contentEl.querySelectorAll('.mtb-tags-read-action'))b.disabled=true;
+      try{
+        const outcome=await p.enqueueDailyLessonMutation('daily-tags-read',async()=>{
+          // Serialize with daily edits without classifying metadata failures as unsaved daily text.
+          try{
+          this.assertSource();assertClean(p);
+          const store=await p.loadDailyLessons(false);this.assertSource();assertClean(p);
+          const days=new Map();
+          for(const ref of rows){
+            const raw=M.value(store.daysByDate?.[ref.date]);
+            if(raw!==ref.raw)throw Error('原记录已变化，请刷新后再标记；本批未保存。');
+            if(!days.has(ref.date))days.set(ref.date,M.readRows(raw));
+            const hit=days.get(ref.date)[ref.ordinal];
+            if(!hit||hit.body!==ref.body||!hit.readUnique||hit.readKey!==ref.readKey)throw Error('记录身份有歧义，请刷新后再标记。');
+          }
+          await p.mutatePluginData('daily-tags-read',latest=>{
+            this.assertSource();assertClean(p);
+            const all={...(latest.dailyTagReadStateV1||{})},scope={...(all[key]||{})},changed=new Map();
+            for(const row of rows){
+              if(!changed.has(row.date))changed.set(row.date,{...(scope[row.date]||{})});
+              const day=changed.get(row.date);
+              if(read)day[row.readKey]=new Date().toISOString();else delete day[row.readKey];
+            }
+            for(const [date,day]of changed){if(Object.keys(day).length)scope[date]=day;else delete scope[date];}
+            if(Object.keys(scope).length)all[key]=scope;else delete all[key];
+            latest.dailyTagReadStateV1=all;return latest;
+          });
+          return {ok:true};
+          }catch(error){return {error};}
+        });
+        if(outcome?.error)throw outcome.error;
+        for(const v of p.dailyTagViews||[]){
+          if(v.closed||v.closing||v.sourceNotePath!==key)continue;
+          for(const row of rows)v.selected.delete(row.id);
+          v.renderReadUpdate(new Set(rows.map(r=>r.id)));
+        }
+        if(!this.closed&&!this.closing)this.status.textContent=`${rows.length} 则已${read?'标为已阅':'恢复未阅'}。`;
+      }finally{release();this.reading=false;this.resultBar.removeAttribute('aria-busy');
+        for(const b of this.contentEl.querySelectorAll('.mtb-tags-read-action'))b.disabled=b.dataset.readUnavailable==='true';
+        if(this.status.textContent==='正在保存已阅状态…')this.status.textContent=previousStatus;
+      }
+    }
+    renderReadUpdate(changed){
+      const host=this.contentEl,top=host.scrollTop,rect=host.getBoundingClientRect();
+      const visible=[...this.records.querySelectorAll('.mtb-tags-card')].filter(n=>n.getBoundingClientRect().bottom>rect.top&&n.getBoundingClientRect().top<rect.bottom);
+      const anchor=visible.find(n=>!changed.has(n.dataset.recordId));
+      const anchorId=anchor?.dataset.recordId,offset=anchor?.getBoundingClientRect().top;
+      const focused=this.records.contains(document.activeElement),expanded=new Set([...this.records.querySelectorAll('.mtb-tags-card')].filter(n=>!n.querySelector('.mtb-tags-body')?.classList.contains('is-clamped')).map(n=>n.dataset.recordId));
+      this.renderTags();this.renderResults();this.renderBulk();
+      for(const node of this.records.querySelectorAll('.mtb-tags-card')){
+        if(expanded.has(node.dataset.recordId)){node.querySelector('.mtb-tags-body')?.classList.remove('is-clamped');const b=node.querySelector('.mtb-tags-expand');if(b)b.textContent='收起全文';}
+      }
+      const next=[...this.records.querySelectorAll('.mtb-tags-card')].find(n=>n.dataset.recordId===anchorId);
+      host.scrollTop=top+(next&&offset!=null?next.getBoundingClientRect().top-offset:0);
+      if(focused)(next?.querySelector('.mtb-tags-read-toggle')||this.readSummary||this.resultBar).focus({preventScroll:true});
+    }
+    draftKey(){return this.sourceNotePath+'::'+this.id;}
+    packDraft(){if(!this.intent)return null;const days={};const rows=this.intent.rows.map(r=>{days[r.date]=r.raw;return {date:r.date,ordinal:r.ordinal};});return {...this.intent,rows,days};}
+    unpackDraft(saved){const copy=JSON.parse(JSON.stringify(saved));if(copy.days){const parsed=new Map();copy.rows=copy.rows.map(ref=>{const raw=copy.days[ref.date];if(!parsed.has(ref.date))parsed.set(ref.date,M.parse(raw));const r=parsed.get(ref.date)[ref.ordinal];if(!r)throw Error('标签草稿记录缺失，请保留草稿并检查。');return {...r,date:ref.date,id:ref.date+':'+ref.ordinal,raw};});delete copy.days;}return copy;}
+    scheduleDraft(){clearTimeout(this.draftTimer);this.draftTimer=setTimeout(()=>this.persistDraft().catch(e=>this.error(e)),350);}
+    persistDraft(){clearTimeout(this.draftTimer);const snapshot=this.packDraft(),key=this.draftKey();const task=this.draftQueue.catch(()=>{}).then(()=>this.plugin.mutatePluginData('daily-tags-intent',latest=>{latest.dailyTagDrafts={...(latest.dailyTagDrafts||{})};if(snapshot)latest.dailyTagDrafts[key]=snapshot;return latest;}));this.draftQueue=task;return task;}
+    async clearDraft(expected){const key=this.draftKey();await this.draftQueue;await this.plugin.mutatePluginData('daily-tags-intent-clear',latest=>{latest.dailyTagDrafts={...(latest.dailyTagDrafts||{})};if(JSON.stringify(latest.dailyTagDrafts[key])===expected)delete latest.dailyTagDrafts[key];return latest;});}
+    async startEdit(kind,rows,from=''){this.assertSource();if(this.reading)throw Error('正在保存已阅状态，请稍候。');if(this.intent){this.error(Error('请先保存或取消当前标签操作。'));return;}this.intent={kind,from,rows:rows.map(r=>({...r})),text:kind==='replace'?rows[0].tags.map(t=>'#'+t).join(' '):kind==='rename'?'#'+from:'',source:this.sourceNotePath};this.plan=null;await this.persistDraft();this.renderEditor();this.editor.scrollIntoView({block:'nearest'});this.editInput?.focus();}
+    renderEditor(){if(!this.editor)return;this.editor.replaceChildren();this.editor.hidden=!this.intent;if(!this.intent)return;const i=this.intent;el(this.editor,'strong','',i.kind==='rename'?`修改原文标签 · 全日期（含已阅） #${i.from} · ${i.rows.length} 则`:`${{replace:'编辑',add:'批量添加',remove:'批量移除'}[i.kind]}标签 · ${i.rows.length} 则`);this.editInput=input(this.editor,'#标签一 #标签二');this.editInput.value=i.text;this.editInput.disabled=this.committing;this.editInput.oninput=()=>{i.text=this.editInput.value;this.plan=null;this.previewHost.replaceChildren();this.scheduleDraft();};this.editInput.oncompositionstart=()=>this.editComposing=true;this.editInput.oncompositionend=()=>this.editComposing=false;const actions=el(this.editor,'div','mtb-tags-actions');button(actions,'预览修改',()=>this.preview());button(actions,'取消',async()=>{if(this.committing)throw Error('正在保存，请稍候。');const expected=JSON.stringify(this.packDraft());await this.persistDraft();await this.clearDraft(expected);this.intent=null;this.plan=null;this.renderEditor();});this.previewHost=el(this.editor,'div','mtb-tags-preview');if(this.plan)this.showPreview();}
+    async preview(){this.assertSource();if(this.editComposing)throw Error('请先完成中文选词。');const snapshot=this.intent,signature=JSON.stringify(this.packDraft()),tags=M.names(snapshot.text);if(this.intent.kind!=='replace'&&!tags.length)throw Error('请填写标签。');if(this.intent.kind==='rename'&&tags.length!==1)throw Error('改名请填写一个新标签；同名时合并。');await this.persistDraft();if(this.intent!==snapshot||JSON.stringify(this.packDraft())!==signature||this.editComposing||this.closing||this.closed)throw Error('标签输入已变化，请重新预览。');const intent={kind:snapshot.kind,from:snapshot.from,tags};this.plan={intent,rows:this.intent.rows,changes:M.preview(this.intent.rows,intent)};this.showPreview();}
+    showPreview(){this.previewHost.replaceChildren();const plan=this.plan;el(this.previewHost,'p','',`将修改 ${plan.changes.length} 天、${plan.rows.length} 则的标签。正文与图片保留。`);for(const c of plan.changes.slice(0,6)){const d=el(this.previewHost,'details');el(d,'summary','',c.date+' · 查看修改前后');el(d,'pre','', '修改前\n'+c.before+'\n\n修改后\n'+c.after);}if(plan.changes.length>6)el(this.previewHost,'p','',`另有 ${plan.changes.length-6} 天；完整日期：${plan.changes.map(c=>c.date).join('、')}`);button(this.previewHost,'确认写入原文',()=>this.apply());}
+    apply(){if(this.applyPromise)return this.applyPromise;this.applyPromise=this.applyNow().finally(()=>this.applyPromise=null);return this.applyPromise;}
+    async applyNow(){if(this.reading)throw Error('正在保存已阅状态，请稍候。');if(this.committing||!this.plan)return;this.assertSource();this.committing=true;const plan=this.plan,expected=JSON.stringify(this.packDraft());this.editor.inert=true;try{await this.persistDraft();await commit(this.plugin,this,plan);await this.clearDraft(expected);this.intent=null;this.plan=null;this.renderEditor();this.selected.clear();if(!this.closing&&!this.closed)await this.refresh(true);this.status.textContent='标签已保存到原日课记录。';}finally{this.committing=false;this.editor.inert=false;}}
+    async getDaily(){this.assertSource();let view=this.origin&&!this.origin.closed&&this.origin.sourceNotePath===this.sourceNotePath?this.origin:null;if(!view){const leaf=await this.plugin.openDailyLessonsView();view=leaf?.view;}if(!view||view.sourceNotePath!==this.sourceNotePath)throw Error('没有可返回的匹配日课页面。');if(view.refreshPromise)await view.refreshPromise;await view.requestSwitchSave();if(unsafe(view.session))throw Error('原日课尚有未保存内容，请先在原页保存。');return view;}
+    async returnDay(){const v=await this.getDaily();this.assertSource();await this.app.workspace.revealLeaf(v.leaf);}
+    async returnRecord(ref){const v=await this.getDaily();this.assertSource();const store=await this.plugin.loadDailyLessons(false),raw=M.value(store.daysByDate?.[ref.date]),row=M.locate(raw,ref);if(!row)throw Error('这则记录已修改或位置有歧义，请刷新标签汇总后重试。');if(unsafe(v.session))throw Error('日课有新修改，请先保存。');if(v.session.dailyLessonPageContext?.date!==ref.date || v.session.dailyLessonPageContext?.getCanonicalValue()!==raw){v.session.updateDashboardState({dailyLessonDate:ref.date});if(!(await v.refresh()))throw Error('原日课尚未就绪，请重试。');}this.assertSource();const ctx=v.session.dailyLessonPageContext,area=ctx?.input;if(!area||ctx.date!==ref.date)throw Error('原文输入框未就绪。');const canonical=ctx.getCanonicalValue();if(canonical!==raw)throw Error('返回过程中原记录已变化，请刷新重试。');const projected=M.parse(project(raw).text),rawRows=M.parse(raw);if(projected.length!==rawRows.length||projected.some((r,i)=>r.serial!==rawRows[i].serial))throw Error('图片投影改变了记录边界，已保留原文，请从当天查阅。');const hit=projected[row.ordinal];if(!hit)throw Error('无法准确定位记录。');await this.app.workspace.revealLeaf(v.leaf);area.focus();area.setSelectionRange(hit.start,hit.end);area.scrollIntoView({block:'center'});}
+    async onClose(){if(this.closed)return;if(this.closePromise)return this.closePromise;this.closing=true;this.closePromise=(async()=>{try{clearTimeout(this.searchTimer);clearTimeout(this.draftTimer);if(this.readPromise)await this.readPromise.catch(()=>{});if(this.applyPromise)await this.applyPromise.catch(()=>{});if(this.intent)await this.persistDraft();await this.draftQueue;this.closed=true;this.plugin.dailyTagViews?.delete(this);}catch(e){this.closing=false;this.closePromise=null;this.error(e);throw e;}})();return this.closePromise;}
+  }
+  async function open(p,origin){if(p.dailyTagsOpenPromise)return p.dailyTagsOpenPromise;p.dailyTagsOpenPromise=(async()=>{const key=source(p);if(origin){await origin.requestSwitchSave();if(unsafe(origin.session))throw Error('请先保存原日课记录，再打开标签汇总。');}let leaf=p.app.workspace.getLeavesOfType(TYPE).find(l=>l.view.sourceNotePath===key&&!l.view.closed);if(!leaf){leaf=p.app.workspace.getLeaf('tab');await leaf.setViewState({type:TYPE,active:true,state:{sourceNotePath:key}});}leaf.view.origin=origin||leaf.view.origin;if(key!==source(p))throw Error('来源已变化，请重新打开。');await p.app.workspace.revealLeaf(leaf);return leaf;})().catch(e=>{new Notice(e.message);return null;}).finally(()=>p.dailyTagsOpenPromise=null);return p.dailyTagsOpenPromise;}
+  return {TYPE,TagsView,open,commit,assertClean};
+}
+
+const __MandalaDailyTags = createDailyTagsFeature({ItemView,Notice,model:createDailyTagsModel(),project:getDailyLessonCommentProjection,today:todayKey,dailyType:VIEW_TYPE_DAILY_LESSONS});
+// END MD-T1 bundled daily tags
+
+/* Same-source daily tags; ephemeral selection, existing textarea remains the writer. */
+function createDailyTagPicker({Modal, Notice, model: M}) {
+  const owners = new WeakMap();
+  const rowAt = (raw, caret) => M.parse(raw).find(r => caret >= r.start && (caret < r.end || caret === raw.length && r.end === raw.length));
+  function insertion(raw, caret, names) {
+    const row=rowAt(raw,caret);
+    if(!row || row.unassigned)throw Error('请先把光标放到一条「001- 文字」记录内，再添加标签。');
+    const tags=[...new Set([...row.tags,...M.names(names.map(t=>'#'+t).join(' '))])];
+    const result=M.formatRow(raw,row,tags);
+    return {...result,start:row.start,end:row.end};
+  }
+  function ownerState(owner) {
+    let state = owners.get(owner);
+    if (!state) {
+      state = {source:null, days:new Map(), active:null, queue:Promise.resolve()}; owners.set(owner,state);
+      owner.register(() => { state.active?.close(); owners.delete(owner); });
+    }
+    return state;
+  }
+  const counts = raw => {
+    const result = new Map();
+    for (const row of M.parse(raw)) for (const tag of row.tags) result.set(tag,(result.get(tag)||0)+1);
+    return result;
+  };
+  async function candidates(picker) {
+    const state = picker.ownerState;
+    const task = state.queue.catch(() => {}).then(async () => {
+      picker.assertCurrent();
+      const store = await picker.owner.loadDailyLessons(false); picker.assertCurrent();
+      const previous = state.source === picker.source ? state.days : new Map(), next = new Map();
+      let changed = 0;
+      for (const [date, day] of Object.entries(store.daysByDate || {})) {
+        const raw = M.value(day), old = previous.get(date);
+        next.set(date, old?.raw === raw ? old : {raw, counts:counts(raw)});
+        if (old?.raw !== raw && ++changed % 16 === 0) {
+          await new Promise(resolve => picker.win.setTimeout(resolve, 0)); picker.assertCurrent();
+        }
+      }
+      picker.assertCurrent(); state.source = picker.source; state.days = next;
+      const merged = new Map(), add = map => { for (const [tag,n] of map) merged.set(tag,(merged.get(tag)||0)+n); };
+      for (const [date,entry] of next) if (date !== picker.date) add(entry.counts);
+      // Draft overlay belongs to this picker, never to the shared saved-data cache.
+      add(counts(picker.canonical));
+      picker.parsedDays = changed;
+      return [...merged].sort((a,b) => a[0].localeCompare(b[0], 'zh-CN', {numeric:true}));
+    });
+    state.queue = task.catch(() => {}); return task;
+  }
+  class Picker extends Modal {
+    constructor(owner, session, ctx, binding, state) {
+      super(owner.app); this.owner=owner;this.session=session;this.ctx=ctx;this.binding=binding;this.ownerState=state;
+      this.area=ctx.input;this.win=this.area.ownerDocument.defaultView;this.source=owner.getTimeCaptureSourceNotePath();this.date=ctx.date;
+      this.original=this.area.value;this.canonical=ctx.getCanonicalValue();this.start=this.area.selectionStart;this.end=this.area.selectionEnd;
+      this.originalScroll=this.area.scrollTop;this.selected=new Set();this.limit=80;this.closed=false;this.loading=false;this.tags=[];
+      this.existing=new Set(rowAt(this.original,this.start)?.tags||[]);
+    }
+    assertCurrent(checkText=true) {
+      const h=this.session.nativeDailyHost, a=this.area;
+      if (this.closed || this.ownerState.active!==this || this.owner.isUnloading || this.session.isUnloading || this.owner.getTimeCaptureSourceNotePath()!==this.source || this.session.getPaths().sourceNotePath!==this.source || this.session.dailyLessonPageContext!==this.ctx || this.ctx.date!==this.date || (this.session.dashboardState?.dailyLessonDate && this.session.dashboardState.dailyLessonDate!==this.date) || !a.isConnected || h?.closed || h?.closing || h?.busy || this.session.dailyLessonMutationAdmissionClosed) throw Error('原日课页面已切换、关闭或正在保存，请回到记录重新选择标签。');
+      if (a.disabled || a.readOnly || a.closest('[inert]') || this.binding.composing || h?.switchComposing || this.ctx.pendingCount || this.session.dailyLessonImagePendingCount) throw Error('请先完成输入、保存或图片处理，再插入标签。');
+      if (checkText && (a.value!==this.original || this.ctx.getCanonicalValue()!==this.canonical)) throw Error('原记录已发生变化，未插入标签；请回到正文重新选择位置。');
+    }
+    node(parent,tag,cls,text) {
+      const e=parent.ownerDocument.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;parent.append(e);return e;
+    }
+    button(parent,label,action,cls='') {
+      const b=this.node(parent,'button',cls,label);b.type='button';b.onclick=()=>{try{action();}catch(e){this.message.textContent=e.message;}};return b;
+    }
+    onOpen() {
+      this.contentEl.classList.add('mtb-daily-tag-picker');this.modalEl?.classList.add('mtb-daily-tag-picker-modal');
+      this.node(this.contentEl,'h2','', '插入日课标签');
+      this.node(this.contentEl,'p','mtb-picker-hint','为光标所在条目添加标签，统一放在本条末尾独立一行。');
+      this.selectedEl=this.node(this.contentEl,'div','mtb-picker-selected');
+      this.search=this.node(this.contentEl,'input','mtb-picker-search');this.search.type='search';this.search.placeholder='搜索已有标签';this.search.setAttribute('aria-label','搜索已有标签');
+      this.search.oninput=()=>{this.limit=80;this.renderChoices();};
+      this.countEl=this.node(this.contentEl,'div','mtb-picker-count');
+      this.list=this.node(this.contentEl,'div','mtb-picker-options');
+      this.more=this.button(this.contentEl,'显示更多',()=>{this.limit+=80;this.renderChoices();},'mtb-picker-more');
+      this.message=this.node(this.contentEl,'div','mtb-picker-message');this.message.setAttribute('role','status');
+      const footer=this.node(this.contentEl,'div','mtb-picker-footer');this.button(footer,'取消',()=>this.close());
+      this.confirm=this.button(footer,'插入标签',()=>this.apply(),'mod-cta');this.renderSelected();this.load();this.search.focus();
+    }
+    async load() {
+      if(this.loading)return;this.loading=true;this.message.textContent='正在读取已有日课标签…';this.retry?.remove();this.retry=null;
+      try {this.tags=await candidates(this);this.assertCurrent();this.message.textContent='';this.renderChoices();}
+      catch(e) {if(!this.closed){this.message.textContent=e.message;this.retry=this.button(this.message,'重试',()=>this.load());}}
+      finally {this.loading=false;}
+    }
+    renderSelected() {
+      this.selectedEl.replaceChildren();
+      if(!this.selected.size)this.node(this.selectedEl,'span','mtb-picker-hint','点击下方标签进行多选');
+      for(const tag of this.selected){const b=__TagAliases.paint(this.button(this.selectedEl,'',()=>this.toggle(tag),'mtb-picker-chip is-selected'),this.owner.settings,this.source,tag,{raw:true});this.node(b,'span','',' ×');}
+      this.confirm.textContent=this.selected.size ? `插入 ${this.selected.size} 个原标签` : '插入原标签';this.confirm.disabled=!this.selected.size;
+    }
+    toggle(tag) {
+      if(this.selected.has(tag))this.selected.delete(tag);else this.selected.add(tag);
+      this.renderSelected();
+      for(const b of this.list.querySelectorAll('button[data-tag]')){const yes=this.selected.has(b.dataset.tag);b.classList.toggle('is-selected',yes);b.setAttribute('aria-pressed',String(yes));}
+    }
+    renderChoices() {
+      const query=this.search.value.trim().replace(/^#/,'').toLocaleLowerCase();
+      const matches=this.tags.filter(([tag])=>__TagAliases.matches(this.owner.settings,this.source,tag,query)).sort(([a],[b])=>__TagAliases.compare(this.owner.settings,this.source,a,b));
+      this.countEl.textContent=`匹配 ${matches.length} / ${this.tags.length} 个标签`;
+      this.list.replaceChildren();
+      for(const [tag,count] of matches.slice(0,this.limit)) {
+        const existing=this.existing.has(tag),b=this.button(this.list,'#'+tag,()=>this.toggle(tag),'mtb-picker-chip');
+        __TagAliases.paint(b,this.owner.settings,this.source,tag,{raw:true});b.dataset.tag=tag;b.disabled=existing;b.title+=' · '+(existing?'本条记录已有此标签':`${count} 则记录使用`);
+        b.setAttribute('aria-pressed',String(this.selected.has(tag)));b.classList.toggle('is-selected',this.selected.has(tag));
+        if(existing)this.node(b,'span','mtb-picker-existing','已有');
+      }
+      if(!matches.length)this.node(this.list,'p','mtb-picker-hint',this.tags.length?'没有匹配标签。':'日课还没有可选标签，可先在编号记录中输入 #标签。');
+      this.more.hidden=matches.length<=this.limit;
+    }
+    apply() {
+      this.assertCurrent();
+      const plan=insertion(this.original,this.start,[...this.selected]);
+      if(!plan.tags.length){this.message.textContent='这些标签在本条记录中已经存在。';return;}
+      const a=this.area,scroll=a.scrollTop;
+      a.setRangeText(plan.text,plan.start,plan.end,'end');
+      a.setSelectionRange(plan.caret,plan.caret);
+      this.insertedValue=a.value;
+      a.dispatchEvent(new this.win.Event('input',{bubbles:true}));
+      this.applied=true;this.returnCaret=plan.caret;a.scrollTop=scroll;this.close();
+    }
+    onClose() {
+      this.closed=true;if(this.ownerState.active===this)this.ownerState.active=null;
+      // The picker contains only search/selection, not a second text editor or business writer.
+      this.win.queueMicrotask(()=>{
+        const a=this.area,h=this.session.nativeDailyHost;
+        if(this.ownerState.active || !a.isConnected || a.disabled || a.readOnly || a.closest('[inert]') || this.owner.isUnloading || this.session.isUnloading || h?.closed || h?.closing || h?.busy || h?.switchComposing || this.binding.composing || this.session.dailyLessonMutationAdmissionClosed || this.session.dailyLessonPageContext!==this.ctx || this.ctx.date!==this.date || (this.session.dashboardState?.dailyLessonDate && this.session.dashboardState.dailyLessonDate!==this.date) || this.owner.getTimeCaptureSourceNotePath()!==this.source)return;
+        if(!this.applied && (a.value!==this.original || this.ctx.getCanonicalValue()!==this.canonical))return;
+        if(this.applied && a.value!==this.insertedValue)return;
+        if(h?.leaf && this.owner.app.workspace?.activeLeaf && this.owner.app.workspace.activeLeaf!==h.leaf)return;
+        a.focus({preventScroll:true});a.setSelectionRange(this.applied?this.returnCaret:this.start,this.applied?this.returnCaret:this.end);a.scrollTop=this.originalScroll;
+      });
+      this.contentEl.replaceChildren();
+    }
+  }
+  function bind(button,session,ctx) {
+    const owner=session.nativeDailyHost?.plugin||session, state=ownerState(owner),binding={composing:false};
+    ctx.input.addEventListener('compositionstart',()=>binding.composing=true);
+    ctx.input.addEventListener('compositionend',()=>binding.composing=false);
+    button.onpointerdown=event=>{if(event.button===0)event.preventDefault();};
+    button.onclick=()=>{
+      try {
+        state.active?.close();const picker=new Picker(owner,session,ctx,binding,state);state.active=picker;
+        try{picker.assertCurrent();}catch(e){state.active=null;throw e;}
+        picker.open();
+      }catch(e){new Notice(e.message);}
+    };
+  }
+  return {bind,insertion,refreshAliases(owner){const p=owners.get(owner)?.active;if(p&&!p.closed){p.renderSelected();p.renderChoices();}}};
+}
+
+const __MandalaDailyTagPicker = createDailyTagPicker({Modal,Notice,model:createDailyTagsModel()});
+
+// Visual projection only: the existing textarea and daily tag parser remain authoritative.
+function createDailyEntryHighlights(M) {
+  function bind(area) {
+    const doc=area.ownerDocument,win=doc.defaultView;
+    const wrapper=doc.createElement('div');wrapper.className='mtb-daily-entry-editor';
+    area.parentNode.insertBefore(wrapper,area);wrapper.appendChild(area);
+    const viewport=doc.createElement('div');viewport.className='mtb-entry-highlight-viewport';viewport.setAttribute('aria-hidden','true');
+    const mirror=doc.createElement('div');mirror.className='mtb-entry-highlight-text';viewport.appendChild(mirror);wrapper.appendChild(viewport);
+    let stopped=false,composing=false,lastValue=null,timer=null,frame=null,connected=false;
+    const metrics={parses:0,renders:0,layouts:0};
+    const styleKeys=['fontFamily','fontSize','fontWeight','fontStyle','fontVariant','fontStretch','fontKerning','fontFeatureSettings','fontVariationSettings','lineHeight','letterSpacing','wordSpacing','textIndent','textAlign','textTransform','direction','tabSize','paddingTop','paddingRight','paddingBottom','paddingLeft','wordBreak','overflowWrap'];
+    const previousResize=area._mtbResizeToContent;
+    function scroll(){mirror.style.transform=`translate(${-area.scrollLeft}px,${-area.scrollTop}px)`;}
+    function layout(){
+      if(stopped)return;
+      if(!area.isConnected){if(connected)dispose();return;}
+      connected=true;if(!area.clientWidth)return;
+      const css=win.getComputedStyle(area);
+      for(const key of styleKeys)if(mirror.style[key]!==css[key])mirror.style[key]=css[key];
+      mirror.style.whiteSpace=area.wrap==='off'?'pre':'pre-wrap';
+      viewport.style.left=(area.offsetLeft+area.clientLeft)+'px';viewport.style.top=(area.offsetTop+area.clientTop)+'px';
+      viewport.style.width=area.clientWidth+'px';viewport.style.height=area.clientHeight+'px';
+      mirror.style.width=area.clientWidth+'px';scroll();metrics.layouts++;
+    }
+    function render(){
+      if(stopped||composing)return;
+      const value=area.value;
+      if(value!==lastValue){
+        const rows=M.parse(value);metrics.parses++;
+        const fragment=doc.createDocumentFragment();let offset=0;
+        for(const row of rows){
+          if(row.unassigned)continue;
+          fragment.appendChild(doc.createTextNode(value.slice(offset,row.start)));
+          const mark=doc.createElement('span');mark.className='mtb-entry-number';mark.textContent=value.slice(row.start,row.start+5);mark.dataset.entryStart=String(row.start);fragment.appendChild(mark);offset=row.start+5;
+        }
+        fragment.appendChild(doc.createTextNode(value.slice(offset)));mirror.replaceChildren(fragment);lastValue=value;metrics.renders++;
+      }
+      layout();viewport.hidden=false;
+    }
+    function refresh(){
+      if(stopped)return;win.clearTimeout(timer);timer=null;
+      if(composing){viewport.hidden=true;return;}
+      try {render();} catch (_) {viewport.hidden=true;lastValue=null;} // Highlight failure never blocks native input/saving.
+    }
+    function schedule(){
+      if(stopped)return;viewport.hidden=true;win.clearTimeout(timer);
+      if(!composing)timer=win.setTimeout(()=>{timer=null;refresh();},100);
+    }
+    function geometry(){if(stopped||frame!==null)return;frame=win.requestAnimationFrame(()=>{frame=null;if(timer!==null||composing)layout();else refresh();});}
+    function startComposition(){composing=true;viewport.hidden=true;win.clearTimeout(timer);timer=null;}
+    function endComposition(){composing=false;schedule();}
+    const onScroll=()=>{if(!stopped)scroll();};
+    area.addEventListener('input',schedule);area.addEventListener('scroll',onScroll,{passive:true});area.addEventListener('focus',geometry);
+    area.addEventListener('compositionstart',startComposition);area.addEventListener('compositionend',endComposition);
+    const resize=typeof previousResize==='function'?function(...args){const result=previousResize.apply(this,args);if(lastValue===area.value)layout();else schedule();return result;}:null;
+    if(resize)area._mtbResizeToContent=resize;
+    const ro=win.ResizeObserver?new win.ResizeObserver(geometry):null;ro?.observe(area);
+    const mo=win.MutationObserver?new win.MutationObserver(geometry):null;
+    mo?.observe(area,{attributes:true,attributeFilter:['style','class','wrap']});
+    if(doc.body)mo?.observe(doc.body,{attributes:true,attributeFilter:['class','style']});
+    mo?.observe(doc.documentElement,{attributes:true,attributeFilter:['class','style']});
+    doc.fonts?.addEventListener?.('loadingdone',geometry);
+    function dispose(){
+      if(stopped)return;stopped=true;win.clearTimeout(timer);if(frame!==null)win.cancelAnimationFrame(frame);timer=frame=null;
+      ro?.disconnect();mo?.disconnect();doc.fonts?.removeEventListener?.('loadingdone',geometry);
+      area.removeEventListener('input',schedule);area.removeEventListener('scroll',onScroll);area.removeEventListener('focus',geometry);area.removeEventListener('compositionstart',startComposition);area.removeEventListener('compositionend',endComposition);
+      if(resize&&area._mtbResizeToContent===resize)area._mtbResizeToContent=previousResize;
+      viewport.remove();
+    }
+    geometry();return {refresh,dispose,metrics,get stopped(){return stopped;}};
+  }
+  return {bind};
+}
+
+const __MandalaDailyEntryHighlights=createDailyEntryHighlights(createDailyTagsModel());
+
+// Native daily surface only; measured after mounting, never as an input/save action.
+function createDailyAutoGrowHost(host) {
+  const body=host.bodyEl,viewport=host.contentEl,win=body.ownerDocument.defaultView;
+  let stopped=false,frame=null,lastWidth=-1,observer=null,scheduledSession=null;
+  let fullMeasure=false;const pending=new Set();
+  const measure=(synchronous=false)=>{
+    frame=null;
+    if(stopped||host.closed||(host.busy&&synchronous!==true)||host.session!==scheduledSession||host.bodyEl!==body||!body.isConnected||!body.clientWidth||!body.getClientRects().length)return;
+    const areas=(fullMeasure?[...body.querySelectorAll('textarea')]:[...pending]).filter(a=>body.contains(a)&&typeof a._mtbResizeToContent==='function');
+    fullMeasure=false;pending.clear();
+    const top=viewport.scrollTop,left=viewport.scrollLeft,vr=viewport.getBoundingClientRect();
+    const anchor=areas.find(a=>{const r=a.getBoundingClientRect();return r.top>=vr.top && r.top<vr.bottom;});
+    const y=anchor?.getBoundingClientRect().top,min=body.style.minHeight;
+    body.style.minHeight=`${body.scrollHeight}px`;
+    try {for(const a of areas)a._mtbResizeToContent();}
+    finally {body.style.minHeight=min;}
+    const shift=anchor?.isConnected?anchor.getBoundingClientRect().top-y:0;
+    viewport.scrollTop=top+shift;viewport.scrollLeft=left;
+  };
+  const refresh=(area)=>{
+    if(stopped)return;
+    if(area)pending.add(area);else fullMeasure=true;
+    if(frame!==null && host.session!==scheduledSession){win.cancelAnimationFrame(frame);frame=null;}
+    if(frame===null){scheduledSession=host.session;frame=win.requestAnimationFrame(measure);}
+  };
+  if(win.ResizeObserver) {
+    observer=new win.ResizeObserver(()=>{
+      if(stopped||!body.isConnected)return;
+      const width=body.getBoundingClientRect().width;
+      if(width!==lastWidth){lastWidth=width;if(width>0)refresh();}
+    });observer.observe(body);
+  }
+  body.ownerDocument.fonts?.ready.then(()=>{if(!stopped)refresh();});
+  return {refresh,flush(){if(stopped)return;if(frame!==null)win.cancelAnimationFrame(frame);frame=null;scheduledSession=host.session;fullMeasure=true;measure(true);},dispose(){stopped=true;pending.clear();if(frame!==null)win.cancelAnimationFrame(frame);frame=null;observer?.disconnect();}};
+}
+
 class DailyLessonsView extends ItemView {
   constructor(leaf, plugin) {
     super(leaf); this.plugin = plugin; this.sourceNotePath = ""; this.dailyId = gid(); this.date = "";
@@ -10553,7 +11530,7 @@ class DailyLessonsView extends ItemView {
   async renderPage() {
     if (!this.session) return false;
     this.busy = true; this.bodyEl.inert = true;
-    const session = this.session, scroll = this.contentEl.scrollTop;
+    const session = this.session;
     try {
       this.assertSource();
       await session.dailyLessonImageImportQueue;
@@ -10568,9 +11545,16 @@ class DailyLessonsView extends ItemView {
       try {
         await session.renderDailyLessons(next, null, { expectedSourceNotePath: this.sourceNotePath });
         this.assertSource();
-        if (this.closed) { Object.assign(session, old); return false; }
-      } catch (error) { Object.assign(session, old); throw error; }
-      this.bodyEl.replaceChildren(...Array.from(next.childNodes));
+        if (this.closed) { if(session.dailyLessonPageContext!==old.dailyLessonPageContext)session.dailyLessonPageContext?.entryHighlight?.dispose(); old.dailyLessonPageContext?.entryHighlight?.dispose(); Object.assign(session, old); return false; }
+      } catch (error) { if(session.dailyLessonPageContext!==old.dailyLessonPageContext)session.dailyLessonPageContext?.entryHighlight?.dispose(); if(this.closed)old.dailyLessonPageContext?.entryHighlight?.dispose(); Object.assign(session, old); throw error; }
+      const scroll=this.contentEl.scrollTop,minHeight=this.bodyEl.style.minHeight;
+      this.bodyEl.style.minHeight=`${this.bodyEl.scrollHeight}px`;
+      try {
+        this.bodyEl.replaceChildren(...Array.from(next.childNodes));
+        old.dailyLessonPageContext?.entryHighlight?.dispose();
+        this.dailyAutoGrow ||= createDailyAutoGrowHost(this);
+        this.dailyAutoGrow.flush();
+      } finally {this.bodyEl.style.minHeight=minHeight;}
       for (const element of this.bodyEl.querySelectorAll("button,input,textarea,select")) {
         for (const name of ["onclick", "onchange", "onpaste", "ondrop"]) {
           const handler = element[name];
@@ -10595,6 +11579,8 @@ class DailyLessonsView extends ItemView {
   async onClose() {
     if (this.closePromise) return this.closePromise;
     this.closed = true;
+    this.dailyAutoGrow?.dispose();this.dailyAutoGrow=null;
+    this.session?.dailyLessonPageContext?.entryHighlight?.dispose();
     clearTimeout(this.switchSaveTimer);
     this.closePromise = (async () => {
       try {
@@ -10673,6 +11659,7 @@ class DashboardModal extends Modal {
         this.plugin.rememberDashboardScroll();
       }
     }
+    this.plugin.dailyLessonPageContext?.entryHighlight?.dispose();
     this.plugin.unbindDashboardScrollRemember();
     this.plugin.dashboardWeeklyGoalTable?.cancelPendingWeeklySurfaceNavigation?.();
     void this.plugin.flushDashboardWeeklyTrackingDraft(false);
@@ -10893,6 +11880,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
     this.registerView(VIEW_TYPE_WEEKLY_TRACKING, leaf => new WeeklyTrackingView(leaf, this));
     this.addCommand({ id: "open-weekly-tracking-tab", name: "打开周追踪（独立标签页）", callback: () => this.openWeeklyTrackingView() });
     this.registerView(VIEW_TYPE_DAILY_LESSONS, leaf => new DailyLessonsView(leaf, this));
+    this.registerView(__MandalaDailyTags.TYPE, leaf => new __MandalaDailyTags.TagsView(leaf, this));
+    this.addCommand({ id: "open-daily-tags", name: "打开日课标签汇总", callback: () => __MandalaDailyTags.open(this) });
     this.addCommand({ id: "open-daily-lessons-tab", name: "打开日课（独立标签页）", callback: () => this.openDailyLessonsView() });
     this.registerView(VIEW_TYPE_TIME_CAPTURE, leaf => new TimeCaptureView(leaf, this));
     this.addCommand({ id: "open-time-blocks-tab", name: "打开时间块记录（独立标签页）", callback: () => this.openTimeCaptureView() });
@@ -10910,6 +11899,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   async onunload() {
+    for (const view of Array.from(this.dailyTagViews || [])) await view.onClose();
     const nativeGridViews = Array.from(this.mandalaGridViews || []);
     for (const view of nativeGridViews) view.accepting = false;
     for (const view of nativeGridViews) await view.onClose();
@@ -10928,6 +11918,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       }
     }
     this.isUnloading = true;
+    this.dailyLessonPageContext?.entryHighlight?.dispose();
     this.mandalaKeywordUiHost?.close();
     const captureDrafts = await Promise.allSettled(Array.from(this.captureViews || [], view => view.flushDraft()));
     if (captureDrafts.some(r => r.status === "rejected")) new Notice("时间块快速草稿保存失败，请保留或复制文字后再退出", 0);
@@ -11036,6 +12027,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
         timeFrameRecordDraftsV2: latest.timeFrameRecordDraftsV2 || {},
         timeFrameQuickDraftsV2: latest.timeFrameQuickDraftsV2 || {},
         dailyViewDrafts: latest.dailyViewDrafts || {},
+        dailyTagDrafts: latest.dailyTagDrafts || {},
+        dailyTagReadStateV1: latest.dailyTagReadStateV1 || {},
+        tagDisplayAliases: latest.tagDisplayAliases || {},
+        tagDisplayAliasDrafts: latest.tagDisplayAliasDrafts || {},
         weeklyViewDrafts: latest.weeklyViewDrafts || {},
       });
     });
@@ -13234,7 +14229,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const notePath = this.getRelationNotePath();
     if (!notePath || !mandala?.nodeById) return [];
     return Object.values(mandala.nodeById)
-      .filter((node) => !!node && node.id && node.id !== "root")
+      .filter((node) => !!node && node.id && !mandala.boardGraph.rootSet.has(node.id))
       .sort((a, b) => mandala.getPath(a.id).localeCompare(mandala.getPath(b.id), "zh-CN", { numeric: true, sensitivity: "base" }))
       .map((node) => {
         const pathLabel = this.buildMandalaNodeRelationPathLabel(node.id, mandala);
@@ -13281,7 +14276,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
           if (!key || key.trim() !== key || node.id !== key ||
               Object.values(node.children || {}).some(id => typeof id !== "string" || id.trim() !== id || !Object.hasOwn(db,id))) throw Error("MANDALA_MEMBERSHIP_ID");
         }
-        return Object.keys(db).filter(id => id !== "root").map(id => buildMandalaNodeJumpNodeKey(notePath,id));
+        const rootSet = new Set(MandalaBoardModel.roots(db));
+        return Object.keys(db).filter(id => !rootSet.has(id)).map(id => buildMandalaNodeJumpNodeKey(notePath,id));
       }
     });
   }
@@ -13475,7 +14471,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     }
     const state = await this.loadAll();
     const node = state.mandala.nodeById?.[id];
-    if (!node || id === "root") {
+    if (!node || state.mandala.boardGraph.rootSet.has(id)) {
       logMTB("relations", txId, "node-grid.reveal", { status: "FAIL", reasonCodes: ["node-not-found"], notePath: this.getRelationNotePath(), nodeId: id });
       new Notice("⚠️ 未找到这个九宫格节点");
       return false;
@@ -13485,6 +14481,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       tab: "mandala",
       manageView: "grid",
       manageCurrentId: id,
+      manageBoardRootId: state.mandala.boardGraph.boardByNode.get(id),
       typeFilter: "all",
       typeFilterIds: [],
       nodeSearchQuery: "",
@@ -13507,7 +14504,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     }
     const state = await this.loadAll();
     const node = state.mandala.nodeById?.[id];
-    if (!node || id === "root") {
+    if (!node || state.mandala.boardGraph.rootSet.has(id)) {
       logMTB("relations", txId, "node-filter.reveal", { status: "FAIL", reasonCodes: ["node-not-found"], notePath: this.getRelationNotePath(), nodeId: id });
       new Notice("⚠️ 未找到这个九宫格节点");
       return false;
@@ -13521,6 +14518,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       typeFilterIds: [],
       nodeSearchQuery: "",
       collapsedNodeIds: expanded.collapsedNodeIds,
+      manageBoardRootId: state.mandala.boardGraph.boardByNode.get(id), manageCurrentId: id,
     });
     await this.openWidget(false);
     this.scheduleMandalaNodeRevealFocus(id, txId);
@@ -14530,6 +15528,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   async writeJsonSafely(path, data, options = {}) { return this.getGoalRenameWriteBridge().write(path, data, options, true); }
 
   async writeJsonSafelyBeforeGoalBridge(path, data, options = {}) {
+    if(norm(path)===this.getPaths().db) this.assertMandalaBoardPeersV1(data);
     const finishTrackingRevisionWrite=this.beginTrackingRevisionWrite(path);
     try { return await (async()=>{
     const paths=this.getPaths();if([paths.db,paths.keywords].includes(norm(path))||this.getGoalRenameWriteBridge().known.has(norm(path)))return this.getGoalRenameWriteBridge().centerNaming.write(norm(path),data,options);
@@ -17042,6 +18041,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
   async ensureWeeklyGoalRow(nodeRef, weekId = "") {
     const nodeId = this.resolveWeeklyGoalNodeId(nodeRef);
+    await this.assertMandalaWeeklyTargetsV1([nodeId]);
     if (!nodeId) return null;
     const paths = this.getPaths();
     const weekInfo = weekId ? getIsoWeekInfoFromWeekId(weekId) : getIsoWeekInfo();
@@ -17064,6 +18064,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
   async upsertWeeklyGoalRow(nodeRef, weekId, patch = {}, options = {}) {
     const nodeId = this.resolveWeeklyGoalNodeId(nodeRef);
+    await this.assertMandalaWeeklyTargetsV1([nodeId]);
     if (!nodeId) return null;
     const paths = this.getPaths();
     const weekInfo = getIsoWeekInfoFromWeekId(weekId || options.weekId || getIsoWeekInfo().weekId);
@@ -17095,6 +18096,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
   async upsertWeeklyGoalRows(nodeRef, rows = [], options = {}) {
     const nodeId = this.resolveWeeklyGoalNodeId(nodeRef);
+    await this.assertMandalaWeeklyTargetsV1([nodeId]);
     if (!nodeId) return [];
     const patches = Array.isArray(rows) ? rows : [];
     if (!patches.length) return [];
@@ -17142,6 +18144,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
   async setWeeklyGoalNodeActive(nodeRef, active = true, options = {}) {
     const nodeId = this.resolveWeeklyGoalNodeId(nodeRef);
+    await this.assertMandalaWeeklyTargetsV1([nodeId]);
     if (!nodeId) return null;
     const paths = this.getPaths();
     const store = await this.loadWeeklyGoals(true);
@@ -18142,6 +19145,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     let db;try { db = JSON.parse(rawText); } catch (_) { fail("FINAL_GOAL_DB_JSON_INVALID"); }
     const own = (x,k) => Object.prototype.hasOwnProperty.call(x,k);
     if (!db || typeof db !== "object" || Array.isArray(db) || Object.keys(db).length > 50000 || !own(db,"root") || !isCompleteMandalaOwnerDb(db)) fail("FINAL_GOAL_DB_SHAPE_INVALID");
+    const rootSet = new Set(MandalaBoardModel.roots(db));
     const nodeById = Object.create(null), parentById = Object.create(null);
     for (const [key,node] of Object.entries(db)) {
       if (!key || key.trim() !== key || node.id !== key || Object.values(node.children || {}).some(id => typeof id !== "string" || id.trim() !== id || !own(db,id))) fail("FINAL_GOAL_DB_IDENTITY_INVALID");
@@ -18151,13 +19155,14 @@ class MandalaTimeBlocksPlugin extends Plugin {
     }
     const getPath = id => {
       const result = [];let current = id, guard = 0;
-      while (current && nodeById[current] && guard < 80) {
+      while (current && db[current] && guard < 80) {
         result.unshift(current);
-        if (current === "root") break;
+        if (rootSet.has(current)) break;
         current = parentById[current];guard += 1;
       }
-      return result.map(nodeId => nodeById[nodeId]?.title || nodeId).join(" > ") || "已删除";
+      return result.map(nodeId => db[nodeId]?.title || nodeId).join(" > ") || "已删除";
     };
+    rootSet.forEach(id => { if (id !== "root") delete nodeById[id]; });
     live();
     // Internal saved-input observation, not a write receipt or a freshness lease.
     const revisionEvidence = Object.freeze([source,path,generation,createHash("sha256").update(rawText,"utf8").digest("hex")]);
@@ -18611,6 +19616,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   async upsertGoalPlanRows(rows = [], maybeRows = null) {
     const paths = this.getPaths();
     const patches = Array.isArray(rows) ? rows : (Array.isArray(maybeRows) ? maybeRows : []);
+    await this.assertMandalaWeeklyTargetsV1(patches.map(p => text(p?.nodeId)));
     const store = await this.loadWeeklyGoals(true);
     const now = nowIso();
     const saved = [];
@@ -21251,6 +22257,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       return true;
     }
     const nodeId = this.resolveWeeklyGoalNodeId(nodeRef || options.nodeId || options.nodeKey);
+    await this.assertMandalaWeeklyTargetsV1([nodeId]);
     if (!nodeId) {
       if (requestedTab === "summary") {
         console.info("[MandalaTimeBlocks][weekly-goals.open]", { nodeId: "", source: text(options.source, "unknown"), initialTab: "summary" });
@@ -21291,6 +22298,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const paths = this.getPaths();
     const dbSnapshot = await this.readJsonWithEvidence(paths.db, DEFAULT_DB);
     const db = dbSnapshot.value;
+    const boardGraph = MandalaBoardModel.inspect(db), rootSet = boardGraph.rootSet;
     const ownerSnapshotComplete = dbSnapshot.ok === true && isCompleteMandalaOwnerDb(db);
     const types = mergeTypeConfigs(await this.readJson(paths.types, DEFAULT_TYPES, false));
     const keywordStoreExists = await this.app.vault.adapter.exists(paths.keywords);
@@ -21304,7 +22312,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       node.image = typeof node.image === "string" ? node.image : "";
       node.shortcuts = normalizeNodeShortcutEntries(node.shortcuts || []);
       node.keywords = normalizeMandalaKeywords(keywordStoreAuthoritative ? keywordStore.nodeKeywords[node.id] || [] : [...(keywordStore.nodeKeywords[node.id] || []), ...(node.keywords || [])]);
-      if (shouldMigrateLegacyKeywords && node.id !== "root" && node.keywords.length) {
+      if (shouldMigrateLegacyKeywords && !rootSet.has(node.id) && node.keywords.length) {
         keywordStore.nodeKeywords[node.id] = normalizeMandalaKeywords([...(keywordStore.nodeKeywords[node.id] || []), ...node.keywords]);
         keywordStore.nodeKeywords[node.id].forEach((keyword) => {
           const key = normalizeMandalaKeywordKey(keyword);
@@ -21329,23 +22337,23 @@ class MandalaTimeBlocksPlugin extends Plugin {
       let guard = 0;
       while (current && nodeById[current] && guard < 80) {
         result.unshift(current);
-        if (current === "root") break;
+        if (rootSet.has(current)) break;
         current = parentById[current];
         guard += 1;
       }
       return result;
     };
     const getPath = (id) => getPathIds(id).map((nodeId) => nodeById[nodeId]?.title || nodeId).join(" > ") || "已删除";
-    const firstLevelIds = kids(nodeById.root);
+    const firstLevelIds = boardGraph.rootIds.flatMap(id => kids(nodeById[id]));
     const leaves = Object.values(nodeById)
-      .filter((node) => node && node.id !== "root" && kids(node).length === 0)
+      .filter((node) => node && !rootSet.has(node.id) && kids(node).length === 0)
       .sort((a, b) => getPath(a.id).localeCompare(getPath(b.id), "zh-CN", { numeric: true, sensitivity: "base" }));
     const leafById = new Map(leaves.map((leaf) => [leaf.id, leaf]));
     const visualResolvers = buildMandalaVisualResolvers({ nodeById, parentById, getPathIds, firstLevelIds });
     if (!options.readOnly && shouldMigrateLegacyKeywords && Object.keys(keywordStore.keywordToNode || {}).length > 0) {
       await this.saveMandalaKeywords(keywordStore);
     }
-    return { db, nodeById, types, keywordStore, parentById, firstLevelIds, leaves, leafById, getPathIds, getPath, ownerSnapshotComplete, ownerSnapshotReason: ownerSnapshotComplete ? "" : text(dbSnapshot.reason, "invalid-owner-structure"), ...visualResolvers };
+    return { db, boardGraph, nodeById, types, keywordStore, parentById, firstLevelIds, leaves, leafById, getPathIds, getPath, ownerSnapshotComplete, ownerSnapshotReason: ownerSnapshotComplete ? "" : text(dbSnapshot.reason, "invalid-owner-structure"), ...visualResolvers };
   }
 
   async loadAll() {
@@ -22067,7 +23075,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       }),
     });
     const adjustmentPanel = make(transitionGrid, "div", { cls: "mtb-daily-lessons-day-note-panel" });
-    make(adjustmentPanel, "div", { cls: "mtb-daily-lessons-day-note-title", text: "记录、想法、路点与线索" });
+    make(adjustmentPanel, "div", { cls: "mtb-daily-lessons-day-note-title mtb-tags-entry-heading", text: "记录、想法、路点与线索" });
     make(adjustmentPanel, "div", { cls: "mtb-muted", text: "同时请参见流水账记录表格、roamresearch当日日志、thebrain工作栏和思考，以及当日建条目总结。" });
     const adjustmentInput = make(adjustmentPanel, "textarea", {
       attr: {
@@ -22079,13 +23087,16 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const initialAdjustmentProjection = getDailyLessonCommentProjection(adjustmentCanonicalValue);
     adjustmentInput.value = initialAdjustmentProjection.text;
     this.bindAutoGrow(adjustmentInput);
-    const adjustmentMedia = make(adjustmentPanel, "div", { cls: "mtb-daily-image-inline" });
+    const adjustmentMedia = make(adjustmentPanel, "div", { cls: "mtb-daily-image-inline mtb-daily-note-footer" });
     const adjustmentAlbumHost = make(adjustmentMedia, "div", { cls: "mtb-daily-image-inline-album" });
     const adjustmentImageInput = make(adjustmentMedia, "input", {
       cls: "mtb-daily-image-file-input",
       attr: { type: "file", accept: ".png,.jpg,.jpeg,.webp,.gif,.bmp,image/png,image/jpeg,image/webp,image/gif,image/bmp", multiple: "multiple", tabindex: "-1" },
     });
-    const adjustmentImageAdd = make(adjustmentMedia, "button", {
+    const tagActions = make(adjustmentMedia, "div", { cls: "mtb-tags-entry-actions" });
+    const insertDailyTags = make(tagActions, "button", { text: "插入标签", attr: { type: "button", title: "选择已有日课标签，放到当前条目末尾标签行" } });
+    make(tagActions, "button", { text: "标签汇总" }).onclick = () => __MandalaDailyTags.open(this.nativeDailyHost?.plugin || this, this.nativeDailyHost || null);
+    const adjustmentImageAdd = make(tagActions, "button", {
       cls: "mtb-daily-image-inline-add",
       attr: { type: "button", title: "添加图片", "aria-label": `向 ${selectedDate} 的记录添加图片` },
     });
@@ -22095,6 +23106,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     let adjustmentOriginalText = adjustmentInput.value;
     let adjustmentOriginalTokens = JSON.stringify(adjustmentImageTokens);
     const adjustmentContext = {
+      input: adjustmentInput,
       date: selectedDate,
       pendingCount: 0,
       getCanonicalValue: () => adjustmentInput.value === adjustmentOriginalText && JSON.stringify(adjustmentImageTokens) === adjustmentOriginalTokens
@@ -22110,11 +23122,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
         adjustmentOriginalTokens = JSON.stringify(adjustmentImageTokens);
         adjustmentInput.value = projection.text;
         adjustmentOriginalText = adjustmentInput.value;
+        adjustmentContext.entryHighlight?.refresh();
         adjustmentContext.renderAlbum();
-        window.setTimeout(() => {
-          adjustmentInput.style.height = "auto";
-          adjustmentInput.style.height = `${Math.max(adjustmentInput.scrollHeight, 48)}px`;
-        }, 0);
+        if(this.nativeDailyHost)this.nativeDailyHost.dailyAutoGrow?.refresh(adjustmentInput);
+        else adjustmentInput.ownerDocument.defaultView.setTimeout(()=>adjustmentInput._mtbResizeToContent?.(),0);
       },
       updatePending: () => {
         const pending = adjustmentContext.pendingCount > 0;
@@ -22128,6 +23139,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     adjustmentContext.renderAlbum();
     adjustmentContext.updatePending();
     this.dailyLessonPageContext = adjustmentContext;
+    adjustmentContext.entryHighlight = __MandalaDailyEntryHighlights.bind(adjustmentInput);
     adjustmentImageAdd.onclick = () => adjustmentImageInput.click();
     adjustmentImageInput.onchange = async () => {
       const files = Array.from(adjustmentImageInput.files || []);
@@ -22188,6 +23200,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     });
     planInput.oninput = () => this.queueDailyLessonPageDraft();
     adjustmentInput.oninput = () => this.queueDailyLessonPageDraft();
+    __MandalaDailyTagPicker.bind(insertDailyTags, this, adjustmentContext);
     const summaryActions = make(summaryBox, "div", { cls: "mtb-inline-row mtb-wrap mtb-daily-lessons-summary-actions" });
     make(summaryActions, "button", { cls: "mod-cta", text: "保存当前页面" }).onclick = async () => {
       await this.flushDailyLessonPageDraft(true);
@@ -22251,6 +23264,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
         row.nameInput.value = value.name || ""; row.timeRangeInput.value = value.timeRange || "";
         row.experienceContext.setCanonicalValue(value.priorExperience || ""); row.doneInput.checked = value.done === true; row.noteInput.value = value.note || "";
       }
+      this.nativeDailyHost?.dailyAutoGrow?.refresh();
     };
   }
 
@@ -22439,12 +23453,17 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   bindAutoGrow(textarea) {
+    const win=textarea.ownerDocument.defaultView;
     const resize = () => {
+      if(!textarea.isConnected || !textarea.clientWidth || !textarea.getClientRects().length)return;
+      const css=win.getComputedStyle(textarea),number=v=>parseFloat(v)||0;
       textarea.style.height = "auto";
-      textarea.style.height = `${Math.max(textarea.scrollHeight, 48)}px`;
+      const extra=css.boxSizing==="border-box"?number(css.borderTopWidth)+number(css.borderBottomWidth):-number(css.paddingTop)-number(css.paddingBottom);
+      textarea.style.height = `${Math.ceil(Math.max(textarea.scrollHeight+extra,48))}px`;
     };
-    textarea.addEventListener("input", resize);
-    window.setTimeout(resize, 0);
+    textarea._mtbResizeToContent=resize;
+    textarea.addEventListener("input", () => this.nativeDailyHost?.dailyAutoGrow ? this.nativeDailyHost.dailyAutoGrow.refresh(textarea) : resize());
+    win.setTimeout(() => this.nativeDailyHost ? this.nativeDailyHost.dailyAutoGrow?.refresh(textarea) : resize(), 0);
   }
 
   renderDailyLessonRow(tbody, date, item, entry, pageRows = []) {
@@ -22786,6 +23805,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     this.configureDashboardModal(modal);
     if (requestedDashboardTab !== "ontologyMeta") this.bindDashboardScrollRemember(modal);
     this.mandalaKeywordUiHost?.releaseOwner(modal);
+    this.dailyLessonPageContext?.entryHighlight?.dispose();
     clear(modal.contentEl);
     this.dashboardWeeklyGoalTable = null;
     logMTB("modal", txId, "switch.start", { status: "PASS", reasonCodes: [], notePath: this.getPaths().sourceNotePath, modal: modalDiag(modal) });
@@ -22951,9 +23971,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   buildMandalaKeywordStoreFromNodeKeywords(nodeById) {
+    const rootSet = new Set(MandalaBoardModel.roots(nodeById));
     const store = clone(DEFAULT_MANDALA_KEYWORDS, DEFAULT_MANDALA_KEYWORDS);
     Object.values(nodeById || {}).forEach((node) => {
-      if (!node?.id || node.id === "root") return;
+      if (!node?.id || rootSet.has(node.id)) return;
       const keywords = normalizeMandalaKeywords(node.keywords || []);
       store.nodeKeywords[node.id] = keywords;
       keywords.forEach((keyword) => {
@@ -22980,7 +24001,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
   stageMandalaNode(nodeId, state, reason = "manual") {
     const id = text(nodeId);
-    if (!id || id === "root" || !state?.mandala?.nodeById?.[id]) return false;
+    if (!id || state.mandala.boardGraph.rootSet.has(id) || !state?.mandala?.nodeById?.[id]) return false;
     const dragState = this.getMandalaDragState();
     if (!dragState.stagedNodeIds.includes(id)) dragState.stagedNodeIds.push(id);
     logMTB("mandala-drag", "stage-only", "stage", {
@@ -23119,6 +24140,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   buildMandalaGraphView(db, types = {}) {
+    const boardGraph = MandalaBoardModel.inspect(db);
     const nodeById = {};
     Object.values(db || {}).forEach((node) => {
       if (!node?.id) return;
@@ -23141,11 +24163,11 @@ class MandalaTimeBlocksPlugin extends Plugin {
       return result;
     };
     const getPath = (id) => getPathIds(id).map((nodeId) => nodeById[nodeId]?.title || nodeId).join(" > ") || "已删除";
-    const leaves = Object.values(nodeById).filter((node) => node && node.id !== "root" && childSlotEntries(node).length === 0);
+    const leaves = Object.values(nodeById).filter((node) => node && !boardGraph.rootSet.has(node.id) && childSlotEntries(node).length === 0);
     const leafById = new Map(leaves.map((leaf) => [leaf.id, leaf]));
-    const firstLevelIds = childSlotEntries(nodeById.root || {}).map(([, id]) => id);
+    const firstLevelIds = boardGraph.rootIds.flatMap(rootId => childSlotEntries(nodeById[rootId]).map(([, id]) => id));
     const visualResolvers = buildMandalaVisualResolvers({ nodeById, parentById, getPathIds, firstLevelIds });
-    return { db, nodeById, types, parentById, leaves, leafById, getPathIds, getPath, ...visualResolvers };
+    return { db, boardGraph, nodeById, types, parentById, leaves, leafById, getPathIds, getPath, ...visualResolvers };
   }
 
   buildMandalaIncomingEdgeIndex(db) {
@@ -23164,6 +24186,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
 
   validateMandalaGraph(db) {
     const reasonCodes = [];
+    let rootSet; try { rootSet = new Set(MandalaBoardModel.roots(db)); } catch (e) { return {ok:false,reasonCodes:[e.code]}; }
     if (!db || typeof db !== "object") return { ok: false, reasonCodes: ["db-not-object"] };
     if (!db.root) reasonCodes.push("missing-root");
     const incoming = this.buildMandalaIncomingEdgeIndex(db);
@@ -23178,8 +24201,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
     });
     Object.keys(db).forEach((id) => {
       const count = (incoming.get(id) || []).length;
-      if (id === "root" && count !== 0) reasonCodes.push("root-has-parent");
-      if (id !== "root" && count !== 1) reasonCodes.push(`bad-parent-count:${id}:${count}`);
+      if (rootSet.has(id) && count !== 0) reasonCodes.push("root-has-parent");
+      if (!rootSet.has(id) && count !== 1) reasonCodes.push(`bad-parent-count:${id}:${count}`);
     });
     const visited = new Set();
     const visiting = new Set();
@@ -23195,7 +24218,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       visiting.delete(id);
       visited.add(id);
     };
-    walk("root");
+    rootSet.forEach(walk);
     Object.keys(db).forEach((id) => {
       if (!visited.has(id)) reasonCodes.push(`unreachable:${id}`);
     });
@@ -23210,7 +24233,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   validateMandalaDropIntent(intent, db) {
     const reasonCodes = [];
     const draggedRootId = text(intent?.draggedRootId);
-    if (!draggedRootId || draggedRootId === "root" || !db?.[draggedRootId]) reasonCodes.push("invalid-dragged-root");
+    if (!draggedRootId || MandalaBoardModel.isRoot(db,draggedRootId) || !db?.[draggedRootId]) reasonCodes.push("invalid-dragged-root");
     if (intent?.kind === "stage-only") return { ok: reasonCodes.length === 0, reasonCodes };
     if (!["same-parent-slot", "promote-to-parent-level", "child", "swap-to-target-level"].includes(intent?.kind)) reasonCodes.push("invalid-intent-kind");
     if (!db?.[intent?.targetParentId]) reasonCodes.push("missing-target-parent");
@@ -23224,7 +24247,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     if (intent?.kind === "child" && intent?.targetParentId === source.parentId) reasonCodes.push("already-child-of-target");
     const subtree = new Set(this.collectSubtreeIds(draggedRootId, db));
     if (subtree.has(intent?.targetParentId)) reasonCodes.push("target-inside-dragged-subtree");
-    if (intent?.kind === "promote-to-parent-level" && intent?.sourceParentId === "root") reasonCodes.push("cannot-promote-root-child");
+    if (intent?.kind === "promote-to-parent-level" && MandalaBoardModel.isRoot(db,intent?.sourceParentId)) reasonCodes.push("cannot-promote-root-child");
     if (intent?.kind === "child") {
       const targetParent = db?.[intent?.targetParentId];
       const targetSlot = String(intent?.targetSlot);
@@ -23342,6 +24365,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     if (!graphCheck.ok) {
       logMTB("mandala-drag", txId, "graph.preexisting.keep", { status: "WARN", reasonCodes: graphCheck.reasonCodes, intent });
     }
+    MandalaBoardModel.transition(state.mandala.db, applied.db);
     const movedSubtreeIds = this.collectSubtreeIds(intent.draggedRootId, applied.db);
     const movedLeafIds = movedSubtreeIds.filter((id) => childSlotEntries(applied.db[id]).length === 0);
     const records = await this.loadRecords();
@@ -23392,7 +24416,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       new Notice("节点不存在");
       return;
     }
-    if (nodeId === "root") {
+    if (mandala.boardGraph.rootSet.has(nodeId)) {
       new Notice("根节点不可删除");
       return;
     }
@@ -23428,7 +24452,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
           });
         });
         deleteIds.forEach((id) => {
-          if (id !== "root") delete db[id];
+          if (!mandala.boardGraph.rootSet.has(id)) delete db[id];
         });
         Object.values(records.records || {}).forEach((record) => {
           if (!deleteIds.has(record.leafNodeId)) return;
@@ -23690,34 +24714,181 @@ class MandalaTimeBlocksPlugin extends Plugin {
     };
   }
 
-  async renderMandalaManager(parent, state) {
-    const dashboardState = this.getDashboardState();
-    if (!state.mandala.nodeById[dashboardState.manageCurrentId]) {
-      dashboardState.manageCurrentId = "root";
-    }
-    const wrap = make(parent, "section", { cls: "mtb-mandala-manager" });
-    const top = make(wrap, "div", { cls: "mtb-mandala-topbar" });
-    const left = make(top, "div", { cls: "mtb-inline-row mtb-wrap" });
-    [
-      ["grid", "🕸️ 九宫格"],
-      ["nodes", "🔎 节点目录"],
-      ["keywords", "🏷️ 关键词管理"],
-    ].forEach(([view, label]) => {
-      const btn = make(left, "button", { cls: `mtb-m-btn ${dashboardState.manageView === view ? "is-active" : ""}`, text: label });
-      btn.onclick = async () => {
-        this.updateDashboardState({ manageView: view });
-        await this.renderWidget(false, false, gid());
+  getMandalaBoardCapabilitiesV1() { return { version: 1, schema: MandalaBoardModel.CAPABILITY }; }
+
+  getMandalaBoardDiagnosticsV1() {
+    const owner = this.nativeMandalaHost?.owner || this;
+    const sessions = [owner, ...[...(owner.mandalaGridViews || [])].slice(0,20).map(v => v.session).filter(Boolean)];
+    return { version: 1, enabled: owner.mandalaBoardPerfEnabled === true,
+      views: sessions.map(s => ({ ...(s.mandalaBoardPerfV1 || {switchCount:0}) })) };
+  }
+
+  assertMandalaBoardPeersV1(db) {
+    MandalaBoardModel.roots(db);
+    if (db.root[MandalaBoardModel.FIELD] === undefined) return;
+    const owner = this.nativeMandalaHost?.owner || this;
+    const peo = owner.app.plugins?.plugins?.['project-execution-overview'];
+    if (owner.app.plugins?.plugins?.['mandala-time-blocks'] !== owner || owner.isUnloading ||
+        peo?.contextCarrierUnloading || peo?.getMandalaBoardCapabilitiesV1?.().schema !== MandalaBoardModel.CAPABILITY)
+      throw Error('九宫格与项目执行总览需要使用同一批多九宫格版本，请保留输入后更新插件。');
+  }
+
+  async getMandalaBoardParentDirectoryV1() {
+    const owner = this.nativeMandalaHost?.owner || this, paths = owner.getPaths();
+    const adapter = owner.app.vault.adapter, raw = await adapter.read(paths.db);
+    if (owner.app.plugins?.plugins?.['mandala-time-blocks'] !== owner || owner.isUnloading ||
+        owner.app.vault.adapter !== adapter || JSON.stringify(owner.getPaths()) !== JSON.stringify(paths)) throw Error('BOARD_DIRECTORY_SOURCE_CHANGED');
+    if (typeof raw !== 'string' || Buffer.byteLength(raw, 'utf8') > 8 * 1024 * 1024) throw Error('BOARD_DIRECTORY_SIZE');
+    const db = JSON.parse(raw); owner.assertMandalaBoardPeersV1(db);
+    return { version: 1, schema: MandalaBoardModel.CAPABILITY, sourceNotePath: paths.sourceNotePath,
+      revision: createHash('sha256').update(raw, 'utf8').digest('hex'), items: MandalaBoardModel.parentDirectory(db) };
+  }
+
+  mandalaBoardUi(state) {
+    const m = state.mandala;
+    return m.boardGraph ||= MandalaBoardModel.inspect(m.db);
+  }
+
+  updateMandalaBoardEnvironmentV1(patch) {
+    if (this.nativeMandalaHost) return this.updateDashboardState(patch);
+    // Legacy dashboard saves its environment on close/scroll through its existing
+    // lifecycle. Switching a board must not clone/publish all plugin draft data.
+    this.dashboardState = { ...this.getDashboardState(), ...patch };
+    this.settings = { ...this.settings, dashboardState: this.dashboardState };
+    return this.dashboardState;
+  }
+
+  async assertMandalaWeeklyTargetsV1(nodeIds) {
+    // Catalog/add share this format. Normal goal IDs incur no extra DB read.
+    // A matching old ordinary ID is checked against the directory, never rejected by prefix.
+    if (!nodeIds.some(MandalaBoardModel.isBoardRootId)) return;
+    const owner = this.nativeMandalaHost?.owner || this, paths = owner.getPaths(), adapter = owner.app.vault.adapter;
+    const raw = await adapter.read(paths.db);
+    if (owner.isUnloading || owner.app.vault.adapter !== adapter || JSON.stringify(owner.getPaths()) !== JSON.stringify(paths)) throw Error('BOARD_WEEKLY_SOURCE_CHANGED');
+    const roots = new Set(MandalaBoardModel.roots(JSON.parse(raw)));
+    if (nodeIds.some(id => id !== 'root' && roots.has(id))) throw Error('九宫格中心是容器，请为中心下的具体目标设置周计划。');
+  }
+
+  async openMandalaBoardCreator(state) {
+    if (this.nativeMandalaHost && !this.nativeMandalaHost.canEdit()) return;
+    const owner = this.nativeMandalaHost?.owner || this, bridge = this.getGoalRenameWriteBridge(), scope = bridge.capture();
+    const assert = () => { bridge.assert(scope); if (this.getPaths().sourceNotePath !== scope.sourceNotePath) throw Error('BOARD_CREATE_SOURCE_CHANGED'); };
+    assert();
+    const draft = __getMandalaBoardDraft().open(owner, scope.sourceNotePath);
+    const modal = new Modal(this.app); modal.sourceNotePath = scope.sourceNotePath;
+    const body = modal.contentEl;
+    make(body, 'h2', { text: '新增独立九宫格' });
+    make(body, 'p', { cls: 'mtb-muted', text: '新九宫格拥有自己的中心与节点。目标仍可在主键管理中心统一管理。' });
+    const input = make(body, 'input', { attr: { type: 'text', placeholder: '例如：工作、生活、学习', maxlength: '120', 'aria-label': '九宫格名称' } });
+    input.value = draft.value.title;
+    const status = make(body, 'p', { cls: 'mtb-muted', text: draft.value.title ? '已恢复上次未完成的创建。' : '关闭窗口会保留名称，稍后可继续。' });
+    const saveDraft = () => { assert(); draft.save(input.value); };
+    input.oninput = () => { try { saveDraft(); status.textContent = '名称已暂存。'; } catch (e) { status.textContent = '暂存失败，请保留窗口并复制名称：' + e.message; } };
+    const submit = make(body, 'button', { cls: 'mod-cta', text: '创建九宫格' });
+    let busy = false;
+    submit.onclick = async () => {
+      if (busy) return; busy = true; submit.disabled = true;
+      try {
+        saveDraft(); draft.flush(); // Persist fixed IDs before a business commit; not on each keystroke.
+        const perform = async () => {
+          assert();
+          const fresh = await owner.app.vault.adapter.read(scope.db); assert();
+          const added = MandalaBoardModel.add(JSON.parse(fresh), draft.value); owner.assertMandalaBoardPeersV1(added.db);
+          if (!added.noOp) await this.writeJsonSafely(scope.db, added.db, { expectedTargetExists: true,
+            expectedTargetHash: createHash('sha256').update(fresh, 'utf8').digest('hex'), assertSynchronousLease: assert });
+          assert();
+          this.updateDashboardState({ manageBoardRootId: added.id, manageCurrentId: added.id, manageView: 'grid' });
+        };
+        // A title-only creation draft owns fixed request IDs, not a stale view snapshot.
+        // Rebind to the current native state; the fresh DB is still protected by its CAS.
+        if (this.nativeMandalaHost) await this.nativeMandalaHost.mutate(this.nativeMandalaHost.state, perform); else await perform();
+        const rendered = await this.renderWidget(false, false, gid());
+        if (rendered === false) throw Error('数据已保存，页面未能更新。重开新增窗口可核对同一次创建，不会重复新增。');
+        draft.clear(); modal.close();
+      } catch (e) { status.textContent = '尚未完成：' + e.message; }
+      finally { busy = false; submit.disabled = false; }
+    };
+    modal.open(); input.focus();
+  }
+
+  async renderMandalaBoardLayout(parent, state, renderContent) {
+    const graph = this.mandalaBoardUi(state), env = this.getDashboardState();
+    this.mandalaRenderedRootSet = graph.rootSet;
+    let selected = graph.boardByNode.get(env.manageCurrentId) || env.manageBoardRootId || 'root';
+    if (!graph.rootSet.has(selected)) selected = 'root';
+    env.manageBoardRootId = selected;
+    if (graph.boardByNode.get(env.manageCurrentId) !== selected) env.manageCurrentId = selected;
+    const layout = make(parent, 'div', { cls: 'mtb-board-layout' });
+    const rail = make(layout, 'nav', { cls: 'mtb-board-rail', attr: { 'aria-label': '独立九宫格' } });
+    make(rail, 'div', { cls: 'mtb-board-caption', text: '我的九宫格' });
+    const list = make(rail, 'div', { cls: 'mtb-board-list', attr: { role: 'tablist', 'aria-orientation': 'vertical' } });
+    const pane = make(layout, 'div', { cls: 'mtb-board-pane', attr: { role: 'tabpanel' } });
+    const buttons = [];
+    let switching = false, pendingBoard = null;
+    const paint = () => buttons.forEach(([id,b]) => { const active = id === this.getDashboardState().manageBoardRootId;
+      b.classList.toggle('is-active', active); b.setAttribute('aria-selected', String(active)); b.tabIndex = active ? 0 : -1; });
+    const switchTo = async id => {
+      if (switching) { pendingBoard = id; return; }
+      if (id === this.getDashboardState().manageBoardRootId) return;
+      if (this.nativeMandalaHost && !this.nativeMandalaHost.canEdit()) return;
+      this.nativeMandalaHost?.assertState(state);
+      switching = true;
+      const perfOwner = this.nativeMandalaHost?.owner || this;
+      const started = perfOwner.mandalaBoardPerfEnabled === true ? performance.now() : null;
+      const before = { ...this.getDashboardState() }, oldMode = this.mandalaGridSize;
+      try {
+        const current = before.manageBoardRootId, saved = { ...(before.mandalaBoardViews || {}) };
+        saved[current] = { nodeId: before.manageCurrentId, mode: oldMode === 81 ? 81 : 9,
+          view: before.manageView, nodeSearchQuery: before.nodeSearchQuery || '', keywordSearchQuery: before.keywordSearchQuery || '',
+          collapsedNodeIds: [...(before.collapsedNodeIds || [])], scroll: this.nativeMandalaHost?.contentEl.scrollTop || 0 };
+        const restored = saved[id] || {};
+        this.mandalaGridSize = restored.mode === 81 ? 81 : 9;
+        this.updateMandalaBoardEnvironmentV1({ manageBoardRootId: id, manageCurrentId: graph.boardByNode.get(restored.nodeId) === id ? restored.nodeId : id,
+          manageView: restored.view || 'grid', nodeSearchQuery: restored.nodeSearchQuery || '', keywordSearchQuery: restored.keywordSearchQuery || '',
+          collapsedNodeIds: restored.collapsedNodeIds || [], mandalaBoardViews: saved });
+        this.stopMandalaGridImages(); this.mandalaKeywordUiHost?.releaseSubtree(pane); pane.replaceChildren();
+        await renderContent(pane); paint();
+        if (this.nativeMandalaHost) this.nativeMandalaHost.contentEl.scrollTop = restored.scroll || 0;
+        if (started !== null) {
+          const elapsed = performance.now() - started, prior = this.mandalaBoardPerfV1 || {switchCount:0,maxSwitchMs:0};
+          this.mandalaBoardPerfV1 = {switchCount:prior.switchCount+1,lastSwitchMs:elapsed,maxSwitchMs:Math.max(prior.maxSwitchMs,elapsed)};
+        }
+      } catch (e) {
+        this.mandalaGridSize = oldMode; this.updateMandalaBoardEnvironmentV1(before);
+        this.mandalaKeywordUiHost?.releaseSubtree(pane); pane.replaceChildren(); await renderContent(pane); paint();
+        new Notice('未能切换九宫格：' + e.message);
+      } finally { switching = false; const wanted = pendingBoard; pendingBoard = null; if (wanted) await switchTo(wanted); }
+    };
+    for (const id of graph.rootIds) {
+      const title = String(state.mandala.nodeById[id]?.title || '未命名九宫格');
+      const b = make(list, 'button', { cls: 'mtb-board-tab', text: title, attr: { role: 'tab', title } });
+      b.onclick = () => switchTo(id); buttons.push([id,b]);
+      b.onkeydown = event => {
+        const at = buttons.findIndex(([,x]) => x === b);
+        const next = event.key === 'ArrowDown' ? (at+1)%buttons.length : event.key === 'ArrowUp' ? (at+buttons.length-1)%buttons.length : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length-1 : -1;
+        if (next >= 0) { event.preventDefault(); buttons[next][1].focus(); void switchTo(buttons[next][0]); }
       };
-    });
-    const right = make(top, "div", { cls: "mtb-inline-row mtb-wrap" });
-    make(right, "button", { text: "刷新九宫格" }).onclick = () => this.renderWidget(false, true, gid());
-    if (dashboardState.manageView === "grid") {
-      await this.renderMandalaGridViews(wrap, state);
-    } else if (dashboardState.manageView === "nodes") {
-      this.renderMandalaNodeDirectory(wrap, state);
-    } else if (dashboardState.manageView === "keywords") {
-      this.renderMandalaKeywords(wrap, state);
     }
+    const add = make(rail, 'button', { cls: 'mtb-board-add', text: '+ 新增九宫格' });
+    add.onclick = () => this.openMandalaBoardCreator(state).catch(e => new Notice(e.message));
+    make(rail, 'p', { cls: 'mtb-board-hint', text: '编辑中心节点可修改名称与封面。' });
+    paint(); await renderContent(pane);
+  }
+
+  async renderMandalaManager(parent, state) {
+    await this.renderMandalaBoardLayout(parent, state, async wrap => {
+      const dashboardState = this.getDashboardState();
+      const top = make(wrap, "div", { cls: "mtb-mandala-topbar" });
+      const left = make(top, "div", { cls: "mtb-inline-row mtb-wrap" });
+      for (const [view, label] of [["grid", "🕸️ 九宫格"], ["nodes", "🔎 节点目录"], ["keywords", "🏷️ 关键词管理"]]) {
+        const btn = make(left, "button", { cls: `mtb-m-btn ${dashboardState.manageView === view ? "is-active" : ""}`, text: label });
+        btn.onclick = async () => { this.updateDashboardState({ manageView: view }); await this.renderWidget(false, false, gid()); };
+      }
+      make(top, "button", { text: "刷新九宫格" }).onclick = () => this.renderWidget(false, true, gid());
+      if (dashboardState.manageView === "nodes") this.renderMandalaNodeDirectory(wrap, state);
+      else if (dashboardState.manageView === "keywords") this.renderMandalaKeywords(wrap, state);
+      else await this.renderMandalaGridViews(wrap, state);
+    });
   }
 
   renderMandalaDragTray(parent, state, currentId) {
@@ -23769,7 +24940,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   attachMandalaDragSource(element, nodeId) {
-    if (!element || !nodeId || nodeId === "root") return;
+    if (!element || !nodeId || (this.mandalaRenderedRootSet || new Set(["root"])).has(nodeId)) return;
     element.setAttribute("draggable", "true");
     element.addEventListener("dragstart", (event) => {
       this.setMandalaDraggedNode(nodeId);
@@ -23789,7 +24960,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   attachMandalaEmptySlotDrop(cell, context) {
     cell.addEventListener("dragover", (event) => {
       const draggedId = this.getMandalaDraggedNode(event);
-      if (!draggedId || draggedId === "root") return;
+      if (!draggedId || context.state.mandala.boardGraph.rootSet.has(draggedId)) return;
       const source = this.findMandalaParentSlot(context.state.mandala.db, draggedId);
       const sourceParentParent = this.findMandalaParentSlot(context.state.mandala.db, source.parentId).parentId;
       if (source.parentId !== context.parentId && sourceParentParent !== context.parentId) return;
@@ -23800,7 +24971,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     cell.addEventListener("drop", async (event) => {
       const draggedId = this.getMandalaDraggedNode(event);
       cell.classList.remove("drag-over-slot");
-      if (!draggedId || draggedId === "root") return;
+      if (!draggedId || context.state.mandala.boardGraph.rootSet.has(draggedId)) return;
       event.preventDefault();
       const source = this.findMandalaParentSlot(context.state.mandala.db, draggedId);
       const sourceParentParent = this.findMandalaParentSlot(context.state.mandala.db, source.parentId).parentId;
@@ -23821,7 +24992,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const clearDropState = () => clearMandalaDropClasses(cell);
     const resolveIntent = (event) => {
       const draggedId = this.getMandalaDraggedNode(event);
-      if (!draggedId || draggedId === "root" || draggedId === context.nodeId) return { draggedId: "", reason: "missing-dragged" };
+      if (!draggedId || context.state.mandala.boardGraph.rootSet.has(draggedId) || draggedId === context.nodeId) return { draggedId: "", reason: "missing-dragged" };
       const source = this.findMandalaParentSlot(context.state.mandala.db, draggedId);
       if (!source.parentId) return { draggedId, reason: "source-not-found" };
       const dropMode = getMandalaNodeDropMode(event, cell);
@@ -23898,7 +25069,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const clearDropState = () => clearMandalaDropClasses(cell);
     const resolveIntent = (event) => {
       const draggedId = this.getMandalaDraggedNode(event);
-      if (!draggedId || draggedId === "root") return { draggedId: "", reason: "missing-dragged" };
+      if (!draggedId || context.state.mandala.boardGraph.rootSet.has(draggedId)) return { draggedId: "", reason: "missing-dragged" };
       const source = this.findMandalaParentSlot(context.state.mandala.db, draggedId);
       if (!source.parentId) return { draggedId, reason: "source-not-found" };
       if (source.parentId === context.currentId) {
@@ -24205,7 +25376,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
         };
         action("编辑节点", () => this.openNodeEditor(node.id, state));
         action("查看历史", () => this.openNodeHistory(node.id, state));
-        action("周追踪表", () => this.openWeeklyGoalTable(node.id, { source: "mandala-grid" }));
+        if (node.id === "root" || !mandala.boardGraph.rootSet.has(node.id)) action("周追踪表", () => this.openWeeklyGoalTable(node.id, { source: "mandala-grid" }));
       }
     });
     const sourcePath = state.paths?.sourceNotePath || this.getPaths().sourceNotePath;
@@ -24291,7 +25462,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
         event.stopPropagation();
         this.openNodeHistory(node.id, state);
       };
-      make(overlay, "span", { text: "周", attr: { title: "打开周追踪表" } }).onclick = async (event) => {
+      if (node.id === "root" || !mandala.boardGraph.rootSet.has(node.id)) make(overlay, "span", { text: "周", attr: { title: "打开周追踪表" } }).onclick = async (event) => {
         event.stopPropagation();
         await this.openWeeklyGoalTable(node.id, { source: "mandala-grid" });
       };
@@ -24436,7 +25607,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const isCollapsed = childIds.length > 0 && collapsedSet.has(nodeId);
     const nextTrail = new Set(trail);
     nextTrail.add(nodeId);
-    if (nodeId !== "root") {
+    if (!mandala.boardGraph.rootSet.has(nodeId)) {
       const pathText = mandala.getPath(node.id);
       const commentText = text(node.comment);
       const hoverTitle = commentText ? `${pathText}\n\n评论/描述：${commentText}` : `${pathText}\n\n暂无评论/描述`;
@@ -24494,18 +25665,18 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const list = make(parent, "div", { cls: "mtb-node-tree-list" });
     const query = qText(dashboardState.nodeSearchQuery);
     const nodes = Object.values(mandala.nodeById)
-      .filter((node) => node && node.id !== "root")
+      .filter((node) => node && !mandala.boardGraph.rootSet.has(node.id) && mandala.boardGraph.boardByNode.get(node.id) === dashboardState.manageBoardRootId)
       .filter((node) => !query || qText(node.title).includes(query) || qText(mandala.getPath(node.id)).includes(query))
       .sort((a, b) => mandala.getPath(a.id).localeCompare(mandala.getPath(b.id), "zh-CN", { numeric: true, sensitivity: "base" }));
     if (!nodes.length) make(list, "div", { cls: "mtb-muted", text: query ? "没有匹配这个节点名关键词的路径。" : "暂无九宫格节点。" });
     const directMatchSet = new Set(nodes.map((node) => node.id));
-    const visibleSet = new Set(["root"]);
+    const visibleSet = new Set([dashboardState.manageBoardRootId || "root"]);
     const relationSnapshotCache = new Map();
     nodes.forEach((node) => {
       mandala.getPathIds(node.id).forEach((pathId) => visibleSet.add(pathId));
       this.getMandalaDescendantIds(mandala, node.id).forEach((descendantId) => visibleSet.add(descendantId));
     });
-    this.getMandalaOrderedChildIds(mandala, "root").forEach((childId) => {
+    this.getMandalaOrderedChildIds(mandala, dashboardState.manageBoardRootId || "root").forEach((childId) => {
       this.renderMandalaNodeTreeLine(list, state, childId, visibleSet, directMatchSet, relationSnapshotCache, 1);
     });
   }
@@ -24626,7 +25797,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       this.updateDashboardState({ keywordSearchQuery: searchInput.value || "" });
       await this.renderWidget(false, false, gid());
     };
-    const keywordIndex = this.getMandalaKeywordIndex(state);
+    const keywordIndex = this.getMandalaKeywordIndex(state).filter(e => mandala.boardGraph.boardByNode.get(e.nodeId) === dashboardState.manageBoardRootId);
     const query = qText(dashboardState.keywordSearchQuery);
     const filtered = keywordIndex.filter((entry) => !query || qText(entry.keyword).includes(query) || qText(entry.nodeTitle).includes(query));
     const indexRow = make(shell, "div", { cls: "mtb-keyword-index-row" });
@@ -24637,13 +25808,13 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const list = make(shell, "div", { cls: "mtb-node-tree-list mtb-keyword-node-tree" });
     const matchedNodeIds = uniqueTextList(filtered.map((entry) => entry.nodeId));
     const matchedNodeSet = new Set(matchedNodeIds);
-    const visibleSet = new Set(["root"]);
+    const visibleSet = new Set([dashboardState.manageBoardRootId || "root"]);
     matchedNodeIds.forEach((nodeId) => {
       mandala.getPathIds(nodeId).forEach((pathId) => visibleSet.add(pathId));
       this.getMandalaDescendantIds(mandala, nodeId).forEach((descendantId) => visibleSet.add(descendantId));
     });
     const relationSnapshotCache = new Map();
-    this.getMandalaOrderedChildIds(mandala, "root").forEach((childId) => {
+    this.getMandalaOrderedChildIds(mandala, dashboardState.manageBoardRootId || "root").forEach((childId) => {
       this.renderMandalaNodeTreeLine(list, state, childId, visibleSet, matchedNodeSet, relationSnapshotCache, 1);
     });
   }
@@ -24738,9 +25909,10 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const titleInput = make(form, "input");
     titleInput.value = node.title || "";
 
-    make(form, "label", { text: "关键词（可多选，单关键词只能对应一个节点）" });
+    const keywordLabel = make(form, "label", { text: "关键词（可多选，单关键词只能对应一个节点）" });
     let keywords = normalizeMandalaKeywords(node.keywords || []);
     const keywordWrap = make(form, "div", { cls: "mtb-node-keyword-editor" });
+    if (node.id !== "root" && mandala.boardGraph.rootSet.has(node.id)) { keywordLabel.hidden = keywordWrap.hidden = true; }
     const keywordInput = make(keywordWrap, "textarea", { cls: "mtb-node-keyword-input", attr: { rows: "4", placeholder: "每行一个关键词" } });
     keywordInput.value = keywords.join("\n");
     const keywordPreview = make(keywordWrap, "div", { cls: "mtb-node-keyword-selected-preview" });
@@ -24943,16 +26115,16 @@ class MandalaTimeBlocksPlugin extends Plugin {
     const relationSnapshot = this.getMandalaNodeRelationSnapshot(node.id);
     const relationCount = (relationSnapshot.outgoing?.length || 0) + (relationSnapshot.incoming?.length || 0);
     const actions = make(content, "div", { cls: "mtb-modal-actions" });
-    make(actions, "button", { text: relationCount > 0 ? `互联 ${relationCount}` : "互联" }).onclick = async (event) => {
+    if (!mandala.boardGraph.rootSet.has(node.id)) make(actions, "button", { text: relationCount > 0 ? `互联 ${relationCount}` : "互联" }).onclick = async (event) => {
       event.preventDefault();
       await this.openRelationEditorForMandalaNode(node.id);
     };
-    make(actions, "button", { text: "周表" }).onclick = async (event) => {
+    if (node.id === "root" || !mandala.boardGraph.rootSet.has(node.id)) make(actions, "button", { text: "周表" }).onclick = async (event) => {
       event.preventDefault();
       await this.openWeeklyGoalTable(node.id, { source: "node-editor" });
     };
     make(actions, "button", { text: "查看历史" }).onclick = () => this.openNodeHistory(node.id, state);
-    if (node.id !== "root") {
+    if (!mandala.boardGraph.rootSet.has(node.id)) {
       const hasChildren = kids(node).length > 0;
       const deleteButton = make(actions, "button", { cls: "mod-warning", text: "删除节点" });
       deleteButton.disabled = hasChildren;
@@ -26165,6 +27337,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
   }
 
   renderOverview(parent, state) {
+    state.captureHost?.timeChartViewport?.capture();
     const section = parent.querySelector(".mtb-overview") || make(parent, "section", { cls: "mtb-section mtb-overview" });
     const records = this.filteredRecords(state);
     const overviewColors = buildOverviewColorResolver(records, state.mandala);
@@ -26190,7 +27363,7 @@ class MandalaTimeBlocksPlugin extends Plugin {
       make(section, "p", { cls: "mtb-muted", text: "当前范围内还没有完整记录。" });
     }
     const chart = section.querySelector(".mtb-chart") || make(section, "div", { cls: "mtb-chart" });
-    for (const old of Array.from(chart.children)) if (!days.includes(old.getAttribute("data-drop-date"))) old.remove();
+    for (const old of Array.from(chart.children)) if (old.classList.contains("mtb-day-col") && !days.includes(old.getAttribute("data-drop-date"))) old.remove();
     const palette = JSON.stringify(state.recordsData.timeFrames || {});
     const maxBlocksPerDay = days.reduce((max, date) => Math.max(max, (byDate.get(date) || []).length), 0);
     const dynamicMinHeight = Math.max(280, maxBlocksPerDay * 68 + 64);
@@ -26227,7 +27400,8 @@ class MandalaTimeBlocksPlugin extends Plugin {
           block.onclick = () => this.editRecord(record, state).catch(error => new Notice(error.message));
         });
       const total = dayRecords.reduce((sum, item) => sum + Number(item.durationMin || 0), 0);
-      make(col, "div", { cls: "mtb-day-label", text: date.slice(5) });
+      const dateLabel=make(col, state.captureHost ? "button" : "div", { cls: "mtb-day-label", text: date.slice(5) });
+      if(state.captureHost){dateLabel.type="button";dateLabel.setAttribute("aria-label",date+" 评论");dateLabel.onclick=()=>chart._commentJournal?.select(date);}
       make(col, "div", { cls: "mtb-day-total", text: `${total}m` });
     });
     let cursor = chart.firstElementChild;
@@ -26236,7 +27410,24 @@ class MandalaTimeBlocksPlugin extends Plugin {
       if (col !== cursor) chart.insertBefore(col, cursor);
       cursor = col.nextElementSibling;
     }
+    if(state.captureHost){
+      chart.classList.add("has-comment-journal");chart.style.setProperty("--mtb-comment-day-count",Math.max(1,days.length));
+      const scope=state.paths?.sourceNotePath || this.getPaths().sourceNotePath;
+      const capture=state.captureHost;
+      capture.timeCommentSelection ||= {source:scope,date:null,limit:30};
+      if(!chart._commentJournal)chart._commentJournal=createTimeCommentJournal(chart,capture.timeCommentSelection);
+      capture.timeCommentJournal=chart._commentJournal;
+      chart._commentJournal.update(byDate,days,scope,()=>!this.isUnloading&&capture.isSourceCurrent()&&scope===this.getPaths().sourceNotePath);
+    }
     renderCaptureDetails(section, state, this);
+    const host = state.captureHost;
+    if (host && host.isSourceCurrent()) {
+      host.timeChartViewport ||= createTimeChartViewport(() => host.isSourceCurrent(), host.contentEl);
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const key = JSON.stringify([host.sourceNotePath, state.sourceSettings.dateRange.start, state.sourceSettings.dateRange.end, today]);
+      host.timeChartViewport.bind(chart, key, today);
+    }
   }
 
   attachDayDrop(targetEl, date, state) {
@@ -26864,7 +28055,7 @@ class Projection {
  }
  topology(db,kw,id,labels){const incoming=new Map();for(const [k,n] of Object.entries(db)){if(!n||n.id!==k||!n.children||Array.isArray(n.children)||typeof n.children!=='object')fail('CENTER_GOAL_TOPOLOGY');for(const [slot,child] of Object.entries(n.children)){if(child===null||child==='')continue;if(!/^[01235678]$/.test(slot)||typeof child!=='string'||!Object.hasOwn(db,child))fail('CENTER_GOAL_TOPOLOGY');const a=incoming.get(child)||[];a.push(k);incoming.set(child,a);}
    if(k!==id&&typeof n.comment==='string'&&labels.some(l=>n.comment.includes(l))){let decl;try{decl=this.legacy.declaration(n.comment).label}catch{fail('CENTER_GOAL_AMBIGUOUS_DECLARATION')}if(labels.includes(decl))fail('CENTER_GOAL_DUPLICATE_DECLARATION');}}
-  if(!db.root||incoming.has('root'))fail('CENTER_GOAL_TOPOLOGY');const seen=new Set();for(let k=id;k!=='root';){if(seen.has(k)||incoming.get(k)?.length!==1)fail('CENTER_GOAL_TOPOLOGY');seen.add(k);k=incoming.get(k)[0];}this.legacy.keywordIndex(kw);const lower=new Set(labels.map(l=>String(l).toLocaleLowerCase()));for(const [k,list] of Object.entries(kw.nodeKeywords))if(!Object.hasOwn(db,k)&&(Array.isArray(list)?list:[]).some(v=>lower.has(String(v).toLocaleLowerCase())))fail('CENTER_GOAL_KEYWORD_NODE');for(const [key,e] of Object.entries(kw.keywordToNode||{}))if(lower.has(key)&&!Object.hasOwn(db,e?.nodeId))fail('CENTER_GOAL_KEYWORD_NODE');
+  MandalaBoardModel.assertOrdinary(db,id);const boardRoots=new Set(MandalaBoardModel.roots(db));if(!db.root||[...boardRoots].some(k=>incoming.has(k)))fail('CENTER_GOAL_TOPOLOGY');const seen=new Set();for(let k=id;!boardRoots.has(k);){if(seen.has(k)||incoming.get(k)?.length!==1)fail('CENTER_GOAL_TOPOLOGY');seen.add(k);k=incoming.get(k)[0];}this.legacy.keywordIndex(kw);const lower=new Set(labels.map(l=>String(l).toLocaleLowerCase()));for(const [k,list] of Object.entries(kw.nodeKeywords))if(!Object.hasOwn(db,k)&&(Array.isArray(list)?list:[]).some(v=>lower.has(String(v).toLocaleLowerCase())))fail('CENTER_GOAL_KEYWORD_NODE');for(const [key,e] of Object.entries(kw.keywordToNode||{}))if(lower.has(key)&&!Object.hasOwn(db,e?.nodeId))fail('CENTER_GOAL_KEYWORD_NODE');
  }
  receipt(p,tx,t){return {version:1,namespace:t.n.s.namespace,contextId:t.context.contextId,txId:tx,planHash:hash(p),plan:copy(p)};}
  trusted(p,tx,c){P.validate(p);if(!UUID.test(tx))fail('CENTER_GOAL_TX');const n=this.configured(this.fresh(c)),matches=n.s.contexts.filter(x=>same(x.subjects[0],p.subject));if(matches.length!==1)fail('CENTER_GOAL_CONTEXT');const context=matches[0],pending=context.naming.pending,row=pending?.plans?.find(x=>x.id==='mandala-primary');
@@ -27112,9 +28303,10 @@ function derive(txId,evidence,dbRaw,keywordRaw){
     if(!plain(n)||n.id!==id||!plain(n.children))fail('TOPOLOGY');
     for(const [slot,child] of Object.entries(n.children)){if(child===null||child==='')continue;if(!/^[01235678]$/.test(slot)||typeof child!=='string'||!Object.hasOwn(db,child))fail('TOPOLOGY');const refs=incoming.get(child)||[];refs.push({parentNodeId:id,slotIndex:Number(slot)});incoming.set(child,refs)}
   }
+  MandalaBoardModel.assertOrdinary(db,e.nodeId); const boardRoots=new Set(MandalaBoardModel.roots(db));
   const ancestry=[],seen=new Set();let cursor=e.nodeId;
-  while(cursor!=='root'){if(seen.has(cursor))fail('TOPOLOGY');seen.add(cursor);const refs=incoming.get(cursor)||[];if(refs.length!==1)fail('TOPOLOGY');ancestry.push({nodeId:cursor,...refs[0]});cursor=refs[0].parentNodeId}
-  if(!Object.hasOwn(db,'root')||incoming.has('root')||!equal(ancestry,e.ancestry))fail('TOPOLOGY');
+  while(!boardRoots.has(cursor)){if(seen.has(cursor))fail('TOPOLOGY');seen.add(cursor);const refs=incoming.get(cursor)||[];if(refs.length!==1)fail('TOPOLOGY');ancestry.push({nodeId:cursor,...refs[0]});cursor=refs[0].parentNodeId}
+  if(!Object.hasOwn(db,'root')||[...boardRoots].some(id=>incoming.has(id))||!equal(ancestry,e.ancestry))fail('TOPOLOGY');
   if(kw.version!==1||!plain(kw.nodeKeywords)||!plain(kw.keywordToNode)||!plain(kw.keywordMeta))fail('KEYWORD_SCHEMA');
   const index=new Map();for(const [id,values] of Object.entries(kw.nodeKeywords)){if(!Object.hasOwn(db,id)||!Array.isArray(values))fail('KEYWORD_MAP');for(const v of values){if(typeof v!=='string'||!v.trim()||index.has(key(v)))fail('KEYWORD_MAP');index.set(key(v),{nodeId:id,keyword:v})}}
   if(index.size!==Object.keys(kw.keywordToNode).length)fail('KEYWORD_MAP');for(const [k,v] of Object.entries(kw.keywordToNode)){const x=index.get(k);if(!x||v.nodeId!==x.nodeId||v.keyword!==x.keyword)fail('KEYWORD_MAP')}
@@ -27261,7 +28453,7 @@ function receipts(d,kind){const out={};if(kind==='db'){for(const [id,n] of Objec
 function guard(before,after,kind){const a=parse(before),b=parse(after),ar=receipts(a,kind),br=receipts(b,kind);if(!eq(ar,br))fail('MANDALA_CREATE_RECEIPT_LOST');for(const r of Object.values(ar)){
  if(kind==='db'){
   if(!b[r.nodeId])fail('MANDALA_CREATE_NODE_LOST');
-  const seen=new Set();let at=r.nodeId;while(at!=='root'){if(seen.has(at))fail('MANDALA_CREATE_TREE_CYCLE');seen.add(at);const parents=Object.entries(b).flatMap(([id,n])=>Object.values(n?.children||{}).filter(child=>child===at).map(()=>id));if(parents.length!==1)fail('MANDALA_CREATE_PARENT_LOST');at=parents[0]}
+  const seen=new Set();let at=r.nodeId;const roots=new Set(MandalaBoardModel.roots(b));MandalaBoardModel.assertOrdinary(b,r.nodeId);while(!roots.has(at)){if(seen.has(at))fail('MANDALA_CREATE_TREE_CYCLE');seen.add(at);const parents=Object.entries(b).flatMap(([id,n])=>Object.values(n?.children||{}).filter(child=>child===at).map(()=>id));if(parents.length!==1)fail('MANDALA_CREATE_PARENT_LOST');at=parents[0]}
  }
  if(kind==='keywords'){const list=b.nodeKeywords?.[r.nodeId],entries=Object.values(b.keywordToNode||{}).filter(v=>v?.nodeId===r.nodeId);if(!Array.isArray(list)||!list.length||list.some(v=>typeof v!=='string'||!entries.some(e=>e.keyword===v))||entries.some(e=>!list.includes(e.keyword)))fail('MANDALA_CREATE_BINDING_LOST')}
  if(kind==='weekly')for(const t of r.targets||[])if(!b[t.bucket]?.[t.key])fail('MANDALA_CREATE_TRACKING_LOST');
@@ -27296,7 +28488,7 @@ class MandalaCreationOwner{
  }
  node(p){return {id:p.nodeId,title:p.projectName,note:'',children:{},type:'default',typeIds:['default'],comment:`---\n${p.contextKey}\n---`,image:'',shortcuts:[],noteBinding:null,renameHistory:[],[FIELD]:this.receipt(p)}}
  receipt(p){return {version:1,txId:p.txId,nodeId:p.nodeId,sourceNotePath:p.sourceNotePath,domain:p.domain}}
- ancestry(db,parent){const incoming=new Map();for(const [id,n] of Object.entries(db)){if(!plain(n)||n.id!==id||!plain(n.children))fail('MANDALA_CREATE_DB_SCHEMA');for(const child of Object.values(n.children)){if(!child)continue;if(typeof child!=='string'||!db[child]||incoming.has(child))fail('MANDALA_CREATE_TREE_AMBIGUOUS');incoming.set(child,id)}}const seen=new Set();let at=parent;while(at){if(seen.has(at))fail('MANDALA_CREATE_TREE_CYCLE');seen.add(at);at=incoming.get(at)}if(!seen.has('root'))fail('MANDALA_CREATE_PARENT_DETACHED')}
+ ancestry(db,parent){MandalaBoardModel.inspect(db).ancestry(parent)}
  async prepare(input,lease){this.live(lease);const p=this.base(input),steps=[];
   if(p.domain==='goal'){
    if(typeof input.parentNodeId!=='string'||!input.parentNodeId||input.parentNodeId.length>256)fail('MANDALA_CREATE_PARENT');
@@ -27416,9 +28608,20 @@ class GoalRenameWriterBridge {
     return this.serial(async()=>{
       this.assert(c);const a=this.owner.app.vault.adapter,exists=await a.exists(p);this.assert(c);
       const before=exists?await a.read(p):null;this.assert(c);
+      if(kind==='db'&&before!==null&&(frozen.root?.mandalaBoardsV1!==undefined||JSON.parse(before).root?.mandalaBoardsV1!==undefined)){
+        const oldDb=JSON.parse(before); this.owner.assertMandalaBoardPeersV1(frozen);
+        MandalaBoardModel.transition(oldDb,frozen,{allowNewRoot:true});
+        const oldRoots=new Set(MandalaBoardModel.roots(oldDb));
+        for(const id of MandalaBoardModel.roots(frozen))if(!oldRoots.has(id)){
+          const r=frozen[id]?.mandalaBoardCreationV1;
+          if(r?.version!==1)throw Error('BOARD_CREATE_RECEIPT');
+          const expected=MandalaBoardModel.add(oldDb,{id,title:frozen[id].title,requestId:r.requestId}).db;
+          if(JSON.stringify(expected)!==JSON.stringify(frozen))throw Error('BOARD_CREATE_ATOMIC_PAYLOAD');
+        }
+      }
       const creationManaged=kind==='db'?Object.values(frozen).some(n=>n&&Object.hasOwn(n,MandalaCreationModule.FIELD))||(before!==null&&Object.values(JSON.parse(before)).some(n=>n&&Object.hasOwn(n,MandalaCreationModule.FIELD))):Object.hasOwn(frozen,MandalaCreationModule.ROOT)||(before!==null&&Object.hasOwn(JSON.parse(before),MandalaCreationModule.ROOT));
       if(creationManaged){if(before===null)throw Error('MANDALA_CREATE_STORE_MISSING');MandalaCreationModule.guard(before,raw,kind)}
-      const guarded=creationManaged||this.hasReceipts(kind,frozen)||(before!==null&&this.hasReceipts(kind,JSON.parse(before)));
+      const guarded=(kind==='db'&&frozen.root?.mandalaBoardsV1!==undefined)||creationManaged||this.hasReceipts(kind,frozen)||(before!==null&&this.hasReceipts(kind,JSON.parse(before)));
       if(guarded){
         try{if(before===null)this.fail('GOAL_RECEIPT_FILE_MISSING');GoalPrimaryWriteModule.guardOrdinaryWrite(kind,before,raw,c.sourceNotePath)}
         catch(e){new Notice('目标主键已变化，本次未覆盖保存。请保留编辑内容并重开窗口核对；需要退出的目标请停止追踪。已管理目标暂不支持直接删除。',0);throw e}
@@ -27598,7 +28801,7 @@ function createController(plugin, obs, parseKey, log) {
       const actionSignature=JSON.stringify([id,metaStamp(meta()),busy,!!eva()?.startMetaCapture,!!keyword()?.openView]);
       if(panel.actionSignature===actionSignature)return;
       panel.actionSignature=actionSignature;const restore=preserveFocus(actions);actions.replaceChildren();
-      if(id==="root"){el(actions,"p","mtbk-hint","这里是总览根节点。进入一个分支后，即可为具体节点挂载关键词。");restore();return;}
+      if(state.mandala.boardGraph.rootSet.has(id)){el(actions,"p","mtbk-hint","这里是总览根节点。进入一个分支后，即可为具体节点挂载关键词。");restore();return;}
       const s=meta(),key=plugin.getMandalaNodeRelationKey(id);
       const label=s.active&&s.sourceNodeKey&&s.sourceNodeKey!==key?"改用此节点挂载":s.active&&s.sourceNodeKey===key&&s.relationType===RELATION_TYPE?"前往 Keyword Index 选择":"挂载关键词";
       const add=button(actions,label,"plus",()=>begin(id,modal),"mod-cta mtbk-primary");
@@ -27613,7 +28816,7 @@ function createController(plugin, obs, parseKey, log) {
     async function verifySource(id,api,modal,stamp,generation) {
       assert(api,modal);
       const node=state.mandala.nodeById[id];
-      if(id==="root"||!node)throw Error("请进入具体分支后挂载关键词。");
+      if(state.mandala.boardGraph.rootSet.has(id)||!node)throw Error("请进入具体分支后挂载关键词。");
       const synced=await plugin.syncRelationAdapter();assert(api,modal);
       if(synced===false)throw Error("节点索引尚未就绪，请刷新后重试。");
       if(generation!==metaGeneration||stamp!==metaStamp(api.getMetaCaptureState()))throw Error("Meta 选择已变化，请按当前状态重新操作。");
@@ -27737,7 +28940,7 @@ function createController(plugin, obs, parseKey, log) {
     function renderPanel() {
       if(!panel||panel.screen!=="mounts")return;
       const {id,modal,list}=panel;updatePanelActions();
-      if(id==="root")return;
+      if(state.mandala.boardGraph.rootSet.has(id))return;
       let rows,error;
       try{rows=read(id);}catch(failure){rows=[];error=failure;}
       const signature=JSON.stringify({rows,error:error?.message||""});
@@ -27768,11 +28971,11 @@ function createController(plugin, obs, parseKey, log) {
       entry.signature=signature;
       const count=rows.length;
       for(const {badge,footer,id} of entry.cells){
-        badge.title=id==="root"?"总览节点说明":error?"关键词挂载暂不可用":count+" 个关键词挂载";
+        badge.title=state.mandala.boardGraph.rootSet.has(id)?"总览节点说明":error?"关键词挂载暂不可用":count+" 个关键词挂载";
         badge.setAttribute("aria-label",badge.title+" · "+(state.mandala.nodeById[id]?.title||id));
         badge.querySelector(".mtbk-label").textContent=count?String(count):"";
         badge.classList.toggle("has-mounts",count>0);const restore=preserveFocus(footer);footer.replaceChildren();
-        if(id==="root")el(footer,"span","mtbk-root-label","总览");
+        if(state.mandala.boardGraph.rootSet.has(id))el(footer,"span","mtbk-root-label","总览");
         else if(error)button(footer,"挂载暂不可用","circle-alert",()=>openPanel(id,badge),"mtbk-empty-chip");
         else if(!count)button(footer,"挂载关键词","plus",()=>openPanel(id,badge),"mtbk-empty-chip");
         else{
@@ -27786,7 +28989,7 @@ function createController(plugin, obs, parseKey, log) {
     function refresh() {
       if(!valid())return;
       for(const [id,entry]of entries){
-        try{renderEntry(entry,id==="root"?[]:read(id),null);}catch(error){renderEntry(entry,[],error);}
+        try{renderEntry(entry,state.mandala.boardGraph.rootSet.has(id)?[]:read(id),null);}catch(error){renderEntry(entry,[],error);}
       }
       refreshMeta();renderPanel();
     }
@@ -27829,7 +29032,7 @@ const __MandalaNativeGrid = (() => { const module = { exports: {} };
 // MD-L1: an environment-only ItemView; all content publishes use the real owner.
 module.exports.create = function ({ ItemView, Notice, PluginClass, defaults, hash, gid, norm, keywordUI, ensureStyles }) {
   const TYPE = 'mandala-nine-grid-view';
-  const fields = ['manageCurrentId', 'manageView', 'nodeSearchQuery', 'keywordSearchQuery', 'collapsedNodeIds'];
+  const fields = ['manageBoardRootId', 'mandalaBoardViews', 'manageCurrentId', 'manageView', 'nodeSearchQuery', 'keywordSearchQuery', 'collapsedNodeIds'];
   const copy = x => JSON.parse(JSON.stringify(x));
   const uiState = x => Object.fromEntries(fields.filter(k => x?.[k] !== undefined).map(k => [k, copy(x[k])]));
   class GridView extends ItemView {

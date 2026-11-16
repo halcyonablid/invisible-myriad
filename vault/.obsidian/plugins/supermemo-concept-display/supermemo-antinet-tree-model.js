@@ -1,6 +1,42 @@
 "use strict";
 
-const SCHEMA_VERSION = 2;
+// SM-F1: pure content timestamps and calendar-day projection. No I/O or timers.
+const freshness = (() => {
+  const epoch = '2026-11-06';
+  const reasons = {created:'新建节点',child:'新增子节点',rename:'修改名称',comment:'修改说明',keyword:'挂载关键词',concept:'挂入 Concept'};
+  const date = value => {const d=new Date(value);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+  function ordinal(value) {
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return NaN;
+    const [y,m,d]=value.split('-').map(Number), t=new Date(Date.UTC(y,m-1,d));
+    return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d?t.getTime()/86400000:NaN;
+  }
+  function stamp(reason,now=new Date().toISOString(),eventId) {
+    if(!reasons[reason]||!Number.isFinite(Date.parse(now)))throw new Error('FRESHNESS_EVENT_INVALID');
+    return {at:new Date(now).toISOString(),date:date(now),reason,...(eventId?{eventId}: {})};
+  }
+  function touch(store,id,reason,now,eventId) {
+    const node=store.nodesById[id];if(!node||(node.lifecycle!=null&&node.lifecycle!=='active'))throw new Error('FRESHNESS_NODE_UNAVAILABLE');
+    const next=stamp(reason,now,eventId), previous=node.freshness;
+    if(previous && Number.isFinite(Date.parse(previous.at)) && Date.parse(previous.at)>Date.parse(next.at))return;
+    node.freshness=next;
+  }
+  function project(store,node,now=new Date()) {
+    const f=node?.freshness,base=Object.hasOwn(store,"freshnessEpoch")?store.freshnessEpoch:epoch;
+    if((f!==undefined && (!f||typeof f!=='object'||!Number.isFinite(Date.parse(f.at))||!reasons[f.reason]||!Number.isFinite(ordinal(f.date))))||!Number.isFinite(ordinal(base)))
+      return {strength:0,text:'刷新时间待核验',valid:false};
+    const day=f?f.date:base,age=Math.max(0,ordinal(date(now))-ordinal(day));
+    return {strength:Math.max(0,1-age/100),age,valid:true,text:f?`上次刷新：${day} · ${age}天前 · ${reasons[f.reason]}`:`自 ${base} 启用起第${age}天`};
+  }
+  function pendingValid(map) {
+    if(!map||typeof map!=='object'||Array.isArray(map)||Object.keys(map).length>16)return false;
+    return Object.entries(map).every(([id,p])=>p&&p.intentId===id&&['antinet-keyword-mount','引用'].includes(p.relationType)&&typeof p.nodeId==='string'&&typeof p.sessionId==='string'&&typeof p.sourceNodeKey==='string'
+      &&(p.nodeCreatedAt===null||typeof p.nodeCreatedAt==='string')&&Number.isFinite(Date.parse(p.armedAt))&&Array.isArray(p.seen)&&p.seen.length<=2048&&p.seen.every(x=>typeof x==='string'));
+  }
+  return Object.freeze({epoch,date,ordinal,stamp,touch,project,pendingValid});
+})();
+
+
+const SCHEMA_VERSION = 3;
 
 function deepClone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -42,6 +78,7 @@ function normalizeNode(raw, fallbackId) {
   return {
     id,
     label,
+    ...(Object.prototype.hasOwnProperty.call(raw, "freshness") ? { freshness: deepClone(raw.freshness) } : {}),
     ...(Object.prototype.hasOwnProperty.call(raw, "comment") ? { comment: raw.comment } : {}),
     parentId: text(raw.parentId) || null,
     ...(Object.prototype.hasOwnProperty.call(raw, "drawerAnchor") ? { drawerAnchor: deepClone(raw.drawerAnchor) } : {}),
@@ -113,7 +150,7 @@ function normalizeAntinetStore(raw) {
     return { store: createEmptyAntinetStore(), readOnly: true, errors: ["ANTINET_ROOT_INVALID"] };
   }
   const version = Number(raw.schemaVersion || SCHEMA_VERSION);
-  if (version !== 1 && version !== SCHEMA_VERSION) {
+  if (![1,2,3].includes(version)) {
     return {
       store: createEmptyAntinetStore(),
       readOnly: true,
@@ -123,6 +160,7 @@ function normalizeAntinetStore(raw) {
   const errors = [];
   if (version === 1 && Object.values(raw.nodesById || {}).some(n => n && Object.hasOwn(n, "drawerAnchor"))) errors.push("ANTINET_ANCHOR_VERSION_INVALID");
   const nodesById = {};
+
   if (!raw.nodesById || typeof raw.nodesById !== "object" || Array.isArray(raw.nodesById)) errors.push("ANTINET_NODES_INVALID");
   Object.entries(raw.nodesById || {}).forEach(([id, value]) => {
     const node = normalizeNode(value, id);
@@ -142,12 +180,15 @@ function normalizeAntinetStore(raw) {
   });
   const store = {
     schemaVersion: SCHEMA_VERSION,
+    freshnessEpoch: Object.hasOwn(raw, "freshnessEpoch") ? raw.freshnessEpoch : freshness.epoch,
+    freshnessMountPending: Object.hasOwn(raw, "freshnessMountPending") ? deepClone(raw.freshnessMountPending) : {},
     revision: Number.isFinite(Number(raw.revision)) && Number(raw.revision) >= 0 ? Number(raw.revision) : 0,
     nodesById,
     reservedNodeIds: uniqueStrings([...(raw.reservedNodeIds || []), ...Object.keys(nodesById)]),
     mountPresentationByRelationId,
     updatedAt: text(raw.updatedAt) || null,
   };
+  if(!freshness.pendingValid(store.freshnessMountPending)) errors.push("FRESHNESS_PENDING_INVALID");
   const validationErrors = Array.from(new Set([...errors, ...validateAntinetStore(store)]));
   return { store, readOnly: validationErrors.length > 0, errors: validationErrors };
 }
@@ -228,6 +269,8 @@ function createNode(store, options = {}) {
     archivedAt: null,
   };
   current.reservedNodeIds.push(id);
+  freshness.touch(current,id,"created");
+  if(parentId && !options.drawerAnchor)freshness.touch(current,parentId,"child");
   return finalize(current, store.revision);
 }
 
@@ -237,6 +280,8 @@ function renameNode(store, nodeId, label) {
   const nextLabel = text(label);
   if (!node) throw Object.assign(new Error("Antinet 节点不存在"), { code: "ANTINET_NODE_NOT_FOUND" });
   if (!nextLabel) throw Object.assign(new Error("Antinet 节点名称不能为空"), { code: "ANTINET_LABEL_REQUIRED" });
+  if(node.label === nextLabel)return current;
+  freshness.touch(current,nodeId,"rename");
   node.label = nextLabel;
   node.updatedAt = new Date().toISOString();
   return finalize(current, store.revision);
@@ -414,6 +459,7 @@ function attachNodeToDrawer(store, nodeId, projection) {
 }
 
 module.exports = {
+  freshness,
   composeDrawerTree,
   attachNodeToDrawer,
   SCHEMA_VERSION,

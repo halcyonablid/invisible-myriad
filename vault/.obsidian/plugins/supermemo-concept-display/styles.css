@@ -1357,3 +1357,29 @@
 .sm-antinet-node.sm-antinet-projection { border-left-color: var(--color-green, #43856d); }
 .sm-antinet-projection-warning { padding: 8px 12px; color: var(--text-warning); font-size: 12px; }
 .sm-antinet-anchor-note { margin: 8px 0; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+
+
+/* SM-F1: type edges remain; age only modulates the card fill. */
+.supermemo-concept-display-host .sm-structure-node.sm-node-freshness {
+  --sm-freshness-full: #d3e6de;
+  background: color-mix(in srgb, var(--sm-freshness-full) var(--sm-freshness-weight, 0%), var(--background-primary));
+  transition: background-color 180ms ease;
+}
+.supermemo-concept-display-host .sm-antinet-node.sm-node-freshness { --sm-freshness-full: #f2ddb8; }
+.theme-dark .supermemo-concept-display-host .sm-structure-node.sm-node-freshness { --sm-freshness-full: #375549; }
+.theme-dark .supermemo-concept-display-host .sm-antinet-node.sm-node-freshness { --sm-freshness-full: #654f31; }
+.supermemo-concept-display-host .sm-node-freshness.is-selected { outline: 1px solid var(--interactive-accent); outline-offset: 1px; }
+.sm-node-freshness-details { color: var(--text-muted); font-size: 12px; margin: 6px 0 10px; }
+.sm-node-freshness-pending { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; margin: 8px 0; }
+@media(prefers-reduced-motion:reduce) { .supermemo-concept-display-host .sm-structure-node.sm-node-freshness { transition: none; } }
+
+/* Scoped, compact controls for source paging. */
+.supermemo-concept-display-host .sm-antinet-page-controls { display:flex; flex-wrap:wrap; gap:5px; align-items:center; max-width:280px; font-size:11px; color:var(--text-muted); padding:4px 2px; }
+.supermemo-concept-display-host .sm-antinet-page-controls button { height:auto; min-height:22px; padding:2px 7px; font-size:11px; }
+.supermemo-concept-display-host .sm-antinet-page-note { font-size:12px; color:var(--text-muted); padding:5px 8px; }
+
+/* One keyword entry; its drawers occupy the owner's next visible tree level. */
+.sm-antinet-mount-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px;min-width:0}
+.sm-antinet-mount-entry>.sm-antinet-page-controls,.sm-antinet-mount-status{grid-column:1/-1;font-size:10px;color:var(--text-muted)}
+.sm-antinet-mount-entry>.sm-antinet-page-controls:empty{display:none}
+.sm-antinet-mount-entry .sm-antinet-mount-toggle{width:20px;height:20px;min-width:20px;padding:2px;justify-content:center}
