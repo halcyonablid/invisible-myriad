@@ -1,3 +1,9 @@
+
+// Date-only handling: local calendar days, never UTC conversion.
+function memoDay(date=new Date()){return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');}
+function memoDateValid(value){if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const [y,m,d]=value.split('-').map(Number);if(y<1000||y>9999)return false;const date=new Date(y,m-1,d,12);return date.getFullYear()===y&&date.getMonth()===m-1&&date.getDate()===d;}
+function memoShift(value,days){if(!memoDateValid(value))throw new Error('请选择有效日期');const [y,m,d]=value.split('-').map(Number);return memoDay(new Date(y,m-1,d+days,12));}
+function memoCurrent(row,today=memoDay()){return !memoDateValid(row.scheduledFor)||row.scheduledFor<=today;}
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
@@ -298,6 +304,7 @@ function normalizeStore(value = {}) {
     membershipSourceLinks: clone(object(source.membershipSourceLinks)),
     sourceAliases: clone(object(source.sourceAliases)),
     sourceTags: clone(object(source.sourceTags)),
+    sourceSchedules: clone(object(source.sourceSchedules)),
     keywords: clone(object(source.keywords)),
     membershipKeywords: clone(object(source.membershipKeywords)),
     ontologies: clone(object(source.ontologies)),
@@ -1547,8 +1554,9 @@ var NextActionWorkbenchPlugin = class extends import_obsidian.Plugin {
       await this.measureCollectionInteraction("mutation.save",()=>this.saveData(next));
       const reread = await this.measureCollectionInteraction("mutation.verify",async()=>migrateStore(await this.loadData()));
       if (reread.readOnly || Number(reread.store.revision) !== Number(next.revision)) throw new Error("\u884C\u52A8\u53F0 Store \u56DE\u8BFB\u6821\u9A8C\u5931\u8D25\u3002");
+      if(options.verifyPersisted&&!options.verifyPersisted(reread.store))throw new Error("日期保存回读待核对，请刷新后确认，勿重复安排");
       this.store = reread.store;
-      if (["set-primary-key-local-name","set-source-card-local-alias","set-source-card-tags","rename-action-tag","toggle-source-card-completion","ontology-commit","collection-action-identity"].includes(label)) window.dispatchEvent(new CustomEvent("collection-action-metadata:changed", {detail:{revision:this.store.revision,...options.metadataDetail}}));
+      if (["set-primary-key-local-name","set-source-card-local-alias","set-source-card-tags","rename-action-tag","toggle-source-card-completion","set-source-card-schedule","ontology-commit","collection-action-identity"].includes(label)) window.dispatchEvent(new CustomEvent("collection-action-metadata:changed", {detail:{revision:this.store.revision,...options.metadataDetail}}));
       console.info(`[NextActionWorkbench][store][tx:${txId}][committed]`, { label, revision: this.store.revision });
       if (options.render !== false) {const renderAt=performance.now();this.renderViews();this.recordCollectionInteraction("legacy.render",renderAt);}
       return this.store;
@@ -1616,7 +1624,7 @@ var NextActionWorkbenchPlugin = class extends import_obsidian.Plugin {
     const contexts = Object.values(this.store.memberships).map(m => {
       const links = Object.values(this.store.membershipSourceLinks).filter(l => l.membershipId === m.id).flatMap(l => {
         const identity = decode(this.store.sourceCards[l.sourceCardId] || {});
-        return identity ? [{...identity, sourceCardId:l.sourceCardId, completed:!!l.completedAt, alias:this.store.sourceAliases[l.id]?.label || "", tags:[...(this.store.sourceTags[l.id]?.labels || [])], hasOntology:this.hasOntologyContent(this.store.ontologies[l.sourceCardId]?.formalOntology)}] : [];
+        return identity ? [{...identity, sourceCardId:l.sourceCardId, completed:!!l.completedAt, scheduleKind:this.store.sourceSchedules?.[l.id]?.kind==="calendar"?"calendar":"memo", scheduledFor:this.store.sourceSchedules?.[l.id]?.date||"", scheduleToken:JSON.stringify(this.store.sourceSchedules?.[l.id]||null), alias:this.store.sourceAliases[l.id]?.label || "", tags:[...(this.store.sourceTags[l.id]?.labels || [])], hasOntology:this.hasOntologyContent(this.store.ontologies[l.sourceCardId]?.formalOntology)}] : [];
       });
       return { id:m.id, domain:m.primaryRef?.domain || "project", label:this.getCollectionActionName(m.id)||m.lastKnownLabel, sourceLabel:m.lastKnownLabel || "", tabIds:[...new Set(links.map(l=>l.tabId))], links };
     }).filter(m => m.tabIds.length);
@@ -1675,6 +1683,29 @@ var NextActionWorkbenchPlugin = class extends import_obsidian.Plugin {
       for(const r of matches){r.labels=normalizeActionTags(r.labels.map(t=>t.toLocaleLowerCase()===oldKey?newLabel:t));r.updatedAt=new Date().toISOString();}
       return latest;
     },{metadataDetail:{tagRename:{oldLabel:preview.oldLabel,newLabel}}});
+  }
+
+  getCollectionActionCapabilities(){return {dateMemoVersion:1,scheduleKindsVersion:1};}
+  async setCollectionActionSchedule(options){
+    if(this.closing||this.ownerUnavailable||this.readOnlyReason)throw new Error(this.readOnlyReason||'行动信息服务未就绪');
+    if(!options||!['contextId','sourceNotePath','tabId','itemId','expectedScheduleToken'].every(k=>typeof options[k]==='string'&&options[k].trim()))throw new Error('安排日期的身份或版本信息不完整');
+    if(options.kind!==undefined&&!['memo','calendar'].includes(options.kind))throw new Error('请选择日程或备忘录');
+    const date=options.date;if(date!==''&&!memoDateValid(date))throw new Error('请选择有效日期');
+    // Explicitly revalidate owner identity and qualification for this new write path.
+    const identity=await this.ensureCollectionActionIdentity(options);
+    const linkId=buildLinkId(identity.membershipId,identity.sourceCardId);let expectedRecord;
+    await this.mutateStore('set-source-card-schedule',latest=>{
+      if(this.closing)throw new Error('行动信息服务正在关闭');
+      const link=latest.membershipSourceLinks[linkId],card=latest.sourceCards[identity.sourceCardId];
+      if(!latest.memberships[options.contextId]||!link||link.membershipId!==options.contextId||link.sourceCardId!==identity.sourceCardId||!card||card.notePath!==options.sourceNotePath)throw new Error('待办身份已变化，请重新打开');
+      const current=latest.sourceSchedules?.[linkId]||null;
+      if(JSON.stringify(current)!==options.expectedScheduleToken)throw new Error('日期已在其他窗口修改，请重新打开日期选择器');
+      const kind=date?(options.kind??(current?.kind==='calendar'?'calendar':'memo')):'memo';
+      if((current?.date||'')===date&&(current?.kind==='calendar'?'calendar':'memo')===kind)return null;
+      expectedRecord={date,kind,updatedAt:new Date().toISOString(),revision:latest.revision+1};
+      latest.sourceSchedules={...(latest.sourceSchedules||{}),[linkId]:expectedRecord};return latest;
+    },{skipNull:true,render:false,metadataDetail:{scheduleChanged:{sourceNotePath:options.sourceNotePath,contextId:options.contextId,itemId:options.itemId}},verifyPersisted:store=>JSON.stringify(store.sourceSchedules?.[linkId])===JSON.stringify(expectedRecord)});
+    return {date,linkId};
   }
   async editCollectionAction(options, operation) {
     if(!["name","alias","ontology","complete","tags"].includes(operation))throw new Error("未知行动操作");

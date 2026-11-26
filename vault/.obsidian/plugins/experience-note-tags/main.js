@@ -18,7 +18,7 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-// results/experience-fragment-date-20261116/plugin/src/main.js
+// src/main.js
 var main_exports = {};
 __export(main_exports, {
   EditModal: () => EditModal,
@@ -29,7 +29,189 @@ __export(main_exports, {
 });
 module.exports = __toCommonJS(main_exports);
 
-// results/experience-fragment-date-20261116/plugin/src/tag-display-aliases.js
+// src/atom-address-colors.js
+var COLORS = ["0,71,171", "80,200,120", "255,253,208", "245,245,220", "139,133,137", "165,42,42", "255,0,0", "255,255,0", "0,0,255", "75,0,130", "255,165,0", "0,128,0", "255,192,203", "255,215,0", "192,192,192", "184,115,51", "255,127,80", "51,161,201", "230,230,250", "183,110,121", "205,127,50", "34,139,34", "128,0,32", "10,186,181", "251,206,177", "196,30,58", "224,255,255", "255,219,88", "97,64,81", "128,128,0", "160,82,45", "75,0,130"];
+function format(address, n = 0) {
+  const value = address.slice(0, n).replace(/\./g, "") + address.slice(n);
+  const at = value.lastIndexOf("@") + 1;
+  const legacy = (part) => part.replace(/[A-Z]/g, "L").replace(/\d+/g, "N");
+  return legacy(value.slice(0, at)) + value.slice(at).replace(
+    /[A-Z\d]+/g,
+    (part) => /^\d/.test(part) ? "N" : legacy(part)
+  );
+}
+function colorHash(address) {
+  let h = 0;
+  for (let i = 0; i < address.length; i++) h = (h << 5) - h + address.charCodeAt(i) | 0;
+  return Math.abs(h) % COLORS.length;
+}
+function compareAddresses(a, b) {
+  const aa = a.split("."), bb = b.split(".");
+  for (let i = 0; i < Math.min(aa.length, bb.length); i++) {
+    if (aa[i] !== bb[i]) return /^\d+$/.test(aa[i]) && /^\d+$/.test(bb[i]) ? parseInt(aa[i]) - parseInt(bb[i]) : aa[i].localeCompare(bb[i]);
+  }
+  return aa.length - bb.length;
+}
+function* sorted(input2, compare) {
+  let a = [...input2], b = new Array(a.length);
+  for (let width = 1; width < a.length; width *= 2) {
+    for (let lo = 0; lo < a.length; lo += 2 * width) {
+      const mid = Math.min(lo + width, a.length), end = Math.min(lo + width * 2, a.length);
+      let i = lo, j = mid;
+      for (let k = lo; k < end; k++) {
+        b[k] = j >= end || i < mid && compare(a[i], a[j]) <= 0 ? a[i++] : a[j++];
+        if ((k & 127) === 0) yield;
+      }
+    }
+    [a, b] = [b, a];
+  }
+  return a;
+}
+function* projection(entries, compare) {
+  const rows = yield* sorted(entries, (a, b) => compare(a.name, b.name) || a.path.localeCompare(b.path));
+  const addressColors2 = /* @__PURE__ */ new Map(), formats = /* @__PURE__ */ new Map();
+  let color = 0;
+  const dotted = [];
+  for (const row of rows) {
+    if (row.fullAddress.includes(".")) dotted.push(row);
+    else {
+      const key = format(row.fullAddress);
+      if (!formats.has(key)) {
+        formats.set(key, color);
+        color = (color + 1) % COLORS.length;
+      }
+      addressColors2.set(row.fullAddress, formats.get(key));
+    }
+    yield;
+  }
+  const byAddress = yield* sorted(dotted, (a, b) => compareAddresses(a.fullAddress, b.fullAddress));
+  const assigned = /* @__PURE__ */ new Set();
+  const bucketCache = /* @__PURE__ */ new Map();
+  for (let index = 0; index < byAddress.length; index++) {
+    if (assigned.has(index)) continue;
+    const first = byAddress[index], n = first.fullAddress.indexOf(".");
+    let buckets = bucketCache.get(n);
+    if (!buckets) {
+      buckets = /* @__PURE__ */ new Map();
+      for (let j = 0; j < byAddress.length; j++) {
+        const key = format(byAddress[j].fullAddress, n);
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(j);
+        yield;
+      }
+      if (bucketCache.size >= 2) bucketCache.delete(bucketCache.keys().next().value);
+      bucketCache.set(n, buckets);
+    }
+    const selected = buckets.get(format(first.fullAddress, n)) || [];
+    const hash = colorHash(first.fullAddress);
+    for (const j of selected) {
+      if (!assigned.has(j)) {
+        assigned.add(j);
+        addressColors2.set(byAddress[j].fullAddress, hash);
+      }
+      yield;
+    }
+    buckets.delete(format(first.fullAddress, n));
+  }
+  const positions = /* @__PURE__ */ new Map();
+  for (let i = 0; i < rows.length; i++) {
+    rows[i] = { ...rows[i], color: rows[i].indexed ? "rgba(0,47,167,0.5)" : `rgba(${COLORS[addressColors2.get(rows[i].fullAddress) || 0]},0.12)` };
+    positions.set(rows[i].path, i);
+    yield;
+  }
+  return { rows, positions };
+}
+function addressColors(addresses) {
+  const entries = [...new Set(addresses)].map((fullAddress) => ({ path: fullAddress, name: fullAddress, fullAddress, indexed: false }));
+  const task = projection(entries, (a, b) => a.localeCompare(b));
+  let step;
+  do {
+    step = task.next();
+  } while (!step.done);
+  return new Map(step.value.rows.map((r) => [r.fullAddress, r.color]));
+}
+
+// src/tag-address-presentation.js
+function createTagAddressPresentation(A2) {
+  const natural = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "variant" });
+  function describe(label) {
+    const clean = String(label).replace(/^#/, ""), dash = clean.indexOf("-"), prefix = clean.slice(0, dash);
+    const addressed = dash > 0 && /^[A-Za-z0-9]+(?:[./@+][A-Za-z0-9]+)*$/.test(prefix);
+    const normalized = prefix.replace(/\//g, ".");
+    return {
+      label: String(label),
+      address: addressed ? prefix : "",
+      key: addressed ? normalized : "",
+      title: addressed ? clean.slice(dash + 1) : clean,
+      parts: addressed ? normalized.split(".") : [],
+      depth: addressed ? normalized.split(".").length - 1 : 0
+    };
+  }
+  function compare(data, scope, a, b) {
+    const x = describe(A2.label(data, scope, a)), y = describe(A2.label(data, scope, b));
+    if (x.address && y.address) {
+      for (let i = 0; i < Math.min(x.parts.length, y.parts.length); i++) {
+        const order = natural.compare(x.parts[i], y.parts[i]);
+        if (order) return order;
+      }
+      if (x.parts.length !== y.parts.length) return x.parts.length - y.parts.length;
+    } else if (!!x.address !== !!y.address) return x.address ? -1 : 1;
+    return natural.compare(x.label.replace(/^#/, ""), y.label.replace(/^#/, "")) || String(a).localeCompare(String(b), "zh-CN");
+  }
+  function paint(target, data, scope, tag, { indent = false } = {}) {
+    const info = describe(A2.label(data, scope, tag));
+    target.replaceChildren();
+    target.classList.add("ent-address-label");
+    target.classList.toggle("ent-address-indented", indent);
+    target.dataset.aliasRaw = tag;
+    target.dataset.addressDepth = String(info.depth);
+    target.style.setProperty("--ent-tag-depth", String(Math.min(info.depth, 5)));
+    const span = (cls, text2) => {
+      const e = target.ownerDocument.createElement("span");
+      e.className = cls;
+      e.textContent = text2;
+      target.appendChild(e);
+    };
+    if (info.address) {
+      span("ent-tag-address", (info.label.startsWith("#") ? "#" : "") + info.address);
+      span("ent-tag-separator", "-");
+      span("ent-tag-caption", info.title);
+    } else span("ent-tag-caption", info.label);
+    target.title = info.label;
+    return target;
+  }
+  const caches = /* @__PURE__ */ new WeakMap();
+  function colors(plugin) {
+    const tree = plugin.index.catalogTree(), aliases = plugin.owner.data.tagDisplayAliases;
+    const previous = caches.get(plugin);
+    if (previous?.tree === tree && previous.aliases === aliases) return previous.colors;
+    const addresses = [...tree.nodes.values()].filter((n) => n.path).map((n) => describe(A2.label(plugin.owner.data, "experience", n.tag || "#" + n.path)).key).filter(Boolean);
+    const result = addressColors(addresses);
+    caches.set(plugin, { tree, aliases, colors: result });
+    return result;
+  }
+  function inheritedAddress(data, tag) {
+    let path = tag;
+    while (path) {
+      const address = describe(A2.label(data, "experience", path)).key;
+      if (address) return address;
+      const slash = path.lastIndexOf("/");
+      path = slash < 0 ? "" : path.slice(0, slash);
+    }
+    return "";
+  }
+  function tint(target, plugin, tag) {
+    const address = inheritedAddress(plugin.owner.data, tag);
+    const color = address ? colors(plugin).get(address) : null;
+    target.classList.toggle("ent-address-tinted", !!color);
+    if (color) target.style.setProperty("--ent-address-color", color);
+    else target.style.removeProperty("--ent-address-color");
+    return target;
+  }
+  return { describe, compare, paint, tint, colors };
+}
+
+// src/tag-display-aliases.js
 function createTagDisplayAliases({ Modal: Modal2, Notice: Notice2 }) {
   const owners = /* @__PURE__ */ new WeakMap();
   const canonical = (tag) => "#" + String(tag).replace(/^#/, "");
@@ -245,7 +427,7 @@ function createTagDisplayAliases({ Modal: Modal2, Notice: Notice2 }) {
   return { canonical, keyOf, get, label, matches: matches2, sortText, compare, paint, open };
 }
 
-// results/experience-fragment-date-20261116/plugin/src/body-view.js
+// src/body-view.js
 var bodyId = 0;
 function attachBody(view, row, article, generation) {
   const index = view.plugin.index, win = article.ownerDocument.defaultView;
@@ -371,10 +553,10 @@ function attachBody(view, row, article, generation) {
   return controller;
 }
 
-// results/experience-fragment-date-20261116/plugin/src/main.js
+// src/main.js
 var import_obsidian = require("obsidian");
 
-// results/experience-fragment-date-20261116/plugin/src/core.js
+// src/core.js
 var MAX_WRITE_BYTES = 2 * 1024 * 1024;
 function day(value) {
   if (typeof value !== "string") return "";
@@ -570,7 +752,7 @@ function matches(row, filter) {
   return !tags.length || (filter.mode === "all" ? tags.every((t) => row.tags.includes(t)) : tags.some((t) => row.tags.includes(t)));
 }
 
-// results/experience-fragment-date-20261116/plugin/src/fragment-date.js
+// src/fragment-date.js
 function validUpdatedAt(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return false;
   const ms = Date.parse(value);
@@ -596,16 +778,16 @@ function fragmentDate(fragment, file, cache, field) {
   };
 }
 
-// results/experience-picker-20261113/node_modules/mdurl/index.mjs
+// ../../experience-picker-20261113/node_modules/mdurl/index.mjs
 var mdurl_exports = {};
 __export(mdurl_exports, {
   decode: () => decode_default,
   encode: () => encode_default,
-  format: () => format,
+  format: () => format2,
   parse: () => parse_default
 });
 
-// results/experience-picker-20261113/node_modules/mdurl/lib/decode.mjs
+// ../../experience-picker-20261113/node_modules/mdurl/lib/decode.mjs
 var decodeCache = {};
 function getDecodeCache(exclude) {
   let cache = decodeCache[exclude];
@@ -688,7 +870,7 @@ decode.defaultChars = ";/?:@&=+$,#";
 decode.componentChars = "";
 var decode_default = decode;
 
-// results/experience-picker-20261113/node_modules/mdurl/lib/encode.mjs
+// ../../experience-picker-20261113/node_modules/mdurl/lib/encode.mjs
 var encodeCache = {};
 function getEncodeCache(exclude) {
   let cache = encodeCache[exclude];
@@ -752,8 +934,8 @@ encode.defaultChars = ";/?:@&=+$,-_.!~*'()#";
 encode.componentChars = "-_.!~*'()";
 var encode_default = encode;
 
-// results/experience-picker-20261113/node_modules/mdurl/lib/format.mjs
-function format(url) {
+// ../../experience-picker-20261113/node_modules/mdurl/lib/format.mjs
+function format2(url) {
   let result = "";
   result += url.protocol || "";
   result += url.slashes ? "//" : "";
@@ -770,7 +952,7 @@ function format(url) {
   return result;
 }
 
-// results/experience-picker-20261113/node_modules/mdurl/lib/parse.mjs
+// ../../experience-picker-20261113/node_modules/mdurl/lib/parse.mjs
 function Url() {
   this.protocol = null;
   this.slashes = null;
@@ -952,7 +1134,7 @@ Url.prototype.parseHost = function(host) {
 };
 var parse_default = urlParse;
 
-// results/experience-picker-20261113/node_modules/uc.micro/build/index.mjs
+// ../../experience-picker-20261113/node_modules/uc.micro/build/index.mjs
 var build_exports = {};
 __export(build_exports, {
   Any: () => Any,
@@ -969,7 +1151,7 @@ var P = /[!-#%-\*,-\/:;\?@\[-\]_\{\}\xA1\xA7\xAB\xB6\xB7\xBB\xBF\u037E\u0387\u05
 var S = /[\$\+<->\^`\|~\xA2-\xA6\xA8\xA9\xAC\xAE-\xB1\xB4\xB8\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u02FF\u0375\u0384\u0385\u03F6\u0482\u058D-\u058F\u0606-\u0608\u060B\u060E\u060F\u06DE\u06E9\u06FD\u06FE\u07F6\u07FE\u07FF\u0888\u09F2\u09F3\u09FA\u09FB\u0AF1\u0B70\u0BF3-\u0BFA\u0C7F\u0D4F\u0D79\u0E3F\u0F01-\u0F03\u0F13\u0F15-\u0F17\u0F1A-\u0F1F\u0F34\u0F36\u0F38\u0FBE-\u0FC5\u0FC7-\u0FCC\u0FCE\u0FCF\u0FD5-\u0FD8\u109E\u109F\u1390-\u1399\u166D\u17DB\u1940\u19DE-\u19FF\u1B61-\u1B6A\u1B74-\u1B7C\u1FBD\u1FBF-\u1FC1\u1FCD-\u1FCF\u1FDD-\u1FDF\u1FED-\u1FEF\u1FFD\u1FFE\u2044\u2052\u207A-\u207C\u208A-\u208C\u20A0-\u20C1\u2100\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F\u218A\u218B\u2190-\u2307\u230C-\u2328\u232B-\u2429\u2440-\u244A\u249C-\u24E9\u2500-\u2767\u2794-\u27C4\u27C7-\u27E5\u27F0-\u2982\u2999-\u29D7\u29DC-\u29FB\u29FE-\u2B73\u2B76-\u2BFF\u2CE5-\u2CEA\u2E50\u2E51\u2E80-\u2E99\u2E9B-\u2EF3\u2F00-\u2FD5\u2FF0-\u2FFF\u3004\u3012\u3013\u3020\u3036\u3037\u303E\u303F\u309B\u309C\u3190\u3191\u3196-\u319F\u31C0-\u31E5\u31EF\u3200-\u321E\u322A-\u3247\u3250\u3260-\u327F\u328A-\u32B0\u32C0-\u33FF\u4DC0-\u4DFF\uA490-\uA4C6\uA700-\uA716\uA720\uA721\uA789\uA78A\uA828-\uA82B\uA836-\uA839\uAA77-\uAA79\uAB5B\uAB6A\uAB6B\uFB29\uFBB2-\uFBD2\uFD40-\uFD4F\uFD90\uFD91\uFDC8-\uFDCF\uFDFC-\uFDFF\uFE62\uFE64-\uFE66\uFE69\uFF04\uFF0B\uFF1C-\uFF1E\uFF3E\uFF40\uFF5C\uFF5E\uFFE0-\uFFE6\uFFE8-\uFFEE\uFFFC\uFFFD]|\uD800[\uDD37-\uDD3F\uDD79-\uDD89\uDD8C-\uDD8E\uDD90-\uDD9C\uDDA0\uDDD0-\uDDFC]|\uD802[\uDC77\uDC78\uDEC8]|\uD803[\uDD8E\uDD8F\uDED1-\uDED8]|\uD805\uDF3F|\uD807[\uDFD5-\uDFF1]|\uD81A[\uDF3C-\uDF3F\uDF45]|\uD82F\uDC9C|\uD833[\uDC00-\uDCEF\uDCFA-\uDCFC\uDD00-\uDEB3\uDEBA-\uDED0\uDEE0-\uDEF0\uDF50-\uDFC3]|\uD834[\uDC00-\uDCF5\uDD00-\uDD26\uDD29-\uDD64\uDD6A-\uDD6C\uDD83\uDD84\uDD8C-\uDDA9\uDDAE-\uDDEA\uDE00-\uDE41\uDE45\uDF00-\uDF56]|\uD835[\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3]|\uD836[\uDC00-\uDDFF\uDE37-\uDE3A\uDE6D-\uDE74\uDE76-\uDE83\uDE85\uDE86]|\uD838[\uDD4F\uDEFF]|\uD83B[\uDCAC\uDCB0\uDD2E\uDEF0\uDEF1]|\uD83C[\uDC00-\uDC2B\uDC30-\uDC93\uDCA0-\uDCAE\uDCB1-\uDCBF\uDCC1-\uDCCF\uDCD1-\uDCF5\uDD0D-\uDDAD\uDDE6-\uDE02\uDE10-\uDE3B\uDE40-\uDE48\uDE50\uDE51\uDE60-\uDE65\uDF00-\uDFFF]|\uD83D[\uDC00-\uDED8\uDEDC-\uDEEC\uDEF0-\uDEFC\uDF00-\uDFD9\uDFE0-\uDFEB\uDFF0]|\uD83E[\uDC00-\uDC0B\uDC10-\uDC47\uDC50-\uDC59\uDC60-\uDC87\uDC90-\uDCAD\uDCB0-\uDCBB\uDCC0\uDCC1\uDCD0-\uDCD8\uDD00-\uDE57\uDE60-\uDE6D\uDE70-\uDE7C\uDE80-\uDE8A\uDE8E-\uDEC6\uDEC8\uDECD-\uDEDC\uDEDF-\uDEEA\uDEEF-\uDEF8\uDF00-\uDF92\uDF94-\uDFEF\uDFFA]/;
 var Z = /[ \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
 
-// results/experience-picker-20261113/node_modules/entities/dist/decode-codepoint.js
+// ../../experience-picker-20261113/node_modules/entities/dist/decode-codepoint.js
 var c1 = [
   8364,
   0,
@@ -1020,7 +1202,7 @@ function codePointToString(codePoint) {
   return codePoint - 1 >>> 0 < 127 || codePoint - 160 >>> 0 < 55136 ? String.fromCharCode(codePoint) : String.fromCodePoint(replaceCodePoint(codePoint));
 }
 
-// results/experience-picker-20261113/node_modules/entities/dist/internal/decode-shared.js
+// ../../experience-picker-20261113/node_modules/entities/dist/internal/decode-shared.js
 var BASE91_INVERSE = /* @__PURE__ */ (() => {
   const table2 = new Uint8Array(127);
   let code2 = 0;
@@ -1125,10 +1307,10 @@ function decodeTrieDict(input2, resultLength, atomCount, dict1AtomCount, ngramCo
   return out;
 }
 
-// results/experience-picker-20261113/node_modules/entities/dist/generated/decode-data-html.js
+// ../../experience-picker-20261113/node_modules/entities/dist/generated/decode-data-html.js
 var htmlDecodeTree = /* @__PURE__ */ decodeTrieDict("!}.&u%}'&}*'~!6*)%&,~!J~!J~%L~y<~!R,~~%Lu~~#GD~~#|)1#%}^%}2%+#.##%##%}&%##%'#%##&%#%#'%#&#%#&#'#%%#&#%##%#)%''%&%#%#'%#%%#%%}%%%#%#&(23#%%#&-%0%('1#(##%#'##+%'*.:1}#%#6-+(%'%%#%%%}#L'2351&('%}&/N'(0(/*-%(%%}#'+&T%7.2}#&%&#%#36/5##%&%%#&#%%#))2%%##%&&'0~!#*+&'%1~!%).'3q?&%'1~!.##%6(~!+%%%(Gw'rT~!E#<nA%#jZ~!H%(~!42##~!*31&~!G%U~#)5~#`3~!J~!Z~%]~%Y~%C~!q~!u~#kz~%#~!6'~!D~!U~!?~#T~!c%~!G#'~%7|~!G~!J~!G&~#pb~(Df}#%}*&}#%##%##%##&#-}&'#'&%#.++}%mI,#,@&(}*%}*'%&##&#%##%}&0}#.},U},%}+%}&%}#%##&}B%(}(%}+%)})%##%#&}&%##%&}<%}>%#%&}*%}(%}9%}/%})%}*%}*%}?&}&%}3%}&*#%})%#%#)}#&#-#+*%E%%'%'#%}#*V##&##I}#&&##%&%#&&Qf%%))w/0+&%#(#.%-''''++++7}>%4'',##1,#%#&%##&#'##&#*#9)%&%}#*}%,#+P(%A&%#'&##wSD',9E00#y#@}(+}&%&>~!#~!X}#*}(&&}(&}(,%}%&#+&}#&}I%#%}%)#(},'%#*}4%%#%}(''}#/##(##),%-##%%)#&}(.}&%#&}%%}*&#%},&&}&%}#%*'#%})%}D&}&%}-&}6&#&}-,%}#%})-(~+`~,=?~I9'9%~!,#%})%})%}@%}?%}(~!?~#<~#pP~#BG~#=1#%K+~#?#~%;)~#A~#mF1~#A'~'X%'~#lR~#N~'N~#r~#m#-~#i'?%#'%~#B%##%,%#~#_%#0%~#]732~,w~2+#:&#%&'0%&>%}#>##F+)#%&&#(+_}4&}-%}(&}@&}O7Fdf0@+/v4}&WU##&/0#&'('B#%}.%}'+#%}#%%&#&%#%##+#&#)#6#'#.},%}c%},%#%##%&#&%#&~#>'*-.%##%##%}#%%}%'~#)D1}#%*&~#_%%'(~#S2%'.}#~#=##*'*-%}&'%'##&&~'E%.#&~#M4}%%##&'%#~#O1##%&#'+~#<B%##%%'%+~#;#@%}#&%#&&%#(~#H1}'%'##&&~#?A}&'~#D#%32}'&&&&~#[}'(#%}'~#;C})&}%%#%~#=&%,3}%'(#%%~#^'#&&)#%'~#Y%-~#d-%'~#^%%&#&&&}#~#b~2t*&'~&(~&@~0%~e~3}%*''0})&}+~!9##-}#%-hD*)1fC#%/&/fB#40~!+#)*4~!+~!K'&:~!/*7~!.#~!H~!L':~%x&~!H#~!*~%1~!I#~!+A~#p'~!F~~#-#~,,(~.Z~!V~%;'B'mq-W~!N~%I%#&&#&}#%},%%}'%}+X#%}#&}(%}'%}<%}#%}%%'}'%}:~![)9@~%>~#UA%-%##&~!C%~!-.9:~!1~!-^2/:a~!y,D*J#-5)/4~%23,~#G~!L1~!0X3`~!2+~!!0-~&E~!W~!o,>Y&]~%cZx_&~#O*9#A#'#+I'%#)~!0B*-5A+-((F&*M#)(-7-5+'-3a5Vi~!Y~!?+[)%3),ERHm~!+:D,VG.+)?fB%%*(%)'(#&80%1'8`K8?`+'Z#&O&'H5#*9)A%%5&3))0%39+.*7#()&&*=4@**L)<'_&*+..;(#*+)./&0#3)%')-8(4ixD(&.}%,('aI:,)%,k2231T)I'#/-W7,/'Q#.'Y24+h')37</31&83##&0#),H(?'&?/1##%#&&#%''-%&&&#(&''&#.-'%#%%(,')*'&#&#'##%(%(#%('#&##%%%%('%#%#%%#%#&%##h>w+v<ayvyvcg.uuhKr}g/v|g>u9i[~>g5uI~=RvdwEg;v/g;uk!!TTSx]@RT!U!#!@VBRUU!'UTe-d0c`e&gSdicedFcrdTaqb.kYcAohdYd@a3e+d}dMdtd.aJ#bqcK`dle/e.e'dwdPdodddjbEb}ogd^ofdpduc6j?l%d{drdqc)d7bacOdQ%T#Y)X.sR[yH>6Vyv3[xwLu>vo'!*.[yBacahoj>6Rew3[xqdZa#!a&#^(X-[yG>6Vyu3[xvg3sEr|g.u/Ri9db0T#^(Xa)!-[y;>6Vylg4wKs{JwNZt3@3r=c4Z([xlg;wKt!cpq's@v7A'*a(a+!-a#[y<3Dt?3Dt'>6Vym3[xmg9rxsNJwLZt4~?r?db1T#`-!(Xa,!0[yS>6Vz%NuQs.g4wKtnJwNZtS@3r>c4Z([y%g;wKtrdga8!a(!#&T*Y-Xa#!a0<or[yc3Dtq>6Vz43[y3JwNZtf@3s!Ju}!%Dti:pm3c_%X#tjB5pkd6q!r]u?voC'*-a.a2!0a&a+[yI3DtI3Ds~3DtH>6Vyw3[xx;:s#~<5pKJwNZtE@3r~d`a)!a2T#a.(!+U.X1[yT3Dt`3Dtv>6Vz&3[y&g9rxwzcxstPu.<rAJwLZtT~?r@dZa%!a.&^*Za(/Reu[ya>6Vz23[y1g3sEr}wkg{NuQRg{ci(U#5@b`~,cg#U(2WnH5wugcRh7dX#T(Y,a'Ta!!a,[yZ<]mj>6Vz,3[y+Pv#5ReZKu+=,%!H}7ABwkaS?Rh:BcW(X#<]mrj:ubv/ARekdg%!(!a.*Ta(Y.X1!#sP>Rl*Dt6[y>>6Vyo3Wf*jOvuumvuRgRJuq*!:9<B@bX~3jVv&v@s@5Re[d/rQt{uAvo&a&a*)a2!,0Wf!3Dt0=Bs'>6Re}3[xy~<5s%JwJZt1~Gs)c;&!#2sJkNuXvzq7rxu,Re8dka4!a8(aEZ+a@Y.X1Xa)[yd=Bs(3DtP>6Vz53[y4cX#X&Re:avRe9~<5s&JwJZtQ~Gs*i^rzvdRg+Jv{%!2sbB@bX}kdga,!Za?&^*T1/!a'Dt+[y6>6Vyf3Wf%g/u;s4hGu6?Rh-JvZ,!c%#&RoX54Rivj7uyvf8RgTKvZB%*!2sGh<vu5Rgq<=C::9bb~#dZ#T&Ta6Y.X*Dt>[y93Wf)coZ(T,6VyifluvRgC@95@B@bX~/hFu34cC#T,k/unq8w8Q5RkUklwQuzunq8w8Q5Rk8d/rJu?v8w9)-&!a0a;a&aIWejg3sEr/h1s<DtDJvyZqY5aws3Jvy!&Wei~Hr1:au5@Bag>23E~5c:Z&bX};kKv?w&unuVu5Rjc;>bs)#~@:Rh.=ay<a]C;b`}Vd6s/t{uAvoaxa()!a,a7%-a#a2Dt,[yF2Wo[>6Vyt3[xuNuPRi&NuPwpi#RoWh?vf8Ri%Jv]!%Ri:KvxD!.'2WeAjZu`q9rxu,Re7woeAg-unLq(qA_/*2Wg_g3u5q^9:4E}/jTrxrzv=Wkkd~0UX#^^Xa-a1a5T&a=U1a'*aEa]!a*aPaA-adok[y54Rn>;:p3~Dp5g9rpsFNvZqjg3uJp4~<5p0Pw;5qlJwNZt*@3p1Pw:5p/Ou!5p2JvG'!6Vye=<qnJvh_[xhg3v,Rh3kOwOw-sDuev/Re^dha[a%!%!a+#Ta7)-5TaCaO!aka!a)sf[yb2>Rl!9ARiq5E}Qg=ucRkBE|oJrJ_@Wk~@Wk{JrJ_@Wk|@WkyJrJ_@Wk}@WkzJvO_[y2g-vMRmiKuYC!)&>Ri;>Ri<@3RkNc](X#@9Rk=g5vuRmhKvDB!+'=]meg3u4Rmgd)#Y'Vz3CARmfd`a+!%T'!+#Ta1Ta6TaM-sTDt9[yA9sYd'%Y#s[[xpj:ueunaXRgEjRq,v-vuqdd2'`#6Rev<32@5>:2<E}5xIo9a*X#Y(;5RePJvD_g>vyRgNj8w)v8<wggs:RgXiZt|vjx,hSq3ah!-(~@:Ro/Ou!5RhWj^v(pyw8unRhUdx-UY#^Ua.a3a70!)%UX1TaDa)'omRiRRhE[y:3Dsz=Br,>6Vyj3[xkg6ruwjcqsrPw;5r*Ku]D'Zt-@3r(~?r.i[vwv]dU1a--U#`a4(g/vsRhPOu!5RhLj:rmu9Wo!~@:wdh@g/vsRiTjXuvvNr}:RhBj^v(pyw8unRn]dz1UYa'a+^Y(!aETZalaRY.Ta?a4[yDJw1!#qLsW>6Vyrfzq-pLflpwRe|Js>%!Dt@3Dt&Jvy_[xs~HrnjMuwpsw'RecKu+D#'!t<~Grl~?rjg5u-x,gwp{ah!-(~@:Rg~Ou!5Rh'jXuvvNr}:Rh#cW#X/c;&!#2sLi[v7u7RgpJv)(!iLrxu,Re6j7v@s@5Se[e7d`aW!Za(a`T.a#!a3!&aDa-!9)Dt_=6s+3[x~~DR|h~DS6avhGun5RkZj3w)v-]mkKunB!&*]kb97R|i<ARk<c:Z(6Vy}Juh'!wziMRoS:F|vkLuauJv5vtvQRh1d='T+Y#VyO~DR|jcF#T'7R|g97R|kJv3'!ay<Rj,Jvh&!:ReXcsa6*a+#a#_aIRf9aLRf?c,Z&Rf5Rf7c.Z&Rf;Rf>cQ#%T'p-Rf8Rf=ct#%'(*!,p,Rf4p+Rf6Rf:Rf<d~'Ua%U*^UYa(!a,-!#a4YaTalaEX0a8a<Weo3Dt/3Dsx=Br93Wen~Dr;~<5p<JwNZt2@3p=Pw:5p;Ou!5r3c7&!#:p>3Ds}KvGB)_6Vyk2sM=<r7x'eovA(!hFu1ARf}cV#X&@r5j6rvwQa^Rf3c=Za'wkghJv__g;unRggA53B9=b^}%j6uduo5Jq;!(hIv%2Re`Ou4ARe_e%a#^^^Xa&!a*a2!&a6YaP!*ad!#a:aE/5Rn?[y@>6Vyp;:pE~DrY~<5pBJwNZt8@3pCh=rt3rWPw:5pAJup_[xoNuPpF9c!#'45pD5ARn)d8#X'X*3@rU72s]h>v<<sSjJpqvewOJq/(!hNw'5ReBk0s2u3w/w'5ReE5@Jq.!a+JQ!&WeU23d(#Y&RjG5]jBk!u7w&u0udARjEe#+^^^Ub#!a2/a`Z(agT1!a-a;|@TaG!aS[yV=Re~fow'RguNuPRe?bz#'>RoUWeL>:Cbb|?JwPZtVg6ruRmzJvD'!6Vz(g/vmRh~Jvy_[y(g9voRgyx*cy(#2>Ri2B9b]~9kIw9u7rluJu3Rg]dI#a%UY'@=p%CAx.gQZ&RhwwygtRm{x5g_Z'+ABqR9Woa=Bp&dV#^*Xa'!&@o{g4v]Rk;Jv{!%Rk[wkkiA5RkiwwfUB=x,fUuqC&*!>RfTg8v0RfV~ARfSd;rJsAuAv9wR'ae+/aO!a@aza/a#[yQ@Wg!2Wemg3sEr0JvB_g>uvReWg2v+Re=KupB_+[y!2AbY~-~Hr2AJwD!(h<~El>h<~El?Kun@+_:9b`}Kg-v/Ri3g;vtwyk_9]k_d=&T#*U.6qh@Ab`|K9:H|CJv[!&3Dtex'fDwC%!Rf[9WlMd[(^X,!a%Z06Vz!@WgBg=v~Rgvg,QRe@awd,#Y+jTv|Q~EfWj]uNr|~FRfXdy#Y&^Ua%!aO.!(a)Ua;=!a@aKap!a-,a!Ta]a[rSa]p?[y82sK=Bq~;:p:~<5p8Pw:5p7d'#Y'Wf(;RnRi[u4w&RgJJvG'!6Vyh=<r#ijuuv/sIKuYD'ZtG@3p9~Gr&d2#`(g<vtRgFj`u5w&rqpxRf2CJuY!+:wfnTOu!5Rg}jNs1ucv&RfwJvA!&3@q|BDcC#T,k/unq8w8Q5RkTklwQuzunq8w8Q5Rk9dga#!a'!a=#a0!:+Tb*b@aO.a4!aba8aFJv^}?!VyR~Dr<g;u%Rn.~<5p[x'e`wNZtR@3p]Pw:5pZhNvjBp.woe_g5u-r4JwF!%DtO3:ooc7&!#:p^3DtpLuGw(!+%)Dtk6Vz#2sd=<r8d'#Y([y#<x3gJt`w@!)%}MRiowzikRij=]ilxAf3,U(#B2Rf#g0v-Rm[ck{`U#]giKv3>)!&6Ri154s,KuGB_%@r68r:dJ|t`#X(9<E|u2@H|rx3gJu?w'!+'1Nu7Reg4=H~+9<wxgY95Rm]xLggZ-`(X}U2:Ri4h<uOawRmsJv__5@bb{jbV~3dka#a'a]!,#a+U=a>b6a3b%!/aKa/)!arwve^VyJ;:pR~DpTg3uJpS~<5pOPw;5qmPw:5pNOu!5pQJvG'!6Vyx=<qoJvA!{~Jup!%@qk7Rn/KvyD!}''[xz;>wkh'?Rh,x8gyt`w5D!&),(SgyccRgztJ@3pPB5p#d'(Y#<]mmifubw&RgoJvE&!82s^JvF&!8Rf,ADb]~;x=h'rNu]vK!,%'*0RnORh)4Rh*AqQg-vaRnNg;wHwkh'ba~4cE#Ta*x3gctyw@'!+%RnFRnD<4Rn@hFvK5RnCxWg[#`&a0Ua()`1Rm75Rg[c]%X#qi8Rg^NvdRj>BwzgZauwji7Rm6A4wgg]d1#&(*,.0a#Rm;Rm<Rm=Rm>Rm?Rm@RmARmBe%#^^^Xaea?aC/b+(,!a+a#!a/!>a&Ta<aKbD!2wphBRnk[yPw}hE|.=Br-3Dtm>6Vy~g6urRf.x,hPrNav!%'RnqRo%Ro#Nu;q[Pw;5r+JwNZtM@3r)d'#Y'Weh;xChL#`&RnmRnoKu}>%(!Rne~Bs-;2wjcussJv+'!aYSO}6@B<5?ba~8LrNvj!.%*ROwungw~ng~:9;Ri^>wtnig;wHRnixDh@|(UZ.x1h@|)!#:2<H|*xHn]#-UX'3Ro)z=iT}6ARns=Bwsn_wpnaRncw]aR(#UXa&Ua*a/=]iPd'#Y&Ro'WnXf{QRm2hNvj]nZd`'T~&1`{|`#9b]{}c:'!#Wl{>@=be}]?cl{{U#:5Abb}Jds#^YaF!a*b4a#a3aPa>&Tb!bH!*a_!Eau?/a&RjY<]gj>6Vz*;:pe~DrZg,QRj1JwNZtX@wihspcJvZ&!VyX9WmOJu|!|N2WmHJvh&!]ht~Bpbcn&T(!#RmQ<s7Nu;padH#X'`+WmJ@>RmKCARhnKup=!)&Wf+:RhqNuPpf9c!#'45pd5AwghpARn(Ls@w!%,)!RmP@Wfe<E|IJva!&WmNg8vsRmLd`*.`#Y'Xa!axRn*]hrA8Rhug5s@rXg8u!RmMd8#X'X*3@rV72smdI*#UY&RmICARho~GsgxVgd)Ta'U-Y&Xa!T#RnEWnA@Wffg1uDRi0hFvK5RnBxGnG&#`%owp)@wsf+bX}Ze-*1!a*^^^Ua|!#a.aq&Ya2!a>.a6!a:aO`aJDtL[y`@Wg#>6Vz12@wzoYRoZNuPRi!NuPRhzg=ucRi,@=b`{Yg=ucRi-ACJvB!&Sh[ebSh]ebi`wUuFRm4Jw2_[y0JvB!.<Ju(!&SoG}6Shd}6<Ju(!&SoH}6She}6Kur@._g5vHRieJvx!{L2G{Kx6gd'T#?Rh82Wi5cZ#X(g1w)Rm5dW-Y(Ta#!a)!#aYa=wnfE=su2>>bU{0j9udv:<svj8uQv-7RgHdE%#^'sq9sp=>Bb_{TJv`!&g/r|snj6v(us5d,#Y(56H}[978H}]Jw5!&g1rushJvB!+j;v{u5?zDhd}6}bj;v{u5?zDhe}6}ce*#`(^^^a[aea!=!a6a*aoXb1a.!aAbL!b>,b'aL!aV@Wf|2Wlg3[y/JwNZt^@3piPw:5pgJunZou3@rsJva&!Vy_g<v~Rm#JvG'!6Vz0=<r{Ju{%!:pj@WfsiXuJu3Rm:JvZ&!WfA~Bph@c4Z&Dtwax5rubx(#:awRk1@d,#Y&RfjRfid1#,Y(@Wfp2Wlrg5s@ryKu[@!,'=]ig9wlk?Rk>g5u-rqJvy'!@9RkQcH(T#=>Ri~@<wkj(Wj(KuZB*!&<7rw@9RkRcH(T#=>Ri}@<wkj)Wj)dg(Ta2Xa9X#`-!a*CARhg@@=I}d9x;c~#X%so=<sj>2@@=aybb}XjWv0Q~EfEj3vLv;<d,#Y(56H}`978H}_dgaPaFa'a/!#a3Y0a_a;a|!1(a7-[yE3[xt;:pJNvZrrg3uJrvJwNZt=@3pIh=rt3rxPw:5pGOu!5rpJvG'!6Vys=<rz@c4Z&Dt(ax5rtJvZ!&~BpH@wsfNg-vaRlNci*U#=<wei<F}a5@Jq.!a*JQ!%@qZ23d(#Y&RjH5]jCk!u7w&u0udARjFd/prq=tyvpaEa(a:.!a1aZ(@@=I}:9wpd%=<sX55w_h}@@=I{t=ay<aU@@=I}T=ay<2@@=I})?C9:9au@9Cb]}DP~=x-fAZ(2Wl1=ay<aU@@=I}>5@d##Y+jTv|vV~EfFj]uNpn~FRfGdgaK!Z2&!a8a-Tb({E!acTbM*!a(DtY[yYd'%Y#sl[y*hHvh>Re5x2c{Z}.j4uCvcawRiMd+#X+_x&d!},<5RkX;2Hzw@x,gavfB-!{CcF&T#Roe;RodwWbBg5urRgaKvHC*_6Vz+<4opieuew&Rmq@d]&Y)X,T#X0Rh}<BqP=4qS9:ReMg/ujReNJw0!/<Jui%!bd{kawwnemRelAxUa?a3#*.&UX(Ya+a/RhvRnQ<o}9Wmtd-#Y&RgSRmw9;Rmxay=Rmyg-vaRmuxEhSrNu,v-voC!%(aR.a(a7+1Ro1>Ro5CE{A9b]{@;5x#eO{:g;urRi+KrNA!%(Ro3>Ro79;Ri_Ku@>{;&!x%gX|{KunA_+g5QRj/g3u5Rj#g>uERj%wio/xRhS&!,!#^1U}wba{8>>@=be}qC@:D5ba{7Ku+A&!}x?ba}t>>@=be}se(aA^^^Uat!b0#{pa+awUazbGa#aLb9bgaWac'a5TbS=Br!d1#`%scp_Jvl!#rT>Re0JvX&!VyN=H{Fcm#U&:pY=ReaJv2&!]h0=]nUJvG'!6Vy|=<r%JrM_=]h2@Wlud'#)U'Wf'b]{i=]h/Jvh!&~BpWg=v]RnMx+ny#'Nu;pVwjnu=]nwxJnx,T#`&Reqwjnt=]nvieu9vrRjLLuYwP(#+!th@wih5pX~Gr'g5v/Rh4KunA'!-CARnP@wwiN:Rm_9x'cvw>!|l=<saKvAA!0&3@q}>w^e1bp#&Re2Re3BDx7gH#T|f5H|eKuZ>!%(:qNAH{]Jv6!+3B2B9=b^{X<5<B92:E{ZLvhwA(a;a%!igQuyRmad+#Y}m@3Rh5d8#X'X*:AqUAHzmaxwbh<aXRnVcF}RT#Nw&cj#U(BWnug/vsRntdka)(a3+.Zb7aYYan1!bVa@Xa}[y^@b[{G=H{+hFu73Rj&Pv#5ReQcK%T#sig1v{Rj'Ku+D#'!t]~Grm~?rkKuMB!01d5#`'Vy.ta3Dtu~Hroc8#'{^45s85AwZbP&!#Rn!wghxWn#KvEA!)&2RlA2RlBx:h|#(T,=]j09Wobz>x]z/@awRoTd+#Y(az]hFhCrm4d,#Y+jTv|Q~EfMj]uNr|~FRfOdCa!Xa9_X#@<plJvf!%b`{(9;Rgwc;.!#2x7cw#T|UDb]|T5Ju={(!=@E{&Jv)&!Ab`{'awJvf!~*>>@=be{#KuY>!+&4Ezyi[ugv&RjIdea+T)#UXa&T-T&a!Rh9auRmW=]kLg5vuRn+g3u4Rn-Ow6ARn,hHus5xNk?#UX(U~)/g8v0RkD~AwkkF?Ri.OuNBwkkA?Ri/d|a2`a*^UYa.!aBTZaTa'Xa;!(!2!-a#b2[yC>6Vyq3[xr2Wi?g1rusVh%s?DtF~<5rbJs;%!DtBfswKtCj[uvuSsEu3RgVx3o:u+wN'*Zt;@3rd~Grh~?rfg8w)Lq)qE&-a%!>bI|`jWv0vV~EfCjTv|vV~Ef@j]uNpn~FRfBcK#T']gWNu7x,k7q4ai(0!hHv8<RhmkMu9vrsBuev/RhlCJvB!,g<v{wchh~@:Rhji[vrv{wchi~@:RhkdS&a5UY#Ta!RgPwwiI5BwciI~@:Rh`x'iJvj'!5]iJPu8Bwch]~@:Rhach)U#h3rp]gLh@t|Ax,hTq3ah!-(~@:Ro0Ou!5RhXj^v(pyw8unRhVd|)`,^UYas!a?/a2Z'a^Ta{Tb7Ta(a#!a,Wf&9sZ3DtAadamov=Bqt3[xig8vsRm~>waiL2b`{QJv*_Ouv2qgj<v]v2BqfdR'X*X#Y-@3qr~Gqv~?p6hHv-]glPup5Lq+q?_%*b_{qF{n9b^{rOu4ARhpKvCD!+&~Bqp:5Dbb}nwoiKl&unuTuBv]v+ueunaXRf0=Jvh!0nKufu8v1w&w7q%w&uHrz:Rgnj5w,uxDJq/(!hNw'5ReCk0s2u3w/w'5ReFd>Za&!*UaA=<wkgsRnSJv^!%Refifw3vyRgOKu_B'!,<]gkiiu:w&Rh<=C@a^<B57@2F{[<B5@aW:=3away9A5aW=<B=C@a^<B57@2F{Ie-#`(^^^bCara.b8aza6!/bZ,!adTbnTbOb+aFaS!aAT9@Wf~2Wli3Dtl2@d,#Y&RfnRfmJwJZtN~GqyJva&!VyMg<v~Rm%iXuJu3Rm9Jv[_=]ih9wlkDRkCd1#`(@Wg>2Wls3cH#T(@<Rj*=>Ri|b~'#23s9h<~El.d'#Y&Dtxi^rzvdRl#d*#U%(o|B2s`hJwSaxRmDKv4B&!1:Rmdd5#`'Vx}to~Hq{x'f1v3(!BA5ba|bJv_&!Wfug1v]ReIdO+U/Y#&G}-8wze=Rh{g1v]ReHg/uQRf/by#)ibQwERl/cH#T(@<Rj+=>Ri{cNu+vlax-!(#a0qa9<Rii2;;bU{H;x<i=&X#Rk`<4wwi=C9H~8xAI(Y#<azRi@45wXI<B9;5bb~7dL(X#Xa(+!aL6Vy{g5QqOau:5au2@ay547EzbxOcU(UX-T#Ta#:Cbb|A?wjh/b_|SOw6ARgtihr}u7Rhy<d1#T)X1@@=I|~=ay<2@@=aybb}Sj3vLv;<d,#Y(56H}A978H}@dGpvs@uAu`vcw9*!aFa+ai%(b!aXa8.a?a[ozWey=sU2@G}Nch&U#Rf_WexKu+D#'!t:~Gr`~?r^j]uNr|~FRg*j^psurwJt|RmcKv)@&!)7Rkv~Br[@wxfO:Rl3co#U'6Rezj_q#vIuavjRltwzeyh@vr5JqD0!>aY?C9:9au@9Cb]}9cl#U*5;5<H||jbuus1ucv&Rfvg1v~d/pppzqFr^a--a~!aMat1(hFv;Wiz@@=Izoj5uuv-7Rix~Cw`fk2WlVcZ#X,k)u3vWs@u2]ktg;wEx'fBq(_2Wg/jTv|vV~EfoJv]!15x'hzqG!(P~EfU~CRl_j6v(us5x4i-#T(2WmZ?C2F|d>Kq<aj1!*jTqIsBv=Wl`~Cw`fi2WlWj`v0u*~>RlR=c>Z,k#u3vWs@u2]kr<c1Z+jTqIsBv=Wla~Cw`fm2WlXdmb3!a{(arZa`bkTa%TbQTa-a9+c'!aM!/[yL=Bqug.w'RifhFvyDRj.g>vgwyk^9]k^Jv3_@WfbAARkhJw2_[x|JvB_wkoIRoKwkoJRoLd'(Y#<]gm=<9<H|yd'%_X#skDtb3awwqkgNulRkgdB#^',9:p'hJwSaxRmEBwVb8@4=H|qLu+w50&!)@3qs~?pU>Awwn;;Rn=c:Z'ARn<=<qwKvC@!/&~BqqJv6!&]eVb^z^xRge'/a%+^`#Sge}6<4Rn3=]n0Pw2>Rn8Jw0!&>Rn:>Rn6cY#a7+!a&=<wkaNw~h3z_c5Z{=wjh#=]nLKv^D!&)Vyz=bW|swYb<WetcG#T(2wxa@qVx@gD#Y&b^|V5JwG&!5bb|pg/w&RgD@x=kHs=uAvn!a%%/'+RmSRh694Ro`g-vaRmRhHv-]mlxCcS#`&ba~.5cD#Ta)P~=d,#Y(56H{>978H{Dd_#{2^Y%_+qbbb{6g3sERhsbU{?dfa.,`a(Xa<!aiX#(55RiG54RiHcI#T'WiU3RiVNvdwtfcRlKNvdd,#Y&RlHRlExQgf.1*^T'X#Sgf}6Wn4=]hfPrk>Rn7Jw0!&>Rn5>Rn9Lunw?&a2!,5<oq@@wqfdRlJj5Q~=d,#Y(~ARfcOuN]fdDKw;ay(}i!547E}j?cI#T(@5bV}iCbV}hdv(^^Tb?a40,b##Tbo!a*bR!a<b|a/!aKai!aU[yK=]o^g:v>ReGJwPZtK<7Rh+h<~El,Pv#5ReR@awwxjCg,ulRjDJv6&!]j!z?aQeeg>w=Sh<eeJw;!&axEzOg,Qosc!#*:wkeJ]eJ>x'h-u(!%Ro.w~h.zPdNZ(X,Ya![x{;9ReY;wkgxRiF:x?ap#Y&RmUg<s2Rkod]+UY0TZ'!a&A9sw<=bczLNvuw{gqzNhJwSaxRmCKuLay!#&s_Rf-55b^{uJvZa!!c%#(55Ri654wmiu5RiuawLu,vp!+}^%b_}Y9;wkgxba}o>A9:=b^}zKuh=a''!3awRk3c*'!#aHRk6c+Z&Rk5Rk4Jv)&!awRjSawd9*`#0?C2@EzMj8u<uJ5RmbjQrquJu3x,k>uq@_+=ayb^|W~ARkEOuN]k@7dhzV^X/X&a-#zRzSb`zXcJzTT#2WkVKvDBzW!%FzY9;5bbzWjQrquJu3Jw3%!b`zU=ayb^zQd:#X(T-a!6Vyywxh}=b]{Jg=u1RiAdGp~qHtzv!w(wA+a+a;<!aJaYai'anasb(=azRmV:Cbb{MLq2vb!%')RjuRjrRjtRjqx3jnqCw3!%')Rk(Rk+Rk&Rk)Lq2vb!%')Rj{RjxRjzRjwLq2vb!%')RjsRjpRjfRjex3jcqCw3!%')Rk'Rk*RjkRjl9<CbbzfOu4ARhxLq2vb!%')RjyRjvRjhRjgx=joq*uKvb!%')+-Rk.Rk%Rj~Rk-Rk#Rj}x=jdq*uKvb!%')+-Rk,Rk!Rj|RjmRjjRjidAq&qKs@uAv8Aa.'*-a@a&0!aM@a5[y73Dsy3Ds|3Dt):wxgI2sHJwJZt.~Gqxwsf0ikrzt}Rl0Jvy_[xj~HqzKv_A|D!&WfP8axRoVcf,U#k(v]v+ueunaXRf1Ju}'!g8u#Ri=jQw!sCunLprq>!,')~<5qeGzq9F{W=c##%s5au:5aU3CBE|;d4#X(D!a&6Vygx(b;#(=]ed?C2F{N<capoq2r[a&!aPa9,'Pw;5s:@@=I|,55w_h|@@=IzcP~=x'fCqB_2Wl2>aU@@=I|1OuNBc1Z+jTqIsBv=Wlc~Cw`fl2WlZ~AcTa%!Z+jTqIsBv=Wlb~Cw`fh2WlYk+uNqJsBv=WlSg,u3dca3#UXaMYa)TaB-=cM|7T#<bI}l5@B932:aV2G{BOuNBJq:|M!5Ezt=<B=C@a^<B57@2F{v>cB{/T#=ay<bI{3Jv6!a.6BKq0ah&+!5E}HP~Ef{978BaU@@=Iza<7d#.Y#978BaU@@=IzH~AJq0!(@@=IzG978BaU@@=IzFe,aU*Y&^^^bvJb,b:bFad!a,c2Ta>aL.bo6!a#CbTa'T#Re{2Wlh2@G{yg6t~Ro_NvdRfticuRQRllJv3&!x&c|zs@Jw3!%RflwpfkRlpKuL;%(!Re<@G|C2GzdhIvuBwgjAg-u0RjAKQB%!(GzZ@G|5NuuRl7d='T+Y#Vy[g<v~Rm!==G|>JvA!)@wma=]m1ifuaw&RmnLs@vT'!|/+[y,g:v>ReTJw1!#qX=x!eC{bLu+wT&)ZtZauq_~Graci&U#F|89:r_Lupvq!.)&2RlG8RfaC=x!eF{_h?rpWlmd&'!#X|&]k::xJey#`'T|+<E|&2@H|%dE#(^,g;u.RiEg6vjRiC9xCkA{O|zY#g=ucRmXKs0@!&*@G|m@awRknJuh!,3d(}gY}eJvj!%Rm):Jw3!%Rm+Rm-Ls0w(&!a(a#@b[|6cZ#X'7RkxWgAOu4ARn'dH'U#Y*Vz-Wm'CARm}d]*#a%^a*T'aK!a<9bV{PC=p*Jw4!&SgxcbB5r]idw(wBRmF7xFkt#&`(Rm/Rm8E|!JuY_9:Rl5=wrgr2:bbxd@xXfB(a*#T+!.X0X1Ta/a'T&RlDRfL>RlyARl9b[z[>RfZ:RlL:RfRwlg/ARl;9;RlxKv,A/!%7s69<74=BA5ba{-8Bde#`a<XaKYa1,a'P~=wxfB2bZ}}?C972@@=I}r8@55B9;5bb}G978B2@@=aybb}3j3vLv;<Jw3&!>Rfk=ayb^}4~Ad1#`*@@=aybb{w2@>==<bbz]dx+UY#^UaF!a9!bB'Ya1.!ajXa#%olRhD[y=3Dt#Ov5BrHKuMB%!(Rf^Wep~HrJwkiQjKr|~FRg)Ku+D#'!t5~GrF~?rDdV)UY,Z/_7RkuG{<~BrBg,rlsO:235B@bX}|d?a1!#`(6Vyn5@d##Y+jTv|vV~EfIj]uNpn~FRfH7Lq2vb1!a9-978BaU@@=Iz9978BbU}#~AJq0!(@@=Iz8978BaU@@=Iz7~AJQ|}!978BbU}!JvkaK!AdUa21-U#`a+(g/vsRn~Ou!5RPj:rmu9WhOjXuvvNr}:RhAj^v(pyw8unRn[kPr}p|u7vwv]RiSBd;pppzq@qHQa?(b.!a.a`@.|xa(hFv;Wiyj5uuv-7Riw~Cw`fg2WlU978BbU|wOuNBJqG!(P~EfD~CRlQcZ#X,k)u3vWs@u2]ksg;wEx'f@q1_2Wg.j]uNpn~FRfqJv]!15x'h{qG!(@@=IzK~CRl^j6v(us5x4i,#T(2WmY?C2F{1>Kq<aj1!*jTqIsBv=Wld~Cw`fj2Wl[j`v0u*~>RlT=c>Z,k#u3vWs@u2]kq<c1Z+jTqIsBv=Wle~Cw`fn2Wl]dn1#c(a(b^a2!b/bAT(bj!aDa7bu,a_a{c0!2T0g:v>ReD2@G{42@G{5~DpM~<5rc=Bx6i>{RT#RnI@zCx]y]z:2Jv[!zr5Awyk]9]k]dD(Y+X#6Vz.g=wKtgwhaCwgmTWj2Lu,w%_+/[y-B;b^xeg3u3Rj-2@bX{*KrJ<!+'@Wg(g?QRlC@Jv`!%b[zIwsfII}8JQ_@w|kW|=Jv(%!AqcOuNBJvEzh!bYzjLs@wP#(0!oy@>RkdJwMZtc3Dtd@BcG#T'9bWxg2@2Fznd*#Y+;2x'c}w<zizixNgwa#Z'U+!/!a'!a+w~g~z6wcn{Rn}wcnzRn|5Rh%=]nJg5vuRmvNvdRlvcprJu}w*az*a#!%.a.'Bot9qT]kj@Wg'ay2Gzv@Jv`!%b[zEwsfHI}1;ck#Ux`<Cbbx_Lu+w!a&0*!wko*wwo,So,}6Juqxf!E}PigQuyRm`d3(`#8>Rn%:A5B;bZ~%KvhCa!a2!x>k7#Uxb@b{#xaRk7Jw0!)>wwhlShl}6>wwhmShm}6CJvB!.x'hhvj{!!5Bwkhhbaz}x'hivjz~!5Bwkhibaz|xEhTrNu,v-vpD!a%&/)a3a.,%Ro2t[CE{)@3re9b]{%wjo09:rgc:Z&Ro6=<riifuaw&RmoKrNA!%(Ro4>Ro89;Ri`dSaL'UYzxZb)7Rka3xRhT&!,!#^1U}vbaz{>>@=be}yC@:D5bazzKu+A&!}{?ba}y>>@=be}wxBh[t`u~vJvr!%a!a()a,a0a4RoC=]o;Ju(!%RoGRhdwjh`=]oAg>w#Ro?g5vuRo=NvdRl|Ku]C.!&;RoEJvB!%RoORoMBx'h[v+_?w~h`}~5?w~hd~!xKh]oiptu-utv.vp!#%&a30a@a'a+(a/aOp(o~p!RoDJu(!%RoHRhewjha=]oBNvdRl}g>w#Ro@g5vuRo>c[#X']o<CauRoRAd-#Y':RkpauRoQKu]C.!&;RoFJvB!%RoNRoPBx'h]v+_?w~ha}t5?w~he}ue!/UbhYacXaW^Tc&a;b:a-c/#b&aja1(!cL+!bKbt!bmcRc9aIc?8[yW3Dtt94Rg`Jv}!&SiRMzBhEebShEMNuPRe>x7gL#TzuwjirRipc<Z&>on;>z=h-MSh.Mwqczx'a7vj&!>Re4@=ResJt__NuPRi*NuPRi)j]uNr|~FRfzKrJ>_+@Wfy@Wf]2WocKrJ<!+'@Wg%g/QRl@@Jv`!&awRl<wsfFIzgLu(w*!.*&ShBMwvhIRhI9;RhNx1hK'!#Sn]Mx1hK~0!#:2<H~7cNu+w7D*'1ZtW>Rn1~?rOc:Z&Rn2=<rQ<7wjh&=BSnLMc]#X(6Vz)w[b=a!U#9wzgMc3#&(RgMRitRis<x,gKt`ax!&+SioM=BSilMc3#&(RgKRinRimKurB,!&SiQMzBhDebShDM6BJQ!(P~Efx978B2@@=I}WLrJw!!,a*&@G}O@9wkibRid@@x'fKwC!&SlDMSfLMjUv~Q~EfKKv3@a+!(hFv-]mpx/hYZ(C5RiWz<o/MwkhY?So/M@x,gbvfB*&!SgEM:SoeeehFu3:Rgbda(,^TZa)X/7Sg[eb:2RgI~BrMC@wgkc:wwkcRerx3h(uUvK!&*,SnOM4Sh*MArRg;wHRh(x=h;rJvPwI!a4',a'0@Wg&=BSh/Mg>w=Rh=g3w*wwgGRgGcW(X#;Sg}M2Gzk@Jv`!&awRl=wsfGIz`dKZ*T'Y-:RhR7RhQg5u-p`j6v(us5d,#Y+~Awkia?RicOuNBwkibba}Ld6p~tyu_vbAa'a+!a/'a3aEa8a!>Sh,ebJv{!&Sh@ebSaReb9;SgwebNuPRi(NvdRl)NuPRi'hHu^<Rm^Jvv_@Wl(g;u1Si/ebKu'B&!*Sh?eb@Wl'z@aPeb95Si.ebcpputyvjB)!,&a+0a%ShAMWeK@G}C@WfJ9;RhMwvhH9w{ia}ix,hJvRA1(!zAn[MRhHx1hJ~*!#hFv(BSn[MBJQ!(@@=I~'978B2@@=I}2db.Ua<'X}+T#a0XaG2G}E;wkg|wuh!Rh!x,hZu,@)!&So0MVy)C5RiXACJvB!&5RiY5RiZg8w)cG}*T#2@bU}=KsA>(!a.3wkhZba~(x,h^u(A!&(SoCMRhb5Bz=h[eb?w~hb~6x,h_u(A!&(SoDMRhc5Bz=h]eb?w~hc~6e)aA1T#T,^^^c-bMb&blcPaP(a/!0!bA=b5c@a(!bfbrc#2afwmhARnjwchORnp2Wlf3DtsNvdRl-2@wpa<]m0bx(#:awRk2@Jw3!%RfhwpfgRlnKQB%!(G{V@G|'NuuRl6d='T+Y#VyUg<v~Rl~==G|<Jv+'!aYShC}6@B<5?ba~8@Jw3'!g2QRljhLrpWlOd+#Y'g.w'rIg>w*wgj@g-u0Rj@Lu+wT&)ZtUauq]~GrGci&U#F|39:rELrNvj!.%*RhCwunfw~nf~:9;Ri]>wtnhg;wHRnhx3hDs@v~!/+'@Wfr@9RkSNu&Rlo=@<5GzoKs0@_+@Wl+@awRkmJuh!-3d(}pY#qWJvj!%Rm(:Jw3!%Rm,Rm*de&!1U-U#`)Re;@G|.@9Ri82@wjfvRlq=@<5GzpLvOvr!).&2RlF8Rf`C=x!eE{.Jw3_g2QRlkhLrpWlPde(!#U{s,UXa*Ta'[y'g:v>ReS;x0PZ&RnlRnn~HrKJw1}f!=x!eB|2w]aP(#Xa&a*Ta.Ua2a7=]iOd'#Y&Ro&WnWg;u.RiDg6vjRiBNvdRlzhNvj]nYJuW_2Wm3x)kFze{9d])!a.!,Y01!#&aC!a3RndC=ox~BrC@2b^{pg,rlse7x'ksuq!%Rm.E{xidw(wBRmGx9o+)X#wwo-So-}69:Rl4@xSf@a#XZ'X)X,Ta(/ARl8b[xc>RfY:RlI:RfQwlg.ARl:9;Rlwdn'#^XafaQa1X1TaHTa)@b[{zcZ#X'7RkwWg@Ou4ARn&x)kG#{,g7u/RkGdH'U#Y*Vz'Wm&CARm|bx#(A]gUbUzJj9Q~=d,#Y(56H}l978H{U7d,0#U*2>ABb_xZ978BbU{e~AJQ{g!978BbU{hxMh?ad{oUYZ.x1h?{l!#:2<H{mx3n[t{vl!,&a%3Ro(z=iS}6ARnr=Bwsn^wvn`Rnbd`*T}B0!#^X'BG{c9b]{a>>@=be}F?JvS!&BG{d7BG}(Bde#`a1X,Ya@!a'P~=wxf@2bZ}I56B2@@=aybb}08@55B9;5bb}<j3vLv;<Jw3&!>Rfg=ayb^}&OuNBKuLA!)a!P~=x#fD{f2@>==<bbzl?C972@@=Ix^d6rSu,v7w*C(0a)a6#B+a%!sQ[y?3Dt%3[xn~<5rLOu!5p@Ku+D#'!t7~GrP~?rNKvlaya7'!h+v-5qMg=t|cd,U#5AAaa5Abb{S@52B5@a[@52B5Gx[iXueu;d<#`a(!/549C;ag>23ExY5@Dah89b^~689Jv)!~2b[~1Lv'w(%*!a#bX|aPrmawRe]keu7uhv-q6rxu,q`xTo]/a5aU!bNaDXbi!b-!ao!b<bwA!#5@B932:aV2G|:d-)Y#hJrL>RhG<7@C5<H|_=Cau:5aj5@B932:bJ|ng>vIbs)#?C2F|9jPv0w.vISh-MKvUaz(.!9ABbb|[5;5<H|Eg>unwfh;9:4E|YjQsBt|vjx'hYq3!(?C2F|J:2<BaY?C2F|GOu!5x,g|p{ah!-(?C2F|c9:4E|OjXuvvNr}:Rh&i[w*t|cd+U#jJvsu)vsSn~Mkfrmu9p}u7vwv]So!McW#Xa!ax5@A5aY:5;5<H|>kJv~vYrquJu3x4ib#T)2@SmZM?C2F|Bj:rmu9@xPhI(a*a#U#`a3-5Abb|L~@:RhK9:4E|0@52B5G|#C::aY?C2F|-:2<BaY?C2F|.5Jvk!a)javYrquJu3x4ia#T)2@SmYM?C2F|HAxPhH(!a#U#`a*-5Abb|4~@:RhJ9:4E|R@52B5G|F:2<BaY?C2F|Sc^#Xa2j=Qq5CJvB!-g<v{z;hhM?C2F|Zi[vrv{z;hiM?C2F|XKsA>!a)-g<v{z;h[eb?C2F|]i[vrv{z;h]eb?C2F|^iZu.vix,hZq3ah!.(?C2F|QOu!5ShXM:2<BaY?C2F|P", 13494, 2713, 49, 25, 61);
 
-// results/experience-picker-20261113/node_modules/entities/dist/internal/bin-trie-flags.js
+// ../../experience-picker-20261113/node_modules/entities/dist/internal/bin-trie-flags.js
 var BinTrieFlags;
 (function(BinTrieFlags2) {
   BinTrieFlags2[BinTrieFlags2["VALUE_LENGTH"] = 49152] = "VALUE_LENGTH";
@@ -1138,7 +1320,7 @@ var BinTrieFlags;
   BinTrieFlags2[BinTrieFlags2["VALUE_MASK"] = 8191] = "VALUE_MASK";
 })(BinTrieFlags || (BinTrieFlags = {}));
 
-// results/experience-picker-20261113/node_modules/entities/dist/decode.js
+// ../../experience-picker-20261113/node_modules/entities/dist/decode.js
 var CharCodes;
 (function(CharCodes2) {
   CharCodes2[CharCodes2["AMP"] = 38] = "AMP";
@@ -1412,7 +1594,7 @@ function decodeHTMLStrict(htmlString) {
   return decodeWithTrie(htmlString, true, false);
 }
 
-// results/experience-picker-20261113/node_modules/entities/dist/index.js
+// ../../experience-picker-20261113/node_modules/entities/dist/index.js
 var EntityLevel;
 (function(EntityLevel2) {
   EntityLevel2[EntityLevel2["XML"] = 0] = "XML";
@@ -1427,7 +1609,7 @@ var EncodingMode;
   EncodingMode2[EncodingMode2["Text"] = 4] = "Text";
 })(EncodingMode || (EncodingMode = {}));
 
-// results/experience-picker-20261113/node_modules/linkify-it/build/index.mjs
+// ../../experience-picker-20261113/node_modules/linkify-it/build/index.mjs
 var REBuilder = class {
   constructor(opts = {}) {
     __publicField(this, "src_Any", Any.source);
@@ -1978,7 +2160,7 @@ var LinkifyIt = class {
   }
 };
 
-// results/experience-picker-20261113/node_modules/punycode.js/punycode.es6.js
+// ../../experience-picker-20261113/node_modules/punycode.js/punycode.es6.js
 var maxInt = 2147483647;
 var base = 36;
 var tMin = 1;
@@ -2212,7 +2394,7 @@ var punycode = {
 };
 var punycode_es6_default = punycode;
 
-// results/experience-picker-20261113/node_modules/markdown-it/dist/markdown-it.mjs
+// ../../experience-picker-20261113/node_modules/markdown-it/dist/markdown-it.mjs
 /*! markdown-it 15.0.3 https://github.com/markdown-it/markdown-it @license MIT */
 var __defProp2 = Object.defineProperty;
 var __exportAll = (all, no_symbols) => {
@@ -5631,7 +5813,7 @@ var MarkdownIt = class {
     if (parsed.pathname) parsed.pathname = encode_default(parsed.pathname);
     if (parsed.search) parsed.search = encode_default(parsed.search);
     if (parsed.hash) parsed.hash = encode_default(parsed.hash);
-    return format(parsed);
+    return format2(parsed);
   }
   /**
   * Function used to decode link url to a human-readable format`
@@ -5644,7 +5826,7 @@ var MarkdownIt = class {
       } catch (er) {
       }
     }
-    return decode_default(format(parsed), decode_default.defaultChars + "%");
+    return decode_default(format2(parsed), decode_default.defaultChars + "%");
   }
   constructor(...args) {
     _defineProperty(
@@ -5918,7 +6100,7 @@ _defineProperty(MarkdownIt, "ParserInline", ParserInline);
 _defineProperty(MarkdownIt, "StateInline", StateInline);
 var MarkdownItCallable = callable(MarkdownIt);
 
-// results/experience-fragment-date-20261116/plugin/src/segments.js
+// src/segments.js
 var START = /^<!-- experience:start id=([a-zA-Z0-9_-]{8,80}) -->[ \t]*\r?$/;
 var END = /^<!-- experience:end -->[ \t]*\r?$/;
 function* parse(source) {
@@ -6109,7 +6291,7 @@ function captureEdit(source, scope, tags, at = (/* @__PURE__ */ new Date()).toIS
   return { from: scope.from, to: scope.to, text: prefix + `<!-- experience:start id=${scope.id} -->` + nl + updatedLine(at) + nl + inner + (inner.endsWith("\n") ? "" : nl) + "<!-- experience:end -->" + suffix };
 }
 
-// results/experience-fragment-date-20261116/plugin/src/capture-blocks.js
+// src/capture-blocks.js
 var md = new MarkdownItCallable({ html: true, linkify: false, typographer: false });
 md.block.ruler.before("fence", "obsidian-delimiter", (state, start, end, silent) => {
   const line = state.src.slice(state.bMarks[start] + state.tShift[start], state.eMarks[start]);
@@ -6184,7 +6366,7 @@ function captureBlockEdit(source, scope, tags, at = (/* @__PURE__ */ new Date())
   return { from: scope.from, to: scope.to, text: text2 };
 }
 
-// results/experience-fragment-date-20261116/plugin/src/tag-spans.js
+// src/tag-spans.js
 function experienceTagSpans(raw, nativeTags = []) {
   return (nativeTags || []).map((item) => {
     const start = item.position?.start?.offset, tag = item.tag;
@@ -6204,7 +6386,7 @@ function experienceTagSpans(raw, nativeTags = []) {
   });
 }
 
-// results/experience-fragment-date-20261116/plugin/src/tag-tree.js
+// src/tag-tree.js
 function tagTree(rows) {
   const counts = /* @__PURE__ */ new Map();
   for (const row of rows) for (const tag of new Set(row.tags)) counts.set(tag, (counts.get(tag) || 0) + 1);
@@ -6228,7 +6410,7 @@ function tagTree(rows) {
   return { root, nodes, tags: [...counts.keys()].sort((a, b) => a.localeCompare(b)) };
 }
 
-// results/experience-fragment-date-20261116/plugin/src/display.js
+// src/display.js
 function previewText(raw, row, nativeTags, limit = 1400, tagLimit = 20) {
   const stop = Math.min(row.end, row.start + limit);
   const original = raw.slice(row.start, stop);
@@ -6263,7 +6445,7 @@ function previewText(raw, row, nativeTags, limit = 1400, tagLimit = 20) {
   return result;
 }
 
-// results/experience-fragment-date-20261116/plugin/src/index.js
+// src/index.js
 var pause = () => new Promise((r) => setTimeout(r, 0));
 var Index = class {
   constructor(app, owner, emit, storage) {
@@ -6599,7 +6781,7 @@ var Index = class {
   }
 };
 
-// results/experience-fragment-date-20261116/plugin/src/engine.js
+// src/engine.js
 var pause2 = () => new Promise((r) => setTimeout(r, 0));
 var Owner = class {
   constructor(plugin, data = {}) {
@@ -6827,10 +7009,11 @@ var Transactions = class {
   }
 };
 
-// results/experience-fragment-date-20261116/plugin/src/main.js
+// src/main.js
 var TYPE = "experience-note-tags-view";
 var A = createTagDisplayAliases({ Modal: import_obsidian.Modal, Notice: import_obsidian.Notice });
 var aliasScope = "experience";
+var D = createTagAddressPresentation(A);
 var el = (parent, tag, cls, text2) => {
   const node = parent.ownerDocument.createElement(tag);
   if (cls) node.className = cls;
@@ -6884,12 +7067,11 @@ var TagPicker = class extends import_obsidian.Modal {
     this.key = "editor:" + this.file.path;
     const draft = plugin.owner.data.drafts[this.key] || {};
     this.picked = new Set(draft.tags || []);
-    this.path = draft.path || "";
+    const pending = String(draft.input || "");
+    this.restoredInput = draft.path && pending.trim() && !pending.trim().startsWith("#") ? "#" + draft.path + "/" + pending.trim() : pending;
     this.composing = false;
     this.done = false;
     this.busy = false;
-    this.page = 0;
-    this.folderPage = 0;
     this.closed = false;
     this.indexConsumer = true;
     this.existing = new Set(scan(this.scope.text).spans.map((t) => t.tag));
@@ -6899,7 +7081,7 @@ var TagPicker = class extends import_obsidian.Modal {
   stash() {
     return this.plugin.owner.saveDraft((d) => {
       if (this.done) delete d.drafts[this.key];
-      else d.drafts[this.key] = { tags: [...this.picked], input: this.newTag?.value || "", search: this.search?.value || "", path: this.path };
+      else d.drafts[this.key] = { tags: [...this.picked], input: this.newTag?.value || "", search: this.search?.value || "" };
     });
   }
   save() {
@@ -6907,7 +7089,7 @@ var TagPicker = class extends import_obsidian.Modal {
   }
   newTags() {
     const t = this.newTag.value.trim();
-    return t ? [normalizeTag(this.path && !t.startsWith("#") ? this.path + "/" + t : t)] : [];
+    return t ? [normalizeTag(t)] : [];
   }
   add() {
     if (this.composing || this.busy) return;
@@ -6927,13 +7109,9 @@ var TagPicker = class extends import_obsidian.Modal {
     el(preview, "pre", "", this.scope.text);
     this.search = input(c, "\u641C\u7D22\u7ECF\u9A8C\u6807\u7B7E\uFF08\u5305\u542B\u5B8C\u6574\u8DEF\u5F84\uFF09", this.plugin.owner.data.drafts[this.key]?.search || "");
     const layout = el(c, "div", "ent-picker-layout");
-    this.sidebar = el(layout, "nav", "ent-drawers");
-    this.sidebar.setAttribute("aria-label", "\u6807\u7B7E\u62BD\u5C49");
     const panel = el(layout, "section", "ent-picker-panel");
-    this.breadcrumb = el(panel, "div", "ent-breadcrumb");
-    this.destination = el(panel, "div", "ent-muted");
     const controls = el(panel, "div", "ent-toolbar");
-    this.newTag = input(controls, "\u4E00\u4E2A\u65B0\u6807\u7B7E\uFF08\u9017\u53F7\u4FDD\u7559\uFF09\uFF1B# \u5F00\u5934\u4F7F\u7528\u5B8C\u6574\u8DEF\u5F84", this.plugin.owner.data.drafts[this.key]?.input || "");
+    this.newTag = input(controls, "\u65B0\u6807\u7B7E\uFF1A\u8F93\u5165\u5B8C\u6574\u540D\u79F0\u6216\u7F16\u53F7/\u5B50\u7F16\u53F7-\u540D\u79F0\uFF08\u9017\u53F7\u4FDD\u7559\uFF09", this.restoredInput);
     this.newTag.oninput = () => {
       this.submit.disabled = this.busy || !this.picked.size && !this.existing.size && !this.newTag.value.trim();
       this.save();
@@ -6958,14 +7136,12 @@ var TagPicker = class extends import_obsidian.Modal {
     });
     this.status = el(panel, "div", "ent-muted ent-picker-status");
     this.list = el(panel, "div", "ent-tag-grid");
-    this.pager = el(panel, "div", "ent-toolbar ent-picker-pager");
     this.chips = el(c, "div", "ent-chips ent-picked");
     const footer = el(c, "div", "ent-modal-footer");
     el(footer, "span", "ent-muted", "\u4EC5\u7ECF\u9A8C\u7247\u6BB5\u7684\u6807\u7B7E\uFF1B\u5DF2\u6709\u6807\u7B7E\u4E0D\u91CD\u590D\u6DFB\u52A0");
     button(footer, "\u53D6\u6D88", () => this.close());
     this.submit = button(footer, this.scope.existing ? "\u63D2\u5165\u539F\u6807\u7B7E" : "\u6536\u5F55\u7247\u6BB5", () => this.apply(), "mod-cta");
     this.searchChanged = debounce(() => {
-      this.page = 0;
       this.paint();
       this.save();
     });
@@ -6986,54 +7162,10 @@ var TagPicker = class extends import_obsidian.Modal {
       if (!this.closed) this.paint();
     }).catch((e) => new import_obsidian.Notice(e.message));
   }
-  navigate(path) {
-    if (this.busy) return;
-    this.path = path;
-    this.page = 0;
-    this.folderPage = 0;
-    this.search.value = "";
-    this.paint();
-    this.save();
-  }
   paint() {
     if (this.closed) return;
-    const tree = this.plugin.index.catalogTree(), node = tree.nodes.get(this.path) || { path: this.path, children: /* @__PURE__ */ new Map() };
-    this.path = node.path;
+    const tree = this.plugin.index.catalogTree();
     const query = this.search.value.trim().toLocaleLowerCase();
-    this.sidebar.replaceChildren();
-    button(this.sidebar, "\u5168\u90E8\u7ECF\u9A8C\u6807\u7B7E", () => this.navigate(""), !this.path ? "is-active" : "");
-    if (node.path) {
-      button(this.sidebar, "\u2039 \u8FD4\u56DE\u4E0A\u7EA7", () => this.navigate(node.path.split("/").slice(0, -1).join("/")));
-      el(this.sidebar, "p", "ent-folder-heading", node.path);
-    }
-    const folders = [...node.children.values()].filter((x) => x.children.size).sort((a, b) => A.sortText(a.tag ? A.label(this.plugin.owner.data, aliasScope, a.tag) : a.label).localeCompare(A.sortText(b.tag ? A.label(this.plugin.owner.data, aliasScope, b.tag) : b.label), "zh-CN", { numeric: true }) || a.path.localeCompare(b.path));
-    this.folderPage = Math.min(this.folderPage, Math.max(0, Math.ceil(folders.length / 60) - 1));
-    for (const folder of folders.slice(this.folderPage * 60, this.folderPage * 60 + 60)) {
-      const b = button(this.sidebar, "", () => this.navigate(folder.path), "ent-drawer");
-      el(b, "span", "", "\u25B8 ");
-      if (folder.tag) A.paint(el(b, "span", ""), this.plugin.owner.data, aliasScope, folder.tag);
-      else el(b, "span", "", folder.label);
-      el(b, "span", "ent-count", folder.total);
-    }
-    if (this.folderPage) button(this.sidebar, "\u4E0A\u4E00\u9875\u62BD\u5C49", () => {
-      this.folderPage--;
-      this.paint();
-    });
-    if ((this.folderPage + 1) * 60 < folders.length) button(this.sidebar, "\u4E0B\u4E00\u9875\u62BD\u5C49", () => {
-      this.folderPage++;
-      this.paint();
-    });
-    if (!folders.length) el(this.sidebar, "p", "ent-muted", "\u5F53\u524D\u5C42\u6CA1\u6709\u5B50\u62BD\u5C49");
-    this.breadcrumb.replaceChildren();
-    button(this.breadcrumb, "\u5168\u90E8", () => this.navigate(""));
-    let path = "";
-    for (const part of this.path.split("/").filter(Boolean)) {
-      path = path ? path + "/" + part : part;
-      const target = path;
-      el(this.breadcrumb, "span", "", "/");
-      button(this.breadcrumb, part, () => this.navigate(target));
-    }
-    this.destination.textContent = "\u65B0\u6807\u7B7E\u4F4D\u7F6E\uFF1A" + (this.path ? "#" + this.path + "/" : "\u6839\u5C42\u7EA7") + "\uFF08# \u5F00\u5934\u4F7F\u7528\u5B8C\u6574\u8DEF\u5F84\uFF09";
     this.chips.replaceChildren();
     for (const tag of this.picked) {
       const b = button(this.chips, "", () => {
@@ -7042,30 +7174,22 @@ var TagPicker = class extends import_obsidian.Modal {
         this.paint();
         this.save();
       }, "ent-chip is-active");
-      A.paint(b, this.plugin.owner.data, aliasScope, tag, { raw: true });
+      D.paint(b, this.plugin.owner.data, aliasScope, tag);
       el(b, "span", "", " \xD7");
       b.disabled = this.busy;
     }
     for (const tag of this.existing) {
-      const b = A.paint(el(this.chips, "span", "ent-chip"), this.plugin.owner.data, aliasScope, tag, { raw: true });
+      const b = D.paint(el(this.chips, "span", "ent-chip"), this.plugin.owner.data, aliasScope, tag);
       el(b, "span", "", " \xB7 \u5DF2\u6709");
     }
-    if (!this.picked.size && !this.existing.size) el(this.chips, "span", "ent-muted", "\u52FE\u9009\u6807\u7B7E\uFF0C\u53EF\u8DE8\u62BD\u5C49\u591A\u9009");
+    if (!this.picked.size && !this.existing.size) el(this.chips, "span", "ent-muted", "\u52FE\u9009\u6807\u7B7E\uFF0C\u53EF\u591A\u9009");
     const data = this.plugin.owner.data;
-    const entries = (query ? tree.tags.filter((t) => A.matches(data, aliasScope, t, query)).map((t) => tree.nodes.get(t.slice(1))) : [...node.tag ? [{ ...node, children: /* @__PURE__ */ new Map() }] : [], ...node.children.values()]).sort((a, b) => A.sortText(a.tag ? A.label(data, aliasScope, a.tag) : a.label).localeCompare(A.sortText(b.tag ? A.label(data, aliasScope, b.tag) : b.label), "zh-CN", { numeric: true }) || a.path.localeCompare(b.path));
-    this.page = Math.min(this.page, Math.max(0, Math.ceil(entries.length / 60) - 1));
+    const entries = tree.tags.filter((t) => !query || A.matches(data, aliasScope, t, query)).map((t) => tree.nodes.get(t.slice(1))).sort((a, b) => D.compare(data, aliasScope, a.tag, b.tag));
     this.list.replaceChildren();
-    for (const item of entries.slice(this.page * 60, this.page * 60 + 60)) {
+    for (const columns of [1, 2, 3]) this.list.style.setProperty("--ent-picker-rows-" + columns, String(Math.max(1, Math.ceil(entries.length / columns))));
+    for (const item of entries) {
       const card = el(this.list, "div", "ent-tag-choice");
-      if (!query && item.children.size) {
-        const b = button(card, "", () => this.navigate(item.path), "ent-folder-open");
-        el(b, "span", "", "\u25B8 ");
-        if (item.tag) A.paint(el(b, "span", ""), data, aliasScope, item.tag, { raw: true });
-        else el(b, "span", "", item.label);
-        el(b, "span", "ent-count", item.total);
-        el(card, "span", "ent-muted", "\u6253\u5F00\u62BD\u5C49");
-        continue;
-      }
+      D.tint(card, this.plugin, item.tag);
       const label = el(card, "label", "ent-tag-check");
       const check = el(label, "input");
       check.type = "checkbox";
@@ -7077,25 +7201,60 @@ var TagPicker = class extends import_obsidian.Modal {
         this.paint();
         this.save();
       };
-      A.paint(el(label, "span", "ent-tag-name"), data, aliasScope, item.tag, { raw: true });
+      D.paint(el(label, "span", "ent-tag-name"), data, aliasScope, item.tag, { indent: true });
       el(label, "span", "ent-count", item.count);
-      el(card, "span", "ent-tag-parent", item.path.includes("/") ? item.path.slice(0, item.path.lastIndexOf("/")) : "\u6839\u5C42\u7EA7");
-      if (this.existing.has(item.tag)) el(card, "span", "ent-muted", "\u5F53\u524D\u7247\u6BB5\u5DF2\u6709");
+      if (this.existing.has(item.tag)) {
+        if (this.scope.existing) {
+          const jump = button(card, "\u56DE\u770B\u6B64\u5904 \u2197", () => this.jumpToReview(item.tag), "ent-review-jump");
+          jump.title = "\u5728\u7ECF\u9A8C\u56DE\u770B\u4E2D\u5B9A\u4F4D\u6B64\u6807\u7B7E\u4E0B\u7684\u5F53\u524D\u7247\u6BB5";
+          jump.setAttribute("aria-label", jump.title + " \xB7 " + A.label(data, aliasScope, item.tag));
+          jump.disabled = this.busy;
+        } else el(card, "span", "ent-muted", "\u5F53\u524D\u7247\u6BB5\u5DF2\u6709");
+      }
     }
     const pending = this.plugin.index.queue.size + this.plugin.index.scanning;
-    this.status.textContent = `${tree.tags.length} \u4E2A\u7ECF\u9A8C\u6807\u7B7E \xB7 \u6570\u5B57\u4E3A\u7247\u6BB5\u4F7F\u7528\u6570` + (pending ? ` \xB7 \u6B63\u5728\u8BC6\u522B ${pending} \u7BC7\u7B14\u8BB0\u2026` : "");
+    this.status.textContent = `\u663E\u793A ${entries.length} / ${tree.tags.length} \u4E2A\u7ECF\u9A8C\u6807\u7B7E \xB7 \u6570\u5B57\u4E3A\u7247\u6BB5\u4F7F\u7528\u6570` + (pending ? ` \xB7 \u6B63\u5728\u8BC6\u522B ${pending} \u7BC7\u7B14\u8BB0\u2026` : "");
     if (!entries.length) el(this.list, "p", "ent-muted", pending ? "\u6B63\u5728\u8BC6\u522B\u7ECF\u9A8C\u7247\u6BB5\uFF0C\u8BF7\u7A0D\u5019\uFF1B\u4E5F\u53EF\u4EE5\u65B0\u5EFA\u6807\u7B7E\u3002" : query ? "\u6CA1\u6709\u5339\u914D\u7684\u7ECF\u9A8C\u6807\u7B7E" : "\u8FD9\u91CC\u8FD8\u6CA1\u6709\u7ECF\u9A8C\u6807\u7B7E\uFF0C\u53EF\u4EE5\u5728\u4E0A\u65B9\u65B0\u5EFA\u3002");
-    this.pager.replaceChildren();
-    el(this.pager, "span", "ent-muted", `${entries.length} \u9879 \xB7 ${this.page + 1} / ${Math.max(1, Math.ceil(entries.length / 60))}`);
-    if (this.page) button(this.pager, "\u4E0A\u4E00\u9875", () => {
-      this.page--;
-      this.paint();
-    });
-    if ((this.page + 1) * 60 < entries.length) button(this.pager, "\u4E0B\u4E00\u9875", () => {
-      this.page++;
-      this.paint();
-    });
     this.submit.disabled = !this.picked.size && !this.existing.size && !this.newTag.value.trim() || this.busy;
+  }
+  async jumpToReview(tag) {
+    if (this.busy || this.closed || this.composing || !this.scope.existing || !this.existing.has(tag)) return;
+    const workspace = this.app.workspace;
+    const current = () => {
+      const source = workspace.getLeavesOfType("markdown").find((leaf) => leaf.view === this.view);
+      if (this.closed || !this.plugin.alive || !source || this.view.editor !== this.editor || this.view.file !== this.file || this.file.path !== this.sourcePath || this.app.vault.getAbstractFileByPath(this.sourcePath) !== this.file || this.editor.getValue() !== this.snapshot)
+        throw Error("\u6765\u6E90\u7B14\u8BB0\u6216\u7247\u6BB5\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u6807\u7B7E\u7A97\u53E3\u3002");
+      const key = this.sourcePath + "::" + this.scope.id;
+      const row = this.plugin.index.rows.get(key);
+      if (row?.file !== this.file || row.id !== this.scope.id || !row.tags.includes(tag))
+        throw Error("\u5F53\u524D\u7247\u6BB5\u5C1A\u672A\u8FDB\u5165\u8FD9\u4E2A\u6807\u7B7E\u7684\u7D22\u5F15\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
+      return { source, row };
+    };
+    this.busy = true;
+    this.contentEl.inert = true;
+    try {
+      current();
+      await this.stash();
+      const { source } = current();
+      const leaves = workspace.getLeavesOfType(TYPE);
+      const leaf = leaves.find((l) => l.parent === source.parent) || leaves[0] || workspace.getLeaf("tab");
+      if (!leaves.includes(leaf)) await leaf.setViewState({ type: TYPE, active: false });
+      if (leaf.isDeferred) await leaf.loadIfDeferred();
+      current();
+      await workspace.revealLeaf(leaf);
+      if (workspace.activeLeaf === source) workspace.setActiveLeaf(leaf, { focus: true });
+      const { row } = current();
+      if (!(leaf.view instanceof ExperienceView) || !leaf.view.opened || workspace.activeLeaf !== leaf)
+        throw Error("\u7ECF\u9A8C\u56DE\u770B\u672A\u5C31\u7EEA\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+      leaf.view.revealFragment(row, tag);
+      this.jumpStashed = true;
+      this.close();
+      leaf.view.alignReveal();
+    } finally {
+      this.busy = false;
+      this.contentEl.inert = false;
+      if (!this.closed) this.paint();
+    }
   }
   async apply() {
     if (this.busy || this.composing) return;
@@ -7126,7 +7285,7 @@ var TagPicker = class extends import_obsidian.Modal {
     this.plugin.modals.delete(this);
     this.plugin.index.listeners.delete(this.indexListener);
     this.plugin.syncActivity();
-    if (!this.done) this.stash().catch((e) => new import_obsidian.Notice("\u8349\u7A3F\u4FDD\u5B58\u5931\u8D25\uFF0C\u91CD\u5F00\u5F39\u7A97\u4ECD\u53EF\u4ECE\u672C\u6B21\u4F1A\u8BDD\u6062\u590D\uFF1A" + e.message));
+    if (!this.done && !this.jumpStashed) this.stash().catch((e) => new import_obsidian.Notice("\u8349\u7A3F\u4FDD\u5B58\u5931\u8D25\uFF0C\u91CD\u5F00\u5F39\u7A97\u4ECD\u53EF\u4ECE\u672C\u6B21\u4F1A\u8BDD\u6062\u590D\uFF1A" + e.message));
   }
 };
 var EditModal = class extends import_obsidian.Modal {
@@ -7290,6 +7449,7 @@ var ExperienceView = class extends import_obsidian.ItemView {
     this.refresh();
   }
   onClose() {
+    this.stopReveal();
     this.opened = false;
     this.generation++;
     this.clearBodies();
@@ -7364,7 +7524,7 @@ var ExperienceView = class extends import_obsidian.ItemView {
     const side = el(layout, "details", "ent-sidebar");
     side.open = true;
     el(side, "summary", "", "\u6807\u7B7E \xB7 \u672A\u9605\u6570");
-    const tagSearch = input(side, "\u641C\u7D22\u6807\u7B7E", this.tagSearch);
+    const tagSearch = this.tagSearchInput = input(side, "\u641C\u7D22\u6807\u7B7E", this.tagSearch);
     this.tagChanged = debounce(() => {
       this.tagSearch = tagSearch.value;
       this.tagPage = 0;
@@ -7394,12 +7554,79 @@ var ExperienceView = class extends import_obsidian.ItemView {
     this.notes = el(main, "div");
     this.refresh();
   }
+  revealFragment(row, tag) {
+    this.searchChanged.cancel();
+    this.tagChanged.cancel();
+    const filter = { ...this.filter, tags: [tag], mode: "single", search: this.searchInput.value };
+    for (const field of ["search", "from", "to"]) {
+      if (!matches(row, { [field]: filter[field] })) filter[field] = "";
+    }
+    this.filter = filter;
+    this.searchInput.value = filter.search;
+    this.fromInput.value = filter.from;
+    this.toInput.value = filter.to;
+    this.tagSearch = this.tagSearchInput.value;
+    if (!A.matches(this.plugin.owner.data, aliasScope, tag, this.tagSearch)) this.tagSearch = this.tagSearchInput.value = "";
+    this.tagList.closest("details").open = true;
+    this.selected.clear();
+    const read = this.plugin.owner.isRead(row);
+    if (read) this.readExpanded = true;
+    this.stopReveal();
+    const doc = this.contentEl.ownerDocument, win = doc.defaultView;
+    const controller = new win.AbortController();
+    const jump = this.jumpMark = { row, tag, read, key: row.key, until: Date.now() + 2400, controller, frame: 0 };
+    for (const event of ["wheel", "touchstart", "pointerdown", "keydown"])
+      doc.addEventListener(event, () => this.stopReveal(), { capture: true, passive: true, signal: controller.signal });
+    jump.timer = win.setTimeout(() => this.stopReveal(), 2400);
+    if (win.ResizeObserver) {
+      jump.resize = new win.ResizeObserver(() => this.alignReveal());
+      jump.resize.observe(this.notes);
+    }
+    this.refresh();
+    if (![...this.bodyControllers].some((c) => c.key === row.key)) {
+      this.stopReveal();
+      throw Error("\u5F53\u524D\u7247\u6BB5\u672A\u80FD\u5B9A\u4F4D\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+    }
+    this.app.workspace.requestSaveLayout();
+  }
+  stopReveal() {
+    const jump = this.jumpMark;
+    if (!jump) return;
+    this.jumpMark = null;
+    const win = this.contentEl.ownerDocument.defaultView;
+    jump.controller.abort();
+    jump.resize?.disconnect();
+    win.clearTimeout(jump.timer);
+    win.cancelAnimationFrame(jump.frame);
+  }
+  alignReveal() {
+    const jump = this.jumpMark;
+    if (!jump || jump.frame) return;
+    const win = this.contentEl.ownerDocument.defaultView;
+    jump.frame = win.requestAnimationFrame(() => {
+      jump.frame = 0;
+      if (this.jumpMark !== jump) return;
+      if (!this.opened || this.app.workspace.activeLeaf !== this.leaf || Date.now() >= jump.until) {
+        this.stopReveal();
+        return;
+      }
+      const card = [...this.bodyControllers].find((c) => c.key === jump.key)?.article;
+      if (!card?.isConnected) return;
+      const bounds = card.getBoundingClientRect(), view = this.contentEl.getBoundingClientRect();
+      const top = Math.max(0, view.top), bottom = Math.min(win.innerHeight, view.bottom);
+      if (!jump.aligned || bounds.bottom <= top || bounds.top >= bottom) {
+        card.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+        jump.aligned = true;
+      }
+    });
+  }
   refresh() {
+    const jump = this.jumpMark;
     if (!this.opened) return;
     this.generation++;
     this.clearBodies();
     this.result = this.plugin.index.query(this.filter);
-    this.renderTags();
+    this.renderTags(jump?.tag);
     for (const b of this.modeBar.querySelectorAll("[data-mode]")) b.classList.toggle("is-active", b.dataset.mode === this.filter.mode);
     const rows = this.result.rows, unread = rows.filter((r) => !this.plugin.owner.isRead(r)), read = rows.filter((r) => this.plugin.owner.isRead(r));
     this.summary.textContent = `${rows.length} \u4E2A\u7247\u6BB5 \xB7 \u672A\u9605 ${unread.length} \xB7 \u5DF2\u9605 ${read.length}${this.plugin.index.pending.size ? " \xB7 \u5F85\u89E3\u6790 " + this.plugin.index.pending.size : ""}`;
@@ -7420,6 +7647,11 @@ var ExperienceView = class extends import_obsidian.ItemView {
       this.pruneBodies();
       return;
     }
+    if (jump) {
+      const group = jump.read ? "read" : "unread";
+      const position = (jump.read ? read : unread).findIndex((item) => item.key === jump.row.key);
+      if (position >= 0) this.pages[group] = Math.floor(position / 30);
+    }
     this.renderGroup(this.notes, "unread", unread);
     const details = el(this.notes, "details", "ent-read");
     details.open = this.readExpanded;
@@ -7435,6 +7667,7 @@ var ExperienceView = class extends import_obsidian.ItemView {
       this.app.workspace.requestSaveLayout();
     };
     this.pruneBodies();
+    this.alignReveal();
     this.plugin.index.metric("render", { cards: Math.min(30, unread.length) + (this.readExpanded ? Math.min(30, read.length) : 0) });
   }
   manageTag(tag) {
@@ -7462,11 +7695,11 @@ var ExperienceView = class extends import_obsidian.ItemView {
   refreshTagDisplay() {
     const top = this.contentEl.scrollTop, sideTop = this.tagList.scrollTop;
     this.renderTags();
-    for (const n of this.notes.querySelectorAll("[data-alias-raw]")) A.paint(n, this.plugin.owner.data, aliasScope, n.dataset.aliasRaw);
+    for (const n of this.notes.querySelectorAll("[data-alias-raw]")) D.paint(n, this.plugin.owner.data, aliasScope, n.dataset.aliasRaw);
     this.contentEl.scrollTop = top;
     this.tagList.scrollTop = sideTop;
   }
-  renderTags() {
+  renderTags(revealTag) {
     if (!this.result) return;
     const data = this.plugin.owner.data;
     this.tagList.replaceChildren();
@@ -7476,7 +7709,11 @@ var ExperienceView = class extends import_obsidian.ItemView {
     }, "ent-tag" + (!this.filter.tags.length ? " is-active" : ""));
     el(all, "span", "", "\u5168\u90E8\u8BB0\u5F55");
     el(all, "span", "ent-count", String(this.result.unread));
-    const tags = [...this.result.counts].filter(([t]) => A.matches(data, aliasScope, t, this.tagSearch)).sort(([a], [b]) => A.compare(data, aliasScope, a, b));
+    const tags = [...this.result.counts].filter(([t]) => A.matches(data, aliasScope, t, this.tagSearch)).sort(([a], [b]) => D.compare(data, aliasScope, a, b));
+    if (revealTag) {
+      const i = tags.findIndex(([tag]) => tag === revealTag);
+      if (i >= 0) this.tagPage = Math.floor(i / 100);
+    }
     this.tagPage = Math.min(this.tagPage, Math.max(0, Math.ceil(tags.length / 100) - 1));
     for (const [tag, count] of tags.slice(this.tagPage * 100, this.tagPage * 100 + 100)) {
       const row = el(this.tagList, "div", "ent-tag-row");
@@ -7485,10 +7722,11 @@ var ExperienceView = class extends import_obsidian.ItemView {
         else this.filter.tags = this.filter.tags.includes(tag) ? this.filter.tags.filter((t) => t !== tag) : [...this.filter.tags, tag];
         this.changed();
       }, "ent-tag" + (this.filter.tags.includes(tag) ? " is-active" : ""));
-      A.paint(el(b, "span", "ent-tag-name"), data, aliasScope, tag);
+      D.paint(el(b, "span", "ent-tag-name"), data, aliasScope, tag, { indent: true });
+      D.tint(b, this.plugin, tag);
       el(b, "span", "ent-count", String(count));
       const edit = button(row, "\u22EF", () => this.manageTag(tag));
-      edit.setAttribute("aria-label", "\u7BA1\u7406\u6807\u7B7E " + tag);
+      edit.setAttribute("aria-label", "\u7BA1\u7406\u6807\u7B7E " + A.label(data, aliasScope, tag));
       edit.title = "\u7BA1\u7406\u6807\u7B7E\uFF1A\u4E49\u540D / \u539F\u6587\u6807\u7B7E";
     }
     if (tags.length > 100) {
@@ -7505,8 +7743,7 @@ var ExperienceView = class extends import_obsidian.ItemView {
     this.aliasSelection.replaceChildren();
     for (const tag of this.filter.tags) {
       const row = el(this.aliasSelection, "div", "tag-alias-selected");
-      A.paint(el(row, "span", ""), data, aliasScope, tag);
-      el(row, "small", "tag-alias-original", "\u539F\u6587\u6807\u7B7E\uFF1A" + tag);
+      D.paint(el(row, "span", ""), data, aliasScope, tag);
       button(row, A.get(data, aliasScope, tag) ? "\u4FEE\u6539\u4E49\u540D" : "\u8BBE\u7F6E\u4E49\u540D", () => this.manageTag(tag));
     }
   }
@@ -7548,6 +7785,10 @@ var ExperienceView = class extends import_obsidian.ItemView {
     if (!rows.length) el(container, "p", "ent-muted", key === "unread" ? "\u5F53\u524D\u8303\u56F4\u6CA1\u6709\u672A\u9605\u7B14\u8BB0\u3002" : "\u6682\u65E0\u5DF2\u9605\u7B14\u8BB0\u3002");
     for (const row of rows.slice(page * 30, page * 30 + 30)) {
       const article = el(container, "article", "ent-card" + (key === "read" ? " is-read" : ""));
+      if (this.jumpMark?.key === row.key && this.jumpMark.until > Date.now()) {
+        article.classList.add("ent-jump-target");
+        article.style.setProperty("--ent-highlight-time", this.jumpMark.until - Date.now() + "ms");
+      }
       const head = el(article, "div", "ent-card-head");
       const left = el(head, "div", "ent-toolbar");
       const mark = button(left, key === "read" ? "\u21B6" : "\u2713", async () => {
@@ -7574,7 +7815,7 @@ var ExperienceView = class extends import_obsidian.ItemView {
       el(article, "h3", "ent-title", row.title + " \xB7 \u7ECF\u9A8C\u7247\u6BB5");
       attachBody(this, row, article, generation);
       const tags = el(article, "div", "ent-chips");
-      for (const tag of row.tags.slice(0, 20)) A.paint(el(tags, "span", "ent-chip"), this.plugin.owner.data, aliasScope, tag);
+      for (const tag of row.tags.slice(0, 20)) D.paint(el(tags, "span", "ent-chip"), this.plugin.owner.data, aliasScope, tag);
       if (row.tags.length > 20) el(tags, "span", "ent-muted", `\u53E6\u6709 ${row.tags.length - 20} \u4E2A\u6807\u7B7E\uFF0C\u53EF\u5728\u539F\u6587\u67E5\u770B`);
     }
   }
@@ -7610,6 +7851,68 @@ var Settings = class extends import_obsidian.PluginSettingTab {
   }
 };
 var ExperiencePlugin = class extends import_obsidian.Plugin {
+  async openClosureTagV1({scope,raw}) {
+    if(scope!=="experience" || typeof raw!=="string" || !raw.startsWith("#")) throw Error("这份收尾记录缺少有效的经验标签来源。");
+    const request=this.closureTagRequest=Symbol();
+    const ws=this.app.workspace, leaves=ws.getLeavesOfType(TYPE);
+    const leaf=leaves.find(l=>l.parent===ws.activeLeaf?.parent)||leaves[0]||ws.getLeaf("tab");
+    if(!leaves.includes(leaf))await leaf.setViewState({type:TYPE,active:false});
+    if(leaf.isDeferred)await leaf.loadIfDeferred();
+    if(request!==this.closureTagRequest)return;
+    await ws.revealLeaf(leaf);
+    await this.index.start();
+    if(request!==this.closureTagRequest)return;
+    const view=leaf.view;
+    if(!this.alive||!(view instanceof ExperienceView)||!view.opened)throw Error("经验回看尚未就绪，请重试。");
+    if(view.selected.size)throw Error("经验回看中有批量勾选，请先完成后再打开收尾标签。");
+    const partial=this.index.pending.size||this.index.queue.size||this.index.scanning;
+    if(!partial&&!this.index.catalog().includes(raw))throw Error("当前经验回看已找不到这个原标签，收尾记录仍保留当时的名称。");
+    view.stopReveal();view.searchChanged.cancel();view.tagChanged.cancel();
+    Object.assign(view.filter,{search:"",from:"",to:"",mode:"single",tags:[raw]});
+    view.tagSearch=view.tagSearchInput.value=view.searchInput.value=view.fromInput.value=view.toInput.value="";
+    view.pages={unread:0,read:0};
+    view.readExpanded=true;
+    view.tagList.closest("details").open=true;
+    view.refresh();
+    view.renderTags(raw);
+    view.contentEl.scrollTop=0;
+    ws.requestSaveLayout();
+  }
+  async getClosureTagsV1({ signal, onUpdate } = {}) {
+    const snapshot = () => {
+      const tree = this.index.catalogTree(), palette = D.colors(this);
+      return {
+        version: 1,
+        scope: "experience",
+        partial: !!(this.index.pending.size || this.index.queue.size || this.index.scanning),
+        tags: tree.tags.map((raw) => {
+          const label = A.label(this.owner.data, "experience", raw);
+          let path = raw, key;
+          while (path && !(key = D.describe(A.label(this.owner.data, "experience", path)).key)) {
+            const slash = path.lastIndexOf("/");
+            path = slash < 0 ? "" : path.slice(0, slash);
+          }
+          return { raw, label, count: tree.nodes.get(raw.slice(1))?.count, color: palette.get(key) };
+        })
+      };
+    };
+    await this.index.start();
+    if (signal && !signal.aborted && this.alive && typeof onUpdate === "function") {
+      const notify = () => {
+        if (this.alive && !signal.aborted) onUpdate(snapshot());
+      };
+      this.closureConsumers ?? (this.closureConsumers = /* @__PURE__ */ new Set());
+      this.closureConsumers.add(notify);
+      this.index.listeners.add(notify);
+      signal.addEventListener("abort", () => {
+        this.index.listeners.delete(notify);
+        this.closureConsumers.delete(notify);
+        if (this.alive) this.syncActivity();
+      }, { once: true });
+      this.syncActivity();
+    }
+    return snapshot();
+  }
   async onload() {
     this.alive = true;
     this.modals = /* @__PURE__ */ new Set();
@@ -7666,7 +7969,7 @@ var ExperiencePlugin = class extends import_obsidian.Plugin {
     }
   }
   syncActivity() {
-    this.index.activate(this.alive && ([...this.modals].some((m) => m.indexConsumer && !m.closed) || [...this.views].some((v) => v.opened && this.app.workspace.activeLeaf === v.leaf)));
+    this.index.activate(this.alive && (this.closureConsumers?.size > 0 || [...this.modals].some((m) => m.indexConsumer && !m.closed) || [...this.views].some((v) => v.opened && this.app.workspace.activeLeaf === v.leaf)));
     for (const v of this.views) if (v.opened && v.leaf === this.app.workspace.activeLeaf) v.refresh();
   }
   async openSource(row, origin) {

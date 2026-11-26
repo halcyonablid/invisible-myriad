@@ -1,9 +1,9 @@
 {
   "id": "view-group-hub",
   "name": "View Group Hub",
-  "version": "0.2.9",
+  "version": "0.2.11",
   "minAppVersion": "1.7.2",
-  "description": "Four columns for execution/collection, workflow, review and planning; fourteen native members with independent experience review.",
+  "description": "Four native view groups including daily tags and session closure.",
   "author": "OpenAI Codex",
   "isDesktopOnly": true
 }

@@ -1,0 +1,9 @@
+{
+  "id": "zeigarnik-closure",
+  "name": "蔡加尼克效应结束者",
+  "version": "0.2.2",
+  "minAppVersion": "1.7.2",
+  "description": "运行收尾问答、标签导航、工作寄语与收尾包月历。",
+  "author": "Personal Tools",
+  "isDesktopOnly": true
+}

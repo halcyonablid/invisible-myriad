@@ -880,3 +880,20 @@ body.eva-meta-capture-active .mtb-manage-cell-actions .eva-meta-capture-btn{visi
 .mtb-entry-highlight-text{box-sizing:border-box;margin:0;border:0;background:transparent;white-space:pre-wrap;overflow-wrap:break-word;color:transparent!important;-webkit-text-fill-color:transparent;transform-origin:top left}
 .mtb-entry-highlight-text .mtb-entry-number{color:transparent!important;-webkit-text-fill-color:transparent;background:rgba(221,161,32,.19);border-radius:3px;box-shadow:inset 0 0 0 1px rgba(181,120,16,.45);padding:0;border:0;font:inherit;letter-spacing:inherit}
 .theme-dark .mtb-entry-highlight-text .mtb-entry-number{background:rgba(255,190,70,.19);box-shadow:inset 0 0 0 1px rgba(255,190,70,.6)}
+
+/* Daily tag address navigation: one column, complete display names. */
+.mtb-daily-tag-picker .mtb-picker-options,.mtb-daily-tag-picker .mtb-picker-selected{display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch}
+.mtb-daily-tag-picker .mtb-picker-options{max-height:48vh;gap:4px}
+.mtb-daily-tag-picker .mtb-picker-options>.mtb-picker-chip,.mtb-daily-tag-picker .mtb-picker-selected>.mtb-picker-chip{width:100%;flex:0 0 auto;border-radius:5px;padding:7px 10px;min-height:34px;text-align:left;display:block}
+
+.mtb-daily-tag-picker .mtb-picker-options>.mtb-picker-chip:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:-2px}
+.mtb-address-label{min-width:0;white-space:normal;overflow-wrap:anywhere;text-align:left;line-height:1.5}
+.mtb-address-label.mtb-address-indented{padding-inline-start:calc(var(--mtb-tag-depth,0) * 10px)}
+.mtb-daily-tag-picker .mtb-picker-options>.mtb-address-indented{padding-inline-start:calc(10px + var(--mtb-tag-depth,0) * 12px)}
+.mtb-address-label .mtb-tag-address{font-family:var(--font-monospace);font-size:.96em;font-weight:600;font-variant-numeric:tabular-nums}
+.mtb-address-label .mtb-tag-separator{opacity:.65;padding-inline:3px}
+.mtb-daily-tags .mtb-tags-taglist{display:flex;flex-direction:column;gap:5px}
+.mtb-daily-tags .mtb-tags-tagrow{flex:0 0 auto}
+
+/* Address-format colors shared by daily picker and summary; selection stays primary. */
+.mtb-daily-tags .mtb-tags-tagrow>button.mtb-address-tinted:not(.is-active),.mtb-daily-tag-picker .mtb-picker-options>button.mtb-address-tinted:not(.is-selected){background:var(--mtb-address-color)}

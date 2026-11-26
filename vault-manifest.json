@@ -1,7 +1,7 @@
 {
   "format": "obsidian-vault-backup-v1",
-  "count": 4364,
-  "bytes": 225125953,
+  "count": 4367,
+  "bytes": 225219331,
   "files": [
     {
       "path": ".gitignore",
@@ -155,8 +155,8 @@
     },
     {
       "path": ".obsidian/plugins/collection-card-view/action-mode.cjs",
-      "bytes": 42782,
-      "sha256": "f1a902cc82891beb42ee78cb1003a43a3484c0e75a7ce0e5e8090430c3e79297"
+      "bytes": 62830,
+      "sha256": "ee2e15edde3e38690b85c2155d2029ed9dbb30333a006652c0361c00097253a7"
     },
     {
       "path": ".obsidian/plugins/collection-card-view/binding-anchor.cjs",
@@ -226,7 +226,7 @@
     {
       "path": ".obsidian/plugins/collection-card-view/manifest.json",
       "bytes": 287,
-      "sha256": "1418b2d4659b58373fbbfb6280e662c2da6982b5282da042dee4bd659f0cf20c"
+      "sha256": "e17df69b89e8aea3a7fd151468293b462a3f7bd1ea2560897dce02984f498fd3"
     },
     {
       "path": ".obsidian/plugins/collection-card-view/participant-snapshot.cjs",
@@ -245,8 +245,8 @@
     },
     {
       "path": ".obsidian/plugins/collection-card-view/styles.css",
-      "bytes": 33526,
-      "sha256": "5c0071b00b160523043cc1d629d3664d77719c95e8229522b069f763ae76e03f"
+      "bytes": 44540,
+      "sha256": "de274c0292ca79bfaa2ecfe0d8a8b76f3c9b0a006c11612de3049d9257b9aa05"
     },
     {
       "path": ".obsidian/plugins/context-key-manager/authority.cjs",
@@ -575,23 +575,23 @@
     },
     {
       "path": ".obsidian/plugins/experience-note-tags/README.md",
-      "bytes": 18263,
-      "sha256": "fa681ea365d75022ff91621fb336bafe5d4e9cc082f7b607d9d13c5be549bcc6"
+      "bytes": 19695,
+      "sha256": "704ff4c2df32c9dcc4e7d6037730e770855504638de0ec351dbedcfc9539830b"
     },
     {
       "path": ".obsidian/plugins/experience-note-tags/main.js",
-      "bytes": 316006,
-      "sha256": "3543020fcaac71fd0fee02f3a31e404f97dc0b3b937d97fc0abe3c2714f9de1a"
+      "bytes": 328831,
+      "sha256": "bc607afc3567a65467c46bab1dd9f74e44615ed81c85db020d87d13303404282"
     },
     {
       "path": ".obsidian/plugins/experience-note-tags/manifest.json",
-      "bytes": 328,
-      "sha256": "2f299d7dba7f7b5d88d977ad2177c14bfe5632a74085bc7f5066f4ff91e6c23e"
+      "bytes": 329,
+      "sha256": "137cf73c84524b64cc9fdac78f33e1374ae731b6dea4d848646d80b2a15d0269"
     },
     {
       "path": ".obsidian/plugins/experience-note-tags/styles.css",
-      "bytes": 9609,
-      "sha256": "90150ba9fecd066e56e302996ef23a71ed406ade1cbf475cc2e6610d22b6e1cb"
+      "bytes": 12145,
+      "sha256": "c17de62b6ddbe3a67944e144681447b14c2311c6a934f880acbdbbdf8e6eff1a"
     },
     {
       "path": ".obsidian/plugins/file-tree-alternative/data.json",
@@ -795,8 +795,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/README.md",
-      "bytes": 9558,
-      "sha256": "25388178f93ff0eae489a84536fbd4f48288199e6ca1ea1304909f883776a8af"
+      "bytes": 11425,
+      "sha256": "102f617ccb70e6cb436a06823950d1e6f2a8dd11c4d85a32ec531741e8ded667"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/binding-anchor.cjs",
@@ -830,8 +830,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/main.js",
-      "bytes": 1764334,
-      "sha256": "ef058641d35d83bc461ebcac291f12c2bae797657514fad96bc27accc7bd053c"
+      "bytes": 1775127,
+      "sha256": "b60a71662b66e8beb3b2b9232055d6539586e81f9ba484d3432b88f226adef98"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/mandala-board-draft.cjs",
@@ -846,7 +846,7 @@
     {
       "path": ".obsidian/plugins/mandala-time-blocks/manifest.json",
       "bytes": 300,
-      "sha256": "ae44146440fa024c2b7b0653946ca41859a72837105ccff1e8f9ff3713d13b87"
+      "sha256": "993d0fc00d4f8348c6545735dfd07d1639bf1b397b75b078f8336e6bc9bae3eb"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/participant-snapshot.cjs",
@@ -860,8 +860,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/styles.css",
-      "bytes": 120915,
-      "sha256": "b72b5a64498f9ca3a9fc3981f0a9625afbd73c1672911f57090d74bccc108585"
+      "bytes": 122549,
+      "sha256": "00cd151957ece386333376756710b3c6ba8f345006e33bba7d79699409cfbd4b"
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/tracking-state-reader.cjs",
@@ -870,8 +870,8 @@
     },
     {
       "path": ".obsidian/plugins/mandala-time-blocks/versions.json",
-      "bytes": 535,
-      "sha256": "6b12d1004c35b351a959c41c6ecff8830f8fa69a225dbcbdc6b502badfef34b2"
+      "bytes": 623,
+      "sha256": "0d3376c162d20aff6ef2d7a0f4f023d2996d124b7b0380b5cb12e5f1dfe70f56"
     },
     {
       "path": ".obsidian/plugins/mermaid-floating-widget/core-script.js",
@@ -975,13 +975,13 @@
     },
     {
       "path": ".obsidian/plugins/next-action-workbench/main.js",
-      "bytes": 125388,
-      "sha256": "5e2e3e95d06ee70be421bfa54fafcb87226169cb9171c3496aea8469dc2f7690"
+      "bytes": 129030,
+      "sha256": "d469b8bfde59d8504348b5ff94caa996fe51cd4ef4418feb8144aedbe6b961fb"
     },
     {
       "path": ".obsidian/plugins/next-action-workbench/manifest.json",
-      "bytes": 286,
-      "sha256": "bc1aac1ad97ac6cb226458f7691fe93a12c3705da7b2267e8114df42bebacb42"
+      "bytes": 295,
+      "sha256": "a2ac8f0208dcb8889e838c9899efa2dc6f3bc0713fc1f43fcded79c7b2dcd201"
     },
     {
       "path": ".obsidian/plugins/next-action-workbench/styles.css",
@@ -21245,8 +21245,8 @@
     },
     {
       "path": ".obsidian/plugins/view-group-hub/README.md",
-      "bytes": 4549,
-      "sha256": "e8170ae6a72c922a00ffa1eec5c3a58149794c52b8ec2d63b9d7c0119e6b9e3f"
+      "bytes": 5037,
+      "sha256": "8b7e7afb20ffdfc585ed5c0d02bd39852d1d5cd220b840151fbe03c88387ece4"
     },
     {
       "path": ".obsidian/plugins/view-group-hub/data.json",
@@ -21255,13 +21255,13 @@
     },
     {
       "path": ".obsidian/plugins/view-group-hub/main.js",
-      "bytes": 55263,
-      "sha256": "bb0a19343d4c594cf21c728cf7d467fb4110eec7f5bdb1064885653c074dc0c2"
+      "bytes": 55708,
+      "sha256": "6b91d43e4d39137ee5063edc4dcfe08ab7836b06540d1db1550ade678a2aef95"
     },
     {
       "path": ".obsidian/plugins/view-group-hub/manifest.json",
-      "bytes": 310,
-      "sha256": "faae9eedf540a44a4b07d0106c7fc35c69aff3edccbe95f56e438d8df83b1ee4"
+      "bytes": 256,
+      "sha256": "9d4eff2d3886d6b35de11ad535f1ddb6a22f9c7c549291741622c4bdf8be432b"
     },
     {
       "path": ".obsidian/plugins/view-group-hub/styles.css",
@@ -21270,8 +21270,8 @@
     },
     {
       "path": ".obsidian/plugins/view-group-hub/versions.json",
-      "bytes": 83,
-      "sha256": "370de64a4e3bb761917d5d2495a5fd05159fcfd495ab4e5e2d7bd928054d3445"
+      "bytes": 111,
+      "sha256": "3a8f63afb4314c671f6b5bb379f05c70bfa286238505d4b52d9b98f43039a02f"
     },
     {
       "path": ".obsidian/plugins/workspace-mount/binding-anchor.cjs",
@@ -21357,6 +21357,21 @@
       "path": ".obsidian/plugins/workspace-mount/workspace-mount-perf-diagnostics.js",
       "bytes": 3709,
       "sha256": "fba16cc339ce3e43bba45a5cab06cb87b0230b6313f760284605b508662c270a"
+    },
+    {
+      "path": ".obsidian/plugins/zeigarnik-closure/main.js",
+      "bytes": 20144,
+      "sha256": "dd67d04ca32093fa6f9004a48601e2aad9245a83fea0064043e1bfaa4f33a5f8"
+    },
+    {
+      "path": ".obsidian/plugins/zeigarnik-closure/manifest.json",
+      "bytes": 277,
+      "sha256": "f07a4030d2ec9ff27905df4b09f482e4675d1ed2eb0ff8909cc8933d96d6ca74"
+    },
+    {
+      "path": ".obsidian/plugins/zeigarnik-closure/styles.css",
+      "bytes": 6161,
+      "sha256": "554510b57b3fcd6ad7abf7daf670f4beb73e37e6b52968dc7b202b8876368878"
     },
     {
       "path": ".obsidian/templates.json",
@@ -22311,6 +22326,7 @@
     ".obsidian/plugins/workspace-mount",
     ".obsidian/plugins/workspace-mount/center-rename-backups",
     ".obsidian/plugins/workspace-mount/rename-backups",
+    ".obsidian/plugins/zeigarnik-closure",
     "Attachments",
     "data",
     "Examples",
@@ -22326,7 +22342,7 @@
     "Templates",
     "tools"
   ],
-  "captured_at": "2026-11-16T14:58:35.172036+08:00",
+  "captured_at": "2026-11-26T15:32:43.551000+08:00",
   "source": "D:\\han\\最新的\\大千-协作实验版-20261005\\大千-协作实验版",
   "stable": true
 }

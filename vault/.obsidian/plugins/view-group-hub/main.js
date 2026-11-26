@@ -24,12 +24,14 @@ Object.freeze({ key: "dailyLessons", label: "日课", icon: "calendar-check", pl
 Object.freeze({ key: "weeklyTracking", label: "周追踪", icon: "calendar-range", pluginId: "mandala-time-blocks", viewType: "mandala-weekly-tracking-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 Object.freeze({ key: "mandalaGrid", label: "九宫格", icon: "grid-3x3", pluginId: "mandala-time-blocks", viewType: "mandala-nine-grid-view", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 Object.freeze({ key: "experienceReview", label: "经验回看", icon: "book-open-check", pluginId: "experience-note-tags", viewType: "experience-note-tags-view", sourceBound: false }),
+Object.freeze({ key: "closure", label: "蔡加尼克效应结束者", icon: "book-check", pluginId: "zeigarnik-closure", viewType: "zeigarnik-closure-view", sourceBound: false }),
+Object.freeze({ key: "dailyTags", label: "日课标签汇总", icon: "tags", pluginId: "mandala-time-blocks", viewType: "mandala-daily-tags", sourceBound: true, sourceSetting: "mandalaSourceNotePath" }),
 ]);
 
 const GROUPS = Object.freeze([
   Object.freeze({ key: "execution", label: "执行与收集", members: Object.freeze(["overview","workspace","gtd","collection"].map(key => MEMBERS.find(member => member.key === key))) }),
-  Object.freeze({ key: "working", label: "执行过程", members: Object.freeze(["nextAction","ontology","timeBlocks","dailyLessons"].map(key => MEMBERS.find(member => member.key === key))) }),
-  Object.freeze({ key: "review", label: "回看", members: Object.freeze(["experienceReview","weeklyTracking","dailyReview"].map(key => MEMBERS.find(member => member.key === key))) }),
+  Object.freeze({ key: "working", label: "执行过程", members: Object.freeze(["nextAction","ontology","timeBlocks","dailyLessons","closure"].map(key => MEMBERS.find(member => member.key === key))) }),
+  Object.freeze({ key: "review", label: "回看", members: Object.freeze(["experienceReview","weeklyTracking","dailyReview","dailyTags"].map(key => MEMBERS.find(member => member.key === key))) }),
   Object.freeze({ key: "planning", label: "规划", members: Object.freeze(["timeline","mandalaGrid","temporal"].map(key => MEMBERS.find(member => member.key === key))) }),
 ]);
 
@@ -397,7 +399,7 @@ class ViewGroupHubPlugin extends Plugin {
   }
 
   getExpectedSourcePath(member) {
-    if (["timeBlocks", "dailyLessons", "weeklyTracking", "mandalaGrid"].includes(member?.key)) return normalizePath(this.app.plugins?.getPlugin?.("mandala-time-blocks")?.getTimeCaptureSourceNotePath?.());
+    if (["timeBlocks", "dailyLessons", "weeklyTracking", "mandalaGrid", "dailyTags"].includes(member?.key)) return normalizePath(this.app.plugins?.getPlugin?.("mandala-time-blocks")?.getTimeCaptureSourceNotePath?.());
     if (!member?.sourceBound) return "";
     return normalizePath(
       this.settings?.[member.sourceSetting]
@@ -703,7 +705,7 @@ class ViewGroupHubPlugin extends Plugin {
     const member = this.getMember(key);
     if (!member || !this.controller) return;
     if (member.sourceBound && !this.getExpectedSourcePath(member)) {
-      new Notice(["timeBlocks", "dailyLessons", "weeklyTracking"].includes(member.key) ? "请先在 Mandala 时间块设置中配置来源笔记。" : `${member.label} 缺少已证明的 sourceNotePath，请先在 View Group Hub 设置中配置。`);
+      new Notice(["timeBlocks", "dailyLessons", "weeklyTracking", "dailyTags"].includes(member.key) ? "请先在 Mandala 时间块设置中配置来源笔记。" : `${member.label} 缺少已证明的 sourceNotePath，请先在 View Group Hub 设置中配置。`);
       return;
     }
     this.visualContractFailedReason = "";
@@ -734,7 +736,7 @@ class ViewGroupHubPlugin extends Plugin {
       new Notice(`${member?.label || key} 当前不可用，请显式修复。`);
       return false;
     }
-    if (["timeBlocks", "dailyLessons", "weeklyTracking"].includes(key)) {
+    if (["timeBlocks", "dailyLessons", "weeklyTracking", "dailyTags"].includes(key)) {
       const expectedSource = this.getExpectedSourcePath(member);
       if (!expectedSource || this.getLeafSourcePath(record.leaf) !== expectedSource) {
         this.setMemberState(key, { status: "unavailable", label: expectedSource ? "来源已切换" : "需要来源笔记", reason: "source-identity-mismatch-explicit-repair", sourceNotePath: expectedSource });

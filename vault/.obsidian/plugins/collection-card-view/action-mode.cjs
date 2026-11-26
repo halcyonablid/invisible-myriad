@@ -1,3 +1,9 @@
+
+// Date-only handling: local calendar days, never UTC conversion.
+function memoDay(date=new Date()){return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');}
+function memoDateValid(value){if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const [y,m,d]=value.split('-').map(Number);if(y<1000||y>9999)return false;const date=new Date(y,m-1,d,12);return date.getFullYear()===y&&date.getMonth()===m-1&&date.getDate()===d;}
+function memoShift(value,days){if(!memoDateValid(value))throw new Error('请选择有效日期');const [y,m,d]=value.split('-').map(Number);return memoDay(new Date(y,m-1,d+days,12));}
+function memoCurrent(row,today=memoDay()){return !memoDateValid(row.scheduledFor)||row.scheduledFor<=today;}
 const TYPE = 'collection-action-view';
 const norm = x => String(x || '').trim().replace(/\s+/g,' ').toLocaleLowerCase();
 const collator = new Intl.Collator('zh-CN',{numeric:true,sensitivity:'base'});
@@ -42,7 +48,7 @@ function project(data, bindings, targets, metadata, keys, sourceNotePath) {
     for(const tabId of tabs) {
       const visit=id=>{if(seen.has(id)) return;seen.add(id);const item=data.itemsById[id];if(!item||item.tabId!==tabId) return;
         const matches=previous?.links.filter(l=>l.itemId===id)||[],meta=matches.length===1?matches[0]:null;
-        rows.push({...item,alias:meta?.alias||'',tags:Array.isArray(meta?.tags)?meta.tags:[],completed:meta?.completed||false,hasOntology:meta?.hasOntology||false,identityConflict:matches.length>1});
+        rows.push({...item,alias:meta?.alias||'',tags:Array.isArray(meta?.tags)?meta.tags:[],completed:meta?.completed||false,scheduledFor:meta?.scheduledFor||'',scheduleKind:meta?.scheduleKind==='calendar'?'calendar':'memo',scheduleToken:meta?.scheduleToken||'null',hasOntology:meta?.hasOntology||false,identityConflict:matches.length>1});
         for(const child of data.childrenByParentByTab[`${tabId}::${id}`]||[]) visit(child);
       };
       for(const id of data.childrenByParentByTab[`${tabId}::__root__`]||[]) visit(id);
@@ -51,6 +57,23 @@ function project(data, bindings, targets, metadata, keys, sourceNotePath) {
     rows.sort((x,y)=>collator.compare(x.alias||x.title||'',y.alias||y.title||'')||String(x.id).localeCompare(String(y.id)));
     return {target:t,id:t.membershipId,name:t.actionName||t.label,domain:t.primaryRef?.domain||t.domain,tabs,rows,bindingError};
   }).sort((a,b)=>collator.compare(a.name,b.name)||a.id.localeCompare(b.id));
+}
+// Same directory contract used by Collection action-entry L1. No durable cache.
+async function actionContextKeys(plugin){
+  const api=plugin.getProjectOverviewApi();
+  try{
+    const read=api?.getContextTrackingVisibilitySnapshotV1;
+    if(typeof read==='function'){
+      const s=read.call(api),now=Date.now();
+      if(s&&typeof s.then!=='function'&&s.contractVersion===1&&s.status==='ready'&&s.keyListVersion===1
+        &&s.keyDirectoryCoverage?.contractVersion===1&&s.keyDirectoryCoverage?.kind==='observed-navigation-union-configured-eligible'
+        &&s.keyDirectoryCoverage?.complete===true&&Array.isArray(s.contextKeys)&&now>=s.createdAt&&now<s.expiresAt
+        &&plugin.getProjectOverviewApi()===api)return s.contextKeys;
+    }
+  }catch(_){/* Unavailable directory uses the existing authoritative full read. */}
+  const keys=await api?.getContextCapsuleKeys();
+  if(plugin.getProjectOverviewApi()!==api)throw new Error('上下文服务已变化，请重新保存');
+  return keys;
 }
 function install(plugin, obsidian, actionEntry) {
   const {ItemView,Modal,Notice}=obsidian;
@@ -101,7 +124,10 @@ function install(plugin, obsidian, actionEntry) {
     return {...s,data,bindings,raw,keys};
   };
   plugin.globalApi.getActionIdentity=async ({sourceNotePath,tabId,itemId,target})=>{
-    const [{data,bindings},keys]=await Promise.all([read(sourceNotePath),plugin.getProjectOverviewApi()?.getContextCapsuleKeys()]);
+    const provider=plugin.getProjectOverviewApi();
+    const {data,bindings}=await measure('identity.source.read',()=>read(sourceNotePath));
+    const keys=await measure('identity.context.keys',()=>actionContextKeys(plugin));
+    if(plugin.getProjectOverviewApi()!==provider)throw new Error('上下文服务已变化，请重新保存');
     if(tabId&&!boundTabs(target,bindings,data,keys,sourceNotePath).includes(tabId))throw new Error('条目已不属于此主键，请刷新');
     if(tabId&&!data.tabsById[tabId]) throw new Error('目标标签已不存在');
     const item=itemId&&data.itemsById[itemId];
@@ -121,6 +147,33 @@ function install(plugin, obsidian, actionEntry) {
     try{if(view.needsQualification){view.needsQualification=false;await view.refresh(true);}else await view.refreshContent();}catch(e){new Notice('待办已保存，列表刷新失败，请点击刷新');}
     return result;
   };
+
+  class ScheduleModal extends Modal {
+    constructor(view,group,row){super(plugin.app);Object.assign(this,{view,group,row,sourceNotePath:view.sourceNotePath,provider:service(),kind:row.scheduleKind==='calendar'?'calendar':'memo',busy:false,closed:false});}
+    onOpen(){
+      this.modalEl.addClass('naw-schedule-modal');this.titleEl.setText(this.row.scheduledFor?'修改处理日期':'安排处理日期');
+      this.contentEl.createEl('p',{cls:'naw-schedule-title',text:this.row.alias||this.row.title});
+      const types=this.contentEl.createDiv({cls:'naw-schedule-types',attr:{role:'radiogroup','aria-label':'安排类型'}});this.typeButtons=[];
+      for(const [kind,title,desc] of [['memo','备忘录','当天回看，再决定下一步'],['calendar','日程','当天必须执行，重点突出']]){const b=types.createEl('button',{cls:'naw-schedule-type',attr:{type:'button',role:'radio','aria-checked':String(this.kind===kind)}});b.createEl('strong',{text:title});b.createEl('span',{text:desc});b.onclick=()=>{this.kind=kind;for(const [k,button] of this.typeButtons)button.setAttribute('aria-checked',String(k===kind));};this.typeButtons.push([kind,b]);}
+      this.contentEl.createEl('p',{cls:'naw-schedule-help',text:'安排到未来后暂时退出“当前可处理”。日程到日突出显示；备忘录到日提醒回看。'});
+      const label=this.contentEl.createEl('label',{text:'处理日期'});this.input=label.createEl('input',{attr:{type:'date','aria-label':'处理日期'}});this.input.value=memoDateValid(this.row.scheduledFor)?this.row.scheduledFor:memoShift(memoDay(),1);
+      const quick=this.contentEl.createDiv({cls:'naw-schedule-quick'});
+      for(const [days,text] of [[0,'今天'],[1,'明天'],[3,'三天后'],[7,'一周后']]){const b=quick.createEl('button',{text,attr:{type:'button'}});b.onclick=()=>{this.input.value=memoShift(memoDay(),days);};}
+      this.message=this.contentEl.createDiv({cls:'naw-schedule-message',attr:{role:'status','aria-live':'polite'}});
+      const actions=this.contentEl.createDiv({cls:'naw-schedule-actions'});
+      const clear=actions.createEl('button',{text:'移回未安排',attr:{type:'button'}});clear.onclick=()=>this.commit('');
+      const cancel=actions.createEl('button',{text:'取消',attr:{type:'button'}});cancel.onclick=()=>this.close();
+      const save=actions.createEl('button',{cls:'mod-cta',text:'保存日期',attr:{type:'button'}});save.onclick=()=>this.commit(this.input.value);
+    }
+    async commit(date){
+      if(this.busy)return;if(date!==''&&!memoDateValid(date)){this.message.setText('请选择有效日期');return;}
+      this.busy=true;this.message.setText('正在保存…');for(const e of this.contentEl.querySelectorAll('button,input'))e.disabled=true;
+      try{await this.view.saveSchedule(this.group,this.row,date,this.sourceNotePath,this.provider,this.kind);this.message.setText('已保存');this.close();new Notice(date?`已安排${this.kind==='calendar'?'日程':'备忘录'}：${date}`:'已移回未安排');}
+      catch(e){if(!this.closed)this.message.setText(e.message||'保存失败，请重试');else new Notice(e.message||'日期保存未完成');}
+      finally{this.busy=false;for(const e of this.contentEl.querySelectorAll('button,input'))e.disabled=false;}
+    }
+    onClose(){this.closed=true;}
+  }
   class CreateModal extends Modal {
     constructor(view,group){super(plugin.app);this.view=view;this.group=group;this.requestId=require('node:crypto').randomUUID();}
     onOpen(){this.contentEl.createEl('h2',{text:'新增下一步待办'});const select=this.contentEl.createEl('select');
@@ -217,10 +270,11 @@ function install(plugin, obsidian, actionEntry) {
     close(){if(this.pending){new Notice('正在保存，请等待结果');return;}if(!this.saved&&!this.discard&&(this.input?.value.trim()||JSON.stringify(this.tags)!==JSON.stringify(this.row.tags))){this.status.setText('修改尚未保存，请保存或点击取消放弃。');return;}super.close();}
   }
   class ActionView extends ItemView {
-    constructor(leaf){super(leaf);this.sourceNotePath='';this.domain='project';this.selected='all';this.query='';this.tagSelection=[];this.tagMode='single';this.tagGroup='all';this.generation=0;this.closed=false;}
+    constructor(leaf){super(leaf);this.sourceNotePath='';this.domain='project';this.selected='all';this.query='';this.dateScope='current';this.memoDate='today';this.day=memoDay();this.tagSelection=[];this.tagMode='single';this.tagGroup='all';this.generation=0;this.closed=false;}
     getViewType(){return TYPE;} getDisplayText(){return '下一步行动台';} getIcon(){return 'list-checks';}
-    getState(){return {sourceNotePath:this.sourceNotePath,domain:this.domain,selected:this.selected,tagSelection:this.tagSelection,tagMode:this.tagMode,tagGroup:this.tagGroup};}
+    getState(){return {sourceNotePath:this.sourceNotePath,domain:this.domain,selected:this.selected,tagSelection:this.tagSelection,tagMode:this.tagMode,tagGroup:this.tagGroup,dateScope:this.dateScope,memoDate:this.memoDate};}
     async setState(s={}){this.sourceNotePath=s.sourceNotePath||plugin.getDefaultSourceNotePath();this.domain=s.domain||this.domain;this.selected=s.selected||this.selected;
+      this.dateScope=s.dateScope==='all'?'all':'current';this.memoDate=['all','today','undated','past'].includes(s.memoDate)||memoDateValid(s.memoDate)?s.memoDate:'today';this.memoMonth='';this.memoCalendarFocus='';
       if(Array.isArray(s.tagSelection))this.tagSelection=s.tagSelection.filter(t=>typeof t==='string');this.tagMode=['any','all'].includes(s.tagMode)?s.tagMode:'single';if(this.tagMode==='single')this.tagSelection=this.tagSelection.slice(0,1);if(typeof s.tagGroup==='string')this.tagGroup=s.tagGroup;
       if(this.opened)await this.refresh();}
     async onOpen(){this.opened=true;this.closed=false;this.sourceNotePath ||= plugin.getDefaultSourceNotePath();
@@ -230,9 +284,24 @@ function install(plugin, obsidian, actionEntry) {
       this.registerDomEvent(window,'collection-action-metadata:changed',e=>{const rename=e.detail?.tagRename;if(rename)this.tagSelection=this.tagSelection.map(t=>norm(t)===norm(rename.oldLabel)?rename.newLabel:t);if(!this.editPending)this.refreshMetadata();});
       this.registerDomEvent(window,'project-execution-overview:primary-key-lifecycle-changed',()=>this.schedule());
       if(typeof ResizeObserver==='function'){this.resizeObserver=new ResizeObserver(()=>this.syncLayout());this.resizeObserver.observe(this.contentEl);}
-      await this.refresh();}
+      const win=this.contentEl.ownerDocument.defaultView,doc=this.contentEl.ownerDocument;
+      this.registerDomEvent(win,'focus',()=>this.checkMemoDay());this.registerDomEvent(doc,'visibilitychange',()=>{if(!doc.hidden)this.checkMemoDay();});
+      this.armMemoDay();await this.refresh();}
     schedule(contentOnly=false){this.needsQualification ||= !contentOnly;if(this.committing)return;clearTimeout(this.timer);this.timer=setTimeout(()=>{if(!this.closed){const full=this.needsQualification;this.needsQualification=false;(full?this.refresh(true):this.refreshContent()).catch(e=>new Notice(e.message));}},180);}
-    async onClose(){this.closed=true;this.generation++;clearTimeout(this.timer);this.resizeObserver?.disconnect();}
+    async onClose(){this.closed=true;this.generation++;clearTimeout(this.timer);clearTimeout(this.dayTimer);this.resizeObserver?.disconnect();}
+
+    checkMemoDay(){if(this.closed)return;const day=memoDay();if(day!==this.day){this.day=day;this.paint();}this.armMemoDay();}
+    armMemoDay(){clearTimeout(this.dayTimer);if(this.closed)return;const now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);this.dayTimer=setTimeout(()=>this.checkMemoDay(),Math.max(1000,next-now+100));}
+    hasScheduleKinds(){return service().getCollectionActionCapabilities?.()?.scheduleKindsVersion===1;}
+    hasDateMemo(){return service().getCollectionActionCapabilities?.().dateMemoVersion===1&&typeof service().setCollectionActionSchedule==='function';}
+    async saveSchedule(group,row,date,path,provider,kind){
+      if(this.closed||path!==this.sourceNotePath||service()!==provider)throw new Error('页面来源或行动信息服务已变化，请重新打开');
+      if(this.editPending)throw new Error('上一项操作正在处理，请稍候');
+      if(!this.hasScheduleKinds())throw new Error('请先加载支持日期备忘录的下一步行动台服务');
+      this.editPending=true;
+      try{await provider.setCollectionActionSchedule({sourceNotePath:path,domain:group.domain,contextId:group.id,tabId:row.tabId,itemId:row.id,itemTitle:row.title,date,kind,expectedScheduleToken:row.scheduleToken});}
+      finally{this.editPending=false;if(!this.closed&&path===this.sourceNotePath)this.refreshMetadata();}
+    }
     metadataSnapshot(){
       const metadata=[];let offset=0;do{const page=service().getCollectionActionMetadata({sourceNotePath:this.sourceNotePath,offset});metadata.push(...page.contexts);offset=page.nextOffset;}while(offset!==null);
       return metadata;
@@ -246,7 +315,7 @@ function install(plugin, obsidian, actionEntry) {
       this.paint();
     }
     async refresh(fresh=false){const generation=++this.generation;try{
-      const [snapshot,result,keys]=await Promise.all([measure('collection.read',()=>read(this.sourceNotePath)),measure('targets.read',()=>service().getCollectionActionTargets({fresh})),plugin.getProjectOverviewApi()?.getContextCapsuleKeys()]);
+      const [snapshot,result,keys]=await Promise.all([measure('collection.read',()=>read(this.sourceNotePath)),measure('targets.read',()=>service().getCollectionActionTargets({fresh})),actionContextKeys(plugin)]);
       if(this.closed||generation!==this.generation)return;this.snapshot=snapshot;this.targets=result.targets;this.domainStatus=result.byDomain;this.contextKeys=keys;this.metadata=this.metadataSnapshot();this.paint();
     }catch(e){if(generation===this.generation&&!this.closed){new Notice(e.message);if(!this.snapshot){this.contentEl.empty();this.contentEl.createEl('p',{text:e.message});const b=this.contentEl.createEl('button',{text:'重试'});b.onclick=()=>this.refresh();}}}}
     paint(){
@@ -274,12 +343,19 @@ function install(plugin, obsidian, actionEntry) {
       search.oncompositionstart=()=>{this.searchComposing=true;};
       search.oncompositionend=()=>{this.searchComposing=false;this.query=search.value;if(this.pendingPaint){this.pendingPaint=false;this.paint();}};
       const tabs=shell.createDiv({cls:'naw-domain-tabs has-tag-tab',attr:{role:'tablist','aria-label':'主键类型与标签筛选'}});
-      for(const domain of ['goal','project','tags']){
+      for(const domain of ['goal','project','tags','dates']){
         const b=tabs.createEl('button',{cls:`naw-domain-tab${this.domain===domain?' is-active':''}`,attr:{role:'tab','aria-selected':String(this.domain===domain)}});
-        b.createEl('span',{text:domain==='tags'?'标签筛选':`${domain==='goal'?'目标':'项目'}主键`});
-        b.createEl('span',{cls:'naw-domain-tab-count',text:String(domain==='tags'?this.tagCatalog.length:groups.filter(g=>g.domain===domain).length)});
+        b.createEl('span',{text:domain==='dates'?'日期备忘录':domain==='tags'?'标签筛选':`${domain==='goal'?'目标':'项目'}主键`});
+        b.createEl('span',{cls:'naw-domain-tab-count',text:String(domain==='dates'?openCount(groups.flatMap(g=>g.rows).filter(r=>memoDateValid(r.scheduledFor))):domain==='tags'?this.tagCatalog.length:groups.filter(g=>g.domain===domain).length)});
         b.onclick=()=>{this.domain=domain;this.selected='all';this.navScrollTop=0;if(this.navEl)this.navEl=null;this.paint();};
       }
+
+      const dateTools=shell.createDiv({cls:'naw-date-tools'});
+      if(!this.hasScheduleKinds())dateTools.createEl('span',{text:'日程分类服务尚未更新，暂不可修改日期，请配套加载两个插件。'});
+      else if(this.domain!=='dates'){
+        for(const [mode,label] of [['current','当前可处理'],['all','全部日期']]){const b=dateTools.createEl('button',{cls:this.dateScope===mode?'is-active':'',text:label,attr:{type:'button','aria-pressed':String(this.dateScope===mode)}});b.onclick=()=>{this.dateScope=mode;this.paint();};}
+        dateTools.createEl('span',{cls:'naw-date-help',text:this.dateScope==='current'?'今天、之前未处理及未安排；未来事项见日期备忘录':'包含未来安排的全部事项'});
+      }else dateTools.createEl('span',{cls:'naw-date-help',text:'按日期汇集：日程当天执行，备忘录当天回看；数字为未完成数量。'});
       for(const domain of ['goal','project'])if(!this.domainStatus?.[domain]?.ok)shell.createDiv({cls:'naw-readonly-banner',text:`${domain==='goal'?'目标':'项目'}主键加载失败，请刷新重试（并非没有主键）。`});
       this.body=shell.createDiv({cls:'naw-content-layout'});this.renderBody(groups);this.syncLayout();
       if(anchorKey){const next=[...root.querySelectorAll('[data-action-row]')].find(el=>el.getAttribute('data-action-row')===anchorKey);if(next)root.scrollTop+=next.getBoundingClientRect().top-anchorTop;}
@@ -297,9 +373,12 @@ function install(plugin, obsidian, actionEntry) {
       if(delta<0||main.getBoundingClientRect().top>root.getBoundingClientRect().bottom-80)root.scrollTop+=delta;
     }
     dockNavigation(nav,main){this.navEl=nav;this.mainEl=main;nav.scrollTop=this.navScrollTop||0;}
-    renderBody(groups){
+    renderBody(allGroups){
+      let groups=allGroups;if(this.domain!=='dates'&&this.hasDateMemo()&&this.dateScope!=='all')groups=allGroups.map(g=>({...g,rows:g.rows.filter(r=>memoCurrent(r))}));
       if(this.navEl?.isConnected)this.navScrollTop=this.navEl.scrollTop;
       this.body.empty();
+      this.body.classList.toggle('is-date-memo',this.domain==='dates');
+      if(this.domain==='dates')return this.renderDateBody(allGroups);
       if(this.domain==='tags')return this.renderTagBody(groups);
       const nav=this.body.createDiv({cls:'naw-primary-navigation'}),main=this.body.createDiv({cls:'naw-workspace'});
       const current=groups.filter(g=>g.domain===this.domain),heading=nav.createDiv({cls:'naw-navigation-heading'});
@@ -322,6 +401,116 @@ function install(plugin, obsidian, actionEntry) {
         this.renderSection(main,g,rows);
       }
       if(!visible)main.createDiv({cls:'naw-empty',text:query?'没有匹配的主键或下一步待办。':this.domainStatus?.[this.domain]?.ok?'当前没有有效主键。':'主键暂不可用，请刷新重试。'});
+      this.dockNavigation(nav,main);
+    }
+
+    renderMemoCalendar(nav,rows,groups,today,inDate){
+      const choices=[['all','所有已安排'],['past','之前未处理'],['today','今天'],['undated','未安排']];
+      const selected=this.memoDate==='today'?today:this.memoDate;
+      const counts=new Map();
+      for(const row of rows){if(!memoDateValid(row.scheduledFor))continue;const c=counts.get(row.scheduledFor)||{calendar:0,memo:0,total:0};c.total++;if(!row.completed)c[row.scheduleKind==='calendar'?'calendar':'memo']++;counts.set(row.scheduledFor,c);}
+      const choose=(key)=>{
+        this.memoDate=key;
+        const date=key==='today'?memoDay():key;
+        if(memoDateValid(date)){this.memoMonth=date.slice(0,7);this.memoCalendarFocus=date;}
+        this.renderBody(groups);this.revealWorkspace();
+      };
+      const shortcuts=nav.createDiv({cls:'naw-date-shortcuts'});
+      for(const [key,label] of choices){
+        const active=this.memoDate===key||(key==='today'&&this.memoDate===today);
+        const b=shortcuts.createEl('button',{cls:active?'is-active':'',attr:{type:'button','aria-pressed':String(active),'data-memo-shortcut':key}});
+        b.createEl('span',{text:label});b.createEl('span',{cls:'naw-capsule-count',text:String(openCount(rows.filter(r=>inDate(r,key))))});
+        b.onclick=()=>{choose(key);this.body.querySelector('[data-memo-shortcut="'+key+'"]')?.focus({preventScroll:true});};
+      }
+      const calendar=nav.createDiv({cls:'naw-calendar'});
+      const validMonth=m=>typeof m==='string'&&/^\d{4}-\d{2}$/.test(m)&&memoDateValid(m+'-01');
+      if(!validMonth(this.memoMonth))this.memoMonth=(memoDateValid(selected)?selected:today).slice(0,7);
+      const shiftMonth=(date,offset)=>{
+        const [y,m,d]=date.split('-').map(Number),first=new Date(y,m-1+offset,1,12);
+        const last=new Date(first.getFullYear(),first.getMonth()+1,0,12).getDate();
+        return memoDay(new Date(first.getFullYear(),first.getMonth(),Math.min(d,last),12));
+      };
+      const render=(focusControl)=>{
+        calendar.empty();
+        const month=this.memoMonth,first=month+'-01',[year,mo]=month.split('-').map(Number);
+        const header=calendar.createDiv({cls:'naw-calendar-header'});
+        header.createEl('strong',{text:year+'年'+mo+'月',attr:{'aria-live':'polite'}});
+        const controls=header.createDiv({cls:'naw-calendar-controls'});
+        const move=(offset)=>{const next=shiftMonth(first,offset);if(!memoDateValid(next))return;this.memoMonth=next.slice(0,7);this.memoCalendarFocus=next;render(offset<0?'prev':'next');};
+        for(const [key,text,label,offset] of [['prev','‹','上个月',-1],['next','›','下个月',1]]){
+          const b=controls.createEl('button',{text,attr:{type:'button','aria-label':label,'data-calendar-control':key}});b.disabled=!memoDateValid(shiftMonth(first,offset));b.onclick=()=>move(offset);
+        }
+        const current=controls.createEl('button',{text:'本月',attr:{type:'button','aria-label':'回到本月','data-calendar-control':'current'}});
+        current.onclick=()=>{this.memoMonth=memoDay().slice(0,7);this.memoCalendarFocus=memoDay();render('current');};
+        const weekdays=calendar.createDiv({cls:'naw-calendar-weekdays',attr:{'aria-hidden':'true'}});
+        for(const day of ['一','二','三','四','五','六','日'])weekdays.createEl('span',{text:day});
+        const grid=calendar.createDiv({cls:'naw-calendar-grid',attr:{role:'group','aria-label':year+'年'+mo+'月日期；方向键移动，回车选择'}});
+        const offset=(new Date(year,mo-1,1,12).getDay()+6)%7;
+        const dates=Array.from({length:42},(_,i)=>memoDay(new Date(year,mo-1,1-offset+i,12)));
+        let focusDate=dates.includes(this.memoCalendarFocus)?this.memoCalendarFocus:dates.includes(selected)?selected:dates.includes(today)?today:first;
+        if(!memoDateValid(focusDate))focusDate=first;
+        const focusDay=date=>{this.memoCalendarFocus=date;for(const b of grid.querySelectorAll('[data-memo-day]'))b.tabIndex=b.dataset.memoDay===date?0:-1;};
+        for(const date of dates){
+          const valid=memoDateValid(date),c=counts.get(date)||{calendar:0,memo:0,total:0},open=c.calendar+c.memo;
+          const relative=date===today?' · 今天':date===memoShift(today,1)?' · 明天':'';
+          const label=date+relative+'，日程 '+c.calendar+' 项，备忘录 '+c.memo+' 项'+(c.total>open?'，已完成 '+(c.total-open)+' 项':'');
+          const b=grid.createEl('button',{cls:'naw-calendar-day'+(date.slice(0,7)!==month?' is-outside':'')+(date===today?' is-today':'')+(date===selected?' is-selected':''),attr:{type:'button','data-memo-day':date,'aria-label':label,'aria-pressed':String(date===selected),title:label,tabindex:date===focusDate?'0':'-1'}});
+          b.disabled=!valid;if(date===today)b.setAttribute('aria-current','date');
+          b.createEl('span',{cls:'naw-calendar-number',text:String(Number(date.slice(-2)))});
+          const marks=b.createEl('span',{cls:'naw-calendar-marks',attr:{'aria-hidden':'true'}});
+          if(c.calendar)marks.createEl('i',{cls:'is-calendar'});
+          if(c.memo)marks.createEl('i',{cls:'is-memo'});
+          if(open)marks.createEl('span',{text:open>99?'99+':String(open)});
+          else if(c.total)marks.createEl('i',{cls:'is-done'});
+          b.onfocus=()=>focusDay(date);
+          b.onclick=()=>{choose(date);this.body.querySelector('[data-memo-day="'+date+'"]')?.focus({preventScroll:true});};
+          b.onkeydown=e=>{
+            if(e.altKey||e.ctrlKey||e.metaKey)return;
+            const weekday=(new Date(...date.split('-').map((n,i)=>Number(n)-(i===1?1:0))).getDay()+6)%7;
+            let next;const step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7,Home:-weekday,End:6-weekday};
+            if(Object.prototype.hasOwnProperty.call(step,e.key))next=memoShift(date,step[e.key]);
+            else if(e.key==='PageUp'||e.key==='PageDown')next=shiftMonth(date,e.key==='PageUp'?-1:1);
+            else return;
+            e.preventDefault();if(!memoDateValid(next))return;
+            this.memoCalendarFocus=next;
+            if(next.slice(0,7)!==month){this.memoMonth=next.slice(0,7);render();}
+            const el=calendar.querySelector('[data-memo-day="'+next+'"]');el?.focus({preventScroll:true});
+          };
+        }
+        const footer=calendar.createDiv({cls:'naw-calendar-footer'});
+        const legend=footer.createDiv({cls:'naw-calendar-legend'});
+        for(const [kind,label] of [['calendar','日程'],['memo','备忘录'],['done','已完成']]){
+          const item=legend.createEl('span');item.createEl('i',{cls:'is-'+kind});item.createEl('span',{text:label});
+        }
+        footer.createEl('small',{text:queryHint()});
+        const jumpLabel=footer.createEl('label',{cls:'naw-calendar-jump'});jumpLabel.createEl('span',{text:'跳至月份'});
+        const jump=jumpLabel.createEl('input',{attr:{type:'month',min:'1000-01',max:'9999-12','aria-label':'跳至月份','data-calendar-control':'month'}});jump.value=month;
+        jump.onchange=()=>{if(validMonth(jump.value)){this.memoMonth=jump.value;this.memoCalendarFocus=jump.value+'-01';render('month');}};
+        if(focusControl)calendar.querySelector('[data-calendar-control="'+focusControl+'"]')?.focus({preventScroll:true});
+      };
+      const queryHint=()=>this.query?'数字为搜索结果中的未完成数':'数字为未完成数 · 点击日期查看';
+      render();
+    }
+
+
+    renderDateBody(groups){
+      const nav=this.body.createDiv({cls:'naw-primary-navigation'}),main=this.body.createDiv({cls:'naw-workspace'});
+      nav.createDiv({cls:'naw-navigation-heading',text:'处理日期'});const today=memoDay(),query=norm(this.query);
+      const matched=groups.map(g=>({...g,rows:g.rows.filter(r=>!query||norm(g.name).includes(query)||norm(g.target.label).includes(query)||rowMatches(r,query))}));
+      const rows=matched.flatMap(g=>g.rows),days=[...new Set(rows.map(r=>r.scheduledFor).filter(memoDateValid))].sort();
+      const inDate=(r,key)=>key==='all'?memoDateValid(r.scheduledFor):key==='undated'?!memoDateValid(r.scheduledFor):key==='past'?memoDateValid(r.scheduledFor)&&r.scheduledFor<today&&!r.completed:r.scheduledFor===(key==='today'?today:key);
+      this.renderMemoCalendar(nav,rows,groups,today,inDate);
+      const title=({all:'所有已安排',past:'之前未处理',today:'今天 · '+today.slice(5),undated:'未安排'})[this.memoDate]||(this.memoDate+(this.memoDate===today?' · 今天':this.memoDate===memoShift(today,1)?' · 明天':''));
+      const heading=main.createDiv({cls:'naw-memo-heading'});heading.createEl('h3',{text:title});heading.createEl('span',{text:`${openCount(rows.filter(r=>inDate(r,this.memoDate)))} 项待处理`});
+      const buckets=this.memoDate==='all'?days:[this.memoDate];let shown=0;
+      for(const key of buckets){if(this.memoDate==='all')main.createEl('h4',{cls:'naw-memo-day',text:key});
+        for(const kind of (key==='undated'?['undated']:['calendar','memo'])){
+          const sections=matched.map(g=>({g,items:g.rows.filter(r=>inDate(r,key)&&(kind==='undated'||(r.scheduleKind==='calendar'?'calendar':'memo')===kind))})).filter(x=>x.items.length);
+          if(!sections.length)continue;const panel=main.createDiv({cls:'naw-date-kind is-'+kind});const head=panel.createDiv({cls:'naw-date-kind-heading'});
+          head.createEl('strong',{text:kind==='calendar'?'日程 · 当天执行':kind==='memo'?'备忘录 · 当天回看':'未安排'});head.createEl('span',{text:openCount(sections.flatMap(x=>x.items))+' 项未完成'});
+          for(const {g,items} of sections){shown+=items.length;this.renderSection(panel,g,items);}
+        }}
+      if(!shown)main.createDiv({cls:'naw-empty',text:query?'该日期没有匹配搜索的事项。':'这一天没有安排事项，可在待办卡片上点击“安排日期”。'});
       this.dockNavigation(nav,main);
     }
     renderTagBody(groups){
@@ -380,12 +569,12 @@ function install(plugin, obsidian, actionEntry) {
       title.createEl('span',{cls:`naw-domain-badge is-${g.domain}`,text:g.domain==='goal'?'目标':'项目'});
       title.createEl('h3',{text:g.name});
       if(g.name!==g.target.label)title.createEl('span',{cls:'naw-source-primary-label',text:`来源主键：${g.target.label}`});
-      title.createEl('span',{cls:'naw-membership-count',text:`${openCount(g.rows)} 未完成`});
-      const done=g.rows.filter(r=>r.completed).length;
+      title.createEl('span',{cls:'naw-membership-count',text:`${openCount(rows)} 未完成`});
+      const done=rows.filter(r=>r.completed).length;
       if(done)title.createEl('span',{cls:'naw-completion-summary',text:`${done} 已完成`});
       const buttons=header.createDiv({cls:'naw-membership-actions'});
       const add=actionButton(buttons,'plus','新增下一步待办',()=>new CreateModal(this,g).open());
-      add.disabled=g.tabs.length!==1||!!g.bindingError;
+      add.disabled=g.tabs.length!==1||!!g.bindingError;if(this.domain==='dates')add.hidden=true;
       actionButton(buttons,'pencil','修改行动台名称',()=>this.edit(g,null,'name'));
       if(g.bindingError)section.createDiv({cls:'naw-empty',text:g.bindingError});
       else if(!g.tabs.length)section.createDiv({cls:'naw-empty',text:'尚未绑定 Collection Card 标签；主键仍显示在清单中。'});
@@ -402,6 +591,7 @@ function install(plugin, obsidian, actionEntry) {
     }
     renderActionRow(parent,group,row){
       const box=parent.createDiv({cls:`naw-source-row${row.hasOntology?' has-ontology':''}${row.completed?' is-completed':''}${row.identityConflict?' is-malformed':''}`});
+      if(row.scheduleKind==='calendar'&&memoDateValid(row.scheduledFor)){box.addClass('is-calendar');if(!row.completed){if(row.scheduledFor===memoDay())box.addClass('is-calendar-today');else if(row.scheduledFor<memoDay())box.addClass('is-calendar-overdue');}}
       box.setAttribute('data-action-row',JSON.stringify([group.id,row.tabId,row.id]));
       obsidian.setIcon(box.createDiv({cls:'naw-source-marker'}),row.completed?'check':row.hasOntology?'table-properties':'square-dashed');
       const copy=box.createDiv({cls:'naw-source-copy'});copy.createDiv({cls:'naw-source-title',text:row.alias||row.title});
@@ -413,14 +603,17 @@ function install(plugin, obsidian, actionEntry) {
       if(row.identityConflict)meta.createEl('span',{cls:'naw-status is-malformed',text:'历史行动身份冲突，暂不可编辑'});
       else meta.createEl('span',{cls:'naw-status',text:'来自 Collection'});
       meta.createEl('span',{cls:`naw-ontology-state${row.hasOntology?' is-populated':''}`,text:row.hasOntology?'行动结构已有内容':'行动结构为空'});
+
+      if(row.scheduledFor){const valid=memoDateValid(row.scheduledFor);meta.createEl('span',{cls:'naw-schedule-badge'+(valid&&row.scheduledFor<memoDay()&&!row.completed?' is-past':''),text:valid?(row.scheduleKind==='calendar'?`${row.completed?'日程 · 已完成':row.scheduledFor===memoDay()?'日程 · 今天必做':row.scheduledFor<memoDay()?'日程 · 已过安排日':'日程 · 当天执行'} · ${row.scheduledFor}`:`备忘录 · ${row.scheduledFor===memoDay()?'今天回看':row.scheduledFor+' 回看'}`):'日期格式需核对'});}
       const actions=box.createDiv({cls:'naw-source-actions'});
+      const schedule=actionButton(actions,'calendar-clock',row.scheduledFor?'修改处理日期':'安排日期',()=>new ScheduleModal(this,group,row).open(),true);schedule.disabled=row.identityConflict||!this.hasScheduleKinds();
       for(const [op,icon,label,iconOnly] of [['complete',row.completed?'rotate-ccw':'check',row.completed?'撤销完成':'完成',true],['alias','pencil','修改显示名',true],['tags','tag','编辑标签',true],['ontology','table-properties','打开行动结构',false]]){
         const b=actionButton(actions,icon,label,op==='tags'?()=>new TagModal(this,group,row,this.tagCatalog||[]).open():()=>this.edit(group,row,op),iconOnly);b.disabled=row.identityConflict;
       }
-      actionButton(actions,'locate-fixed','返回来源',()=>measure('source.open',()=>this.domain==='tags'?this.locateAction(group,row):plugin.openItem(this.sourceNotePath,row.tabId,row.id)).catch(e=>new Notice(e.message)));
+      actionButton(actions,'locate-fixed','返回来源',()=>measure('source.open',()=>(this.domain==='tags'||this.domain==='dates')?this.locateAction(group,row):plugin.openItem(this.sourceNotePath,row.tabId,row.id)).catch(e=>new Notice(e.message)));
     }
     locateAction(group,row){
-      this.domain=group.domain;this.selected=group.id;this.query='';this.searchComposing=false;this.navScrollTop=0;this.navEl=null;this.paint();
+      this.domain=group.domain;this.dateScope='all';this.selected=group.id;this.query='';this.searchComposing=false;this.navScrollTop=0;this.navEl=null;this.paint();
       const key=JSON.stringify([group.id,row.tabId,row.id]);
       const found=[...this.contentEl.querySelectorAll('[data-action-row]')].find(el=>el.getAttribute('data-action-row')===key);
       if(!found)throw new Error('该条目已变化，请刷新后重试');
@@ -442,4 +635,4 @@ function install(plugin, obsidian, actionEntry) {
   plugin.addCommand({id:'open-collection-action-view',name:'打开下一步行动台（Collection）',callback:()=>plugin.globalApi.openActionView()});
   plugin.register(()=>plugin.app.workspace.getLeavesOfType(TYPE).forEach(l=>l.detach()));
 }
-module.exports={install,project,boundTabs,tagCatalog,matchTags,TYPE};
+module.exports={memoDay,memoDateValid,memoShift,memoCurrent,install,project,boundTabs,tagCatalog,matchTags,TYPE};

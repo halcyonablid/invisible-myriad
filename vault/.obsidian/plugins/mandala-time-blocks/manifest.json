@@ -1,7 +1,7 @@
 {
   "id": "mandala-time-blocks",
   "name": "Mandala Time Blocks",
-  "version": "0.3.14",
+  "version": "0.3.20",
   "minAppVersion": "1.7.2",
   "description": "Independent time frames, custom categories and persistent frame colors; Mandala planning retained.",
   "author": "OpenAI Codex",

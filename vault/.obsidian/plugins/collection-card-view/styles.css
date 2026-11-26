@@ -1392,3 +1392,83 @@ body.eva-meta-capture-active .eva-meta-capture-btn {
     overscroll-behavior: contain;
   }
 }
+
+/* Date memo: same card language, date navigation beside the current actions. */
+.collection-action-mode .naw-domain-tabs.has-tag-tab{display:flex;flex-wrap:wrap;width:max-content;max-width:100%}
+.collection-action-mode .naw-date-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+.collection-action-mode .naw-date-tools button{padding:5px 12px;border-radius:5px}
+.collection-action-mode .naw-date-tools button.is-active{background:var(--interactive-accent);color:var(--text-on-accent)}
+.collection-action-mode .naw-date-help{font-size:12px;color:var(--text-muted)}
+.collection-action-mode .naw-memo-heading{display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--background-modifier-border);padding:0 0 12px;margin-bottom:18px}
+.collection-action-mode .naw-memo-heading h3{margin:0}.collection-action-mode .naw-memo-heading>span{color:var(--text-muted);font-size:12px}
+.collection-action-mode .naw-memo-day{padding:12px 0 6px;border-bottom:2px solid var(--interactive-accent)}
+.collection-action-mode .naw-schedule-badge{padding:2px 6px;border-radius:4px;background:var(--background-modifier-hover);color:var(--text-muted);font-size:12px}
+.collection-action-mode .naw-schedule-badge.is-past{color:var(--text-warning);background:var(--background-secondary)}
+.naw-schedule-modal{width:min(520px,92vw);max-height:90vh}.naw-schedule-modal .modal-content{overflow:auto}
+.naw-schedule-title{font-weight:600;overflow-wrap:anywhere}.naw-schedule-help{font-size:13px;line-height:1.6;color:var(--text-muted)}
+.naw-schedule-modal label{display:grid;gap:8px;margin:18px 0 12px}.naw-schedule-modal input[type=date]{width:100%}
+.naw-schedule-quick,.naw-schedule-actions{display:flex;gap:8px;flex-wrap:wrap}.naw-schedule-message{min-height:32px;padding-top:12px;font-size:13px;color:var(--text-muted)}
+.naw-schedule-actions{justify-content:flex-end;border-top:1px solid var(--background-modifier-border);padding-top:16px}.naw-schedule-actions button:first-child{margin-right:auto}
+.collection-action-mode .naw-primary-navigation>input[type=date]{width:100%;margin-top:12px}
+.collection-action-mode .is-date-memo .naw-membership-title{flex-wrap:wrap}
+.collection-action-mode .is-date-memo .naw-membership-title h3{flex:0 1 auto}
+.collection-action-mode .is-date-memo .naw-source-primary-label{order:5;padding-left:0}
+.collection-action-mode .is-date-memo .naw-membership-count{white-space:nowrap}
+
+/* Distinguish commitments from reminders with both text and color. */
+.naw-schedule-types{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.naw-schedule-type{display:flex;flex-direction:column;align-items:flex-start;white-space:normal;height:auto;padding:12px;gap:6px;text-align:left}
+.naw-schedule-type span{font-size:12px;color:var(--text-muted)}
+.naw-schedule-type[aria-checked=true]{outline:2px solid var(--interactive-accent);background:var(--background-secondary)}
+.collection-action-mode .naw-source-row.is-calendar{border-left-color:#b77819}
+.collection-action-mode .naw-source-row.is-calendar-today{background:color-mix(in srgb,#d89220 14%,var(--background-primary));border:1px solid #b77819;border-left-width:4px}
+.collection-action-mode .naw-source-row.is-calendar-overdue{background:color-mix(in srgb,#c64b40 10%,var(--background-primary));border-left:4px solid #c64b40}
+.collection-action-mode .is-calendar-today .naw-schedule-badge{background:#8b570b;color:#fff;font-weight:700}
+.collection-action-mode .is-calendar-overdue .naw-schedule-badge{background:#9c3930;color:#fff;font-weight:700}
+.collection-action-mode .is-calendar.is-completed{border-left-color:var(--naw-green)}
+.naw-date-kind{margin-bottom:24px}.naw-date-kind-heading{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:6px;background:var(--background-secondary)}
+.naw-date-kind-heading span{font-size:12px;color:var(--text-muted)}
+.naw-date-kind.is-calendar>.naw-date-kind-heading{border-left:4px solid #b77819;background:color-mix(in srgb,#d89220 12%,var(--background-primary))}
+.naw-date-kind.is-memo>.naw-date-kind-heading{border-left:4px solid var(--naw-blue)}
+
+/* Date navigation is a compact month calendar; details stay in the right pane. */
+.collection-action-mode .naw-shell{container-type:inline-size;container-name:naw-shell}
+.collection-action-mode .naw-content-layout.is-date-memo{grid-template-columns:304px minmax(0,1fr);gap:24px}
+.collection-action-mode .is-date-memo .naw-primary-navigation{display:flex;flex-direction:column;gap:14px;padding-right:0;border-right:0}
+.collection-action-mode .is-date-memo .naw-date-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.collection-action-mode .is-date-memo .naw-date-shortcuts button{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;height:auto;min-height:38px;padding:8px 10px;box-shadow:none;font-size:12px;white-space:normal;text-align:left}
+.collection-action-mode .is-date-memo .naw-date-shortcuts button.is-active{border-color:var(--interactive-accent);background:color-mix(in srgb,var(--interactive-accent) 9%,var(--background-primary));color:var(--text-normal)}
+.collection-action-mode .is-date-memo .naw-calendar{padding:12px;border:1px solid var(--background-modifier-border);border-radius:10px;background:var(--background-primary)}
+.collection-action-mode .is-date-memo .naw-calendar-header{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:16px}
+.collection-action-mode .is-date-memo .naw-calendar-header strong{font-size:14px;white-space:nowrap}
+.collection-action-mode .is-date-memo .naw-calendar-controls{display:flex;gap:3px}
+.collection-action-mode .is-date-memo .naw-calendar-controls button{height:28px;min-width:26px;padding:2px 6px;box-shadow:none;font-size:12px;background:transparent;border-color:transparent}
+.collection-action-mode .is-date-memo .naw-calendar-controls button:hover{background:var(--background-modifier-hover)}
+.collection-action-mode .is-date-memo .naw-calendar-weekdays,.collection-action-mode .is-date-memo .naw-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.collection-action-mode .is-date-memo .naw-calendar-weekdays{margin-bottom:6px;text-align:center;font-size:11px;color:var(--text-muted)}
+.collection-action-mode .is-date-memo button.naw-calendar-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:44px;min-width:0;padding:3px 0;box-shadow:none;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text-normal);font-size:13px}
+.collection-action-mode .is-date-memo button.naw-calendar-day:hover{background:var(--background-modifier-hover)}
+.collection-action-mode .is-date-memo button.naw-calendar-day.is-outside{color:var(--text-muted);background:color-mix(in srgb,var(--background-secondary) 40%,transparent)}
+.collection-action-mode .is-date-memo button.naw-calendar-day.is-selected{background:color-mix(in srgb,var(--interactive-accent) 13%,var(--background-primary));border-color:var(--interactive-accent);font-weight:700}
+.collection-action-mode .is-date-memo .naw-calendar-number{line-height:18px;min-width:20px;border-radius:4px}
+.collection-action-mode .is-date-memo .is-today .naw-calendar-number{color:var(--text-on-accent);background:var(--interactive-accent)}
+.collection-action-mode .is-date-memo .naw-calendar-marks{display:flex;align-items:center;justify-content:center;gap:2px;height:10px;font-size:9px;line-height:10px;font-variant-numeric:tabular-nums}
+.collection-action-mode .is-date-memo .naw-calendar i{display:inline-block;width:5px;height:5px;flex:0 0 5px;border-radius:50%;font-style:normal}
+.collection-action-mode .is-date-memo .naw-calendar i.is-calendar{background:var(--naw-amber)}
+.collection-action-mode .is-date-memo .naw-calendar i.is-memo{background:var(--naw-blue)}
+.collection-action-mode .is-date-memo .naw-calendar i.is-done{border:1px solid var(--text-muted);background:transparent}
+.collection-action-mode .is-date-memo .naw-calendar-footer{border-top:1px solid var(--background-modifier-border);margin-top:12px;padding-top:12px;display:grid;gap:10px}
+.collection-action-mode .is-date-memo .naw-calendar-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--text-muted)}
+.collection-action-mode .is-date-memo .naw-calendar-legend>span{display:inline-flex;align-items:center;gap:4px}
+.collection-action-mode .is-date-memo .naw-calendar-footer small{font-size:11px;color:var(--text-muted)}
+.collection-action-mode .is-date-memo .naw-calendar-jump{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--text-muted)}
+.collection-action-mode .is-date-memo .naw-calendar-jump input{min-width:0;width:155px;height:28px;padding:3px 6px;font-size:12px}
+.collection-action-mode .is-date-memo button:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:2px}
+.collection-action-mode .is-date-memo .naw-memo-heading{min-height:40px;flex-wrap:wrap;gap:8px 16px}
+.collection-action-mode .is-date-memo .naw-source-row{grid-template-columns:30px minmax(0,1fr)}
+.collection-action-mode .is-date-memo .naw-source-actions{grid-column:2;justify-content:flex-end;flex-wrap:wrap;padding-left:0}
+@container naw-shell (max-width:840px){
+  .collection-action-mode .naw-content-layout.is-date-memo{grid-template-columns:minmax(0,1fr);gap:24px}
+  .collection-action-mode .is-date-memo .naw-primary-navigation{position:static;max-height:none;overflow:visible;max-width:420px;width:100%;justify-self:start}
+}
+

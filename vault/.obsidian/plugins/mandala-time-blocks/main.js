@@ -10833,6 +10833,145 @@ function createTagDisplayAliases({Modal, Notice}) {
 
 const __TagAliases=createTagDisplayAliases({Modal,Notice});
 
+// A display-only projection owned by Mandala. Canonical source tags never change.
+function createDailyTagColorModel(){
+// Derived from atom-note-sidebar/model.js 1.0.4: pure address-format projection only.
+const COLORS = ["0,71,171", "80,200,120", "255,253,208", "245,245,220", "139,133,137", "165,42,42", "255,0,0", "255,255,0", "0,0,255", "75,0,130", "255,165,0", "0,128,0", "255,192,203", "255,215,0", "192,192,192", "184,115,51", "255,127,80", "51,161,201", "230,230,250", "183,110,121", "205,127,50", "34,139,34", "128,0,32", "10,186,181", "251,206,177", "196,30,58", "224,255,255", "255,219,88", "97,64,81", "128,128,0", "160,82,45", "75,0,130"];
+function format(address, n = 0) {
+  const value = address.slice(0, n).replace(/\./g, "") + address.slice(n);
+  const at = value.lastIndexOf("@") + 1;
+  const legacy = part => part.replace(/[A-Z]/g, "L").replace(/\d+/g, "N");
+  // Numeric suffix extensions stay at the same level; preserve type prefixes.
+  return legacy(value.slice(0, at)) + value.slice(at).replace(/[A-Z\d]+/g,
+    part => /^\d/.test(part) ? "N" : legacy(part));
+}
+function colorHash(address) { let h = 0; for (let i = 0; i < address.length; i++) h = ((h << 5) - h + address.charCodeAt(i)) | 0; return Math.abs(h) % COLORS.length; }
+function compareAddresses(a, b) {
+  const aa = a.split("."), bb = b.split(".");
+  for (let i = 0; i < Math.min(aa.length, bb.length); i++) {
+    if (aa[i] !== bb[i]) return /^\d+$/.test(aa[i]) && /^\d+$/.test(bb[i]) ? parseInt(aa[i]) - parseInt(bb[i]) : aa[i].localeCompare(bb[i]);
+  }
+  return aa.length - bb.length;
+}
+// Cooperative stable merge sort: no large synchronous native sort on the UI thread.
+function* sorted(input, compare) {
+  let a = [...input], b = new Array(a.length);
+  for (let width = 1; width < a.length; width *= 2) {
+    for (let lo = 0; lo < a.length; lo += 2 * width) {
+      const mid = Math.min(lo + width, a.length), end = Math.min(lo + width * 2, a.length);
+      let i = lo, j = mid;
+      for (let k = lo; k < end; k++) {
+        b[k] = j >= end || (i < mid && compare(a[i], a[j]) <= 0) ? a[i++] : a[j++];
+        if ((k & 127) === 0) yield;
+      }
+    }
+    [a, b] = [b, a];
+  }
+  return a;
+}
+function* projection(entries, compare) {
+  const rows = yield* sorted(entries, (a, b) => compare(a.name, b.name) || a.path.localeCompare(b.path));
+  const addressColors = new Map(), formats = new Map();
+  let color = 0;
+  const dotted = [];
+  for (const row of rows) {
+    if (row.fullAddress.includes(".")) dotted.push(row);
+    else {
+      const key = format(row.fullAddress);
+      if (!formats.has(key)) { formats.set(key, color); color = (color + 1) % COLORS.length; }
+      addressColors.set(row.fullAddress, formats.get(key));
+    }
+    yield;
+  }
+  const byAddress = yield* sorted(dotted, (a, b) => compareAddresses(a.fullAddress, b.fullAddress));
+  const assigned = new Set();
+  // Bounded cache: variable prefix lengths cannot create unbounded N*K memory.
+  const bucketCache = new Map();
+  for (let index = 0; index < byAddress.length; index++) {
+    if (assigned.has(index)) continue;
+    const first = byAddress[index], n = first.fullAddress.indexOf(".");
+    let buckets = bucketCache.get(n);
+    if (!buckets) {
+      buckets = new Map();
+      for (let j = 0; j < byAddress.length; j++) {
+        const key = format(byAddress[j].fullAddress, n);
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(j);
+        yield;
+      }
+      if (bucketCache.size >= 2) bucketCache.delete(bucketCache.keys().next().value);
+      bucketCache.set(n, buckets);
+    }
+    const selected = buckets.get(format(first.fullAddress, n)) || [];
+    const hash = colorHash(first.fullAddress);
+    for (const j of selected) {
+      if (!assigned.has(j)) { assigned.add(j); addressColors.set(byAddress[j].fullAddress, hash); }
+      yield;
+    }
+    // Each bucket is consumed once for this prefix length.
+    buckets.delete(format(first.fullAddress, n));
+  }
+  const positions = new Map();
+  for (let i = 0; i < rows.length; i++) {
+    rows[i] = { ...rows[i], color: rows[i].indexed ? "rgba(0,47,167,0.5)" : `rgba(${COLORS[addressColors.get(rows[i].fullAddress) || 0]},0.12)` };
+    positions.set(rows[i].path, i);
+    yield;
+  }
+  return { rows, positions };
+}
+
+function addressColors(addresses){const entries=[...new Set(addresses)].map(fullAddress=>({path:fullAddress,name:fullAddress,fullAddress,indexed:false}));const task=projection(entries,(a,b)=>a.localeCompare(b));let step;do{step=task.next();}while(!step.done);return new Map(step.value.rows.map(r=>[r.fullAddress,r.color]));}
+
+return addressColors;
+}
+
+function createDailyTagAddressPresentation(A) {
+  const projectColors=createDailyTagColorModel(),colorCache=new WeakMap();
+  const natural = new Intl.Collator('zh-CN', {numeric:true, sensitivity:'variant'});
+  function describe(label) {
+    const clean=String(label).replace(/^#/,''), dash=clean.indexOf('-'), prefix=clean.slice(0,dash);
+    const addressed=dash>0 && /^[A-Za-z0-9]+(?:[./@+][A-Za-z0-9]+)*$/.test(prefix);
+    const normalized=prefix.replace(/\//g,'.');
+    return {label:String(label),address:addressed?prefix:'',key:addressed?normalized:'',title:addressed?clean.slice(dash+1):clean,
+      parts:addressed?normalized.split('.'):[],depth:addressed?normalized.split('.').length-1:0};
+  }
+  function compare(data,scope,a,b) {
+    const x=describe(A.label(data,scope,a)),y=describe(A.label(data,scope,b));
+    if(x.address && y.address) {
+      for(let i=0;i<Math.min(x.parts.length,y.parts.length);i++){
+        const order=natural.compare(x.parts[i],y.parts[i]);if(order)return order;
+      }
+      if(x.parts.length!==y.parts.length)return x.parts.length-y.parts.length;
+    } else if(!!x.address!==!!y.address) return x.address?-1:1;
+    return natural.compare(x.label.replace(/^#/,''),y.label.replace(/^#/,''))||String(a).localeCompare(String(b),'zh-CN');
+  }
+  function paint(target,data,scope,tag,{indent=false}={}) {
+    const info=describe(A.label(data,scope,tag));target.replaceChildren();target.classList.add('mtb-address-label');
+    target.classList.toggle('mtb-address-indented',indent);target.dataset.aliasRaw=tag;
+    target.dataset.addressDepth=String(info.depth);target.style.setProperty('--mtb-tag-depth',String(Math.min(info.depth,5)));
+    const span=(cls,text)=>{const e=target.ownerDocument.createElement('span');e.className=cls;e.textContent=text;target.appendChild(e);};
+    if(info.address){span('mtb-tag-address',(info.label.startsWith('#')?'#':'')+info.address);span('mtb-tag-separator','-');span('mtb-tag-caption',info.title);}
+    else span('mtb-tag-caption',info.label);
+    target.title=info.label;return target;
+  }
+  function colors(data,scope,items,rows=false){
+    const aliases=data?.tagDisplayAliases,old=colorCache.get(items);
+    if(old&&old.aliases===aliases&&old.scope===scope)return old.palette;
+    const tags=rows?items.flatMap(row=>row.tags):items.map(([tag])=>tag);
+    const palette=projectColors(tags.map(tag=>describe(A.label(data,scope,tag)).key).filter(Boolean));
+    colorCache.set(items,{aliases,scope,palette});return palette;
+  }
+  function tint(target,data,scope,tag,palette){
+    const color=palette.get(describe(A.label(data,scope,tag)).key);
+    target.classList.toggle('mtb-address-tinted',!!color);
+    if(color)target.style.setProperty('--mtb-address-color',color);else target.style.removeProperty('--mtb-address-color');
+  }
+  return {describe,compare,paint,colors,tint};
+}
+
+const __DailyTagAddress=createDailyTagAddressPresentation(__TagAliases);
+
+
 function createDailyTagsFeature({ItemView,Notice,model:M,project,today,dailyType}) {
   const TYPE='mandala-daily-tags';
   const el=(parent,tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=text;parent.append(node);return node;};
@@ -10898,7 +11037,7 @@ function createDailyTagsFeature({ItemView,Notice,model:M,project,today,dailyType
     async refresh(force=false){if((this.committing||this.reading)&&!force)return;if(this.editComposing){this.invalid=true;return;}if(this.loading)return this.loading;this.loading=(async()=>{this.assertSource();const started=performance.now();const store=await this.plugin.loadDailyLessons(false);this.assertSource();await this.index.update(store,()=>new Promise(r=>setTimeout(r,0)));this.assertSource();this.invalid=false;this.selected.clear();this.limit=30;this.readLimit=30;this.render();this.metrics={rows:this.index.rows.length,parsedDays:this.index.parsedDays,readAndIndexMs:Math.round(performance.now()-started),domRows:this.records.children.length};})();try{await this.loading;}finally{this.loading=null;}}
     changedFilter(){if(this.selected.size)this.status.textContent='筛选已变化，已清除之前的勾选。';this.selected.clear();this.limit=30;this.readLimit=30;this.plan=null;this.previewHost?.replaceChildren();this.render();this.leaf.workspace?.requestSaveLayout?.();}
     baseRows(){const f=this.filters,q=f.q.toLocaleLowerCase();return this.index.rows.filter(r=>(!f.from||r.date>=f.from)&&(!f.to||r.date<=f.to)&&(!q||r.body.toLocaleLowerCase().includes(q)));}
-    matching(){const f=this.filters;let rows=this.baseRows().filter(r=>f.kind==='untagged'?!r.tags.length:f.tags.length?(f.mode==='all'?f.tags.every(t=>r.tags.includes(t)):f.tags.some(t=>r.tags.includes(t))):true);if(f.asc)rows=[...rows].sort((a,b)=>a.date.localeCompare(b.date)||a.ordinal-b.ordinal);return rows;}
+    matching(){const f=this.filters;let rows=this.baseRows().filter(r=>f.kind==='untagged'?!r.tags.length:f.tags.length?(f.mode==='all'?f.tags.every(t=>r.tags.includes(t)):f.tags.some(t=>r.tags.includes(t))):true);const direction=f.asc?1:-1;return rows.sort((a,b)=>direction*a.date.localeCompare(b.date)||Number(!!a.unassigned)-Number(!!b.unassigned)||direction*(Number(a.serial)-Number(b.serial))||direction*(a.ordinal-b.ordinal));}
     render(){this.renderTags();this.renderResults();this.renderBulk();if(!this.intent || !this.editInput?.isConnected)this.renderEditor();}
     manageTag(tag){
       this.assertSource();const p=this.plugin,scope=this.sourceNotePath;
@@ -10908,12 +11047,12 @@ function createDailyTagsFeature({ItemView,Notice,model:M,project,today,dailyType
         sourceEdit:()=>{this.assertSource();return this.startEdit('rename',this.index.rows.filter(r=>r.tags.includes(tag)),tag);}
       });
     }
-    refreshTagDisplay(){const top=this.contentEl.scrollTop,side=this.tagList.parentElement,sideTop=side.scrollTop;this.renderTags();for(const n of this.records.querySelectorAll('[data-alias-raw]'))__TagAliases.paint(n,this.plugin.settings,this.sourceNotePath,n.dataset.aliasRaw);this.contentEl.scrollTop=top;side.scrollTop=sideTop;}
-    renderTags(){if(!this.tagList)return;this.tagList.replaceChildren();const base=this.baseRows(),counts=new Map(),data=this.plugin.settings,scope=this.sourceNotePath,A=__TagAliases;let unreadCount=0,untaggedUnread=0;for(const r of base){const unread=!this.readState(r);if(unread){unreadCount++;if(!r.tags.length)untaggedUnread++;}for(const t of r.tags)counts.set(t,(counts.get(t)||0)+(unread?1:0));}
-      const countButton=(parent,label,count,fn,cls,tag)=>{const b=button(parent,'',fn,cls),name=el(b,'span','mtb-tags-tagname',label);if(tag)A.paint(name,data,scope,tag);el(b,'span','mtb-tags-tagcount',String(count));b.setAttribute('aria-label',`${tag?A.label(data,scope,tag):label}，${count} 则未阅记录`);return b;};
+    refreshTagDisplay(){const top=this.contentEl.scrollTop,side=this.tagList.parentElement,sideTop=side.scrollTop;this.renderTags();for(const n of this.records.querySelectorAll('[data-alias-raw]'))__DailyTagAddress.paint(n,this.plugin.settings,this.sourceNotePath,n.dataset.aliasRaw);this.contentEl.scrollTop=top;side.scrollTop=sideTop;}
+    renderTags(){if(!this.tagList)return;this.tagList.replaceChildren();const base=this.baseRows(),counts=new Map(),data=this.plugin.settings,scope=this.sourceNotePath,A=__TagAliases,palette=__DailyTagAddress.colors(data,scope,this.index.rows,true);let unreadCount=0,untaggedUnread=0;for(const r of base){const unread=!this.readState(r);if(unread){unreadCount++;if(!r.tags.length)untaggedUnread++;}for(const t of r.tags)counts.set(t,(counts.get(t)||0)+(unread?1:0));}
+      const countButton=(parent,label,count,fn,cls,tag)=>{const b=button(parent,'',fn,cls),name=el(b,'span','mtb-tags-tagname',label);if(tag){__DailyTagAddress.paint(name,data,scope,tag,{indent:true});__DailyTagAddress.tint(b,data,scope,tag,palette);}el(b,'span','mtb-tags-tagcount',String(count));b.setAttribute('aria-label',`${tag?A.label(data,scope,tag):label}，${count} 则未阅记录`);return b;};
       countButton(this.tagList,'全部记录',unreadCount,()=>{this.filters.tags=[];this.filters.kind='all';this.changedFilter();},this.filters.kind==='all'&&!this.filters.tags.length?'is-active':'');countButton(this.tagList,'未打标签',untaggedUnread,()=>{this.filters.tags=[];this.filters.kind='untagged';this.changedFilter();},this.filters.kind==='untagged'?'is-active':'');
-      for(const [tag,count] of [...counts].sort(([a],[b])=>A.compare(data,scope,a,b))){if(!A.matches(data,scope,tag,this.filters.tagq))continue;const row=el(this.tagList,'div','mtb-tags-tagrow');countButton(row,'#'+tag,count,()=>{const f=this.filters;f.kind='all';f.tags=f.mode==='single'?[tag]:f.tags.includes(tag)?f.tags.filter(t=>t!==tag):[...f.tags,tag];this.changedFilter();},this.filters.tags.includes(tag)?'is-active':'',tag);const rename=button(row,'⋯',()=>this.manageTag(tag));rename.title='管理标签：义名 / 原文标签';rename.setAttribute('aria-label','管理标签 #'+tag);}
-      this.aliasSelection.replaceChildren();for(const tag of this.filters.tags){const row=el(this.aliasSelection,'div','tag-alias-selected');A.paint(el(row,'span',''),data,scope,tag);el(row,'small','tag-alias-original','原文标签：#'+tag);button(row,A.get(data,scope,tag)?'修改义名':'设置义名',()=>this.manageTag(tag));}
+      for(const [tag,count] of [...counts].sort(([a],[b])=>__DailyTagAddress.compare(data,scope,a,b))){if(!A.matches(data,scope,tag,this.filters.tagq))continue;const row=el(this.tagList,'div','mtb-tags-tagrow');countButton(row,'#'+tag,count,()=>{const f=this.filters;f.kind='all';f.tags=f.mode==='single'?[tag]:f.tags.includes(tag)?f.tags.filter(t=>t!==tag):[...f.tags,tag];this.changedFilter();},this.filters.tags.includes(tag)?'is-active':'',tag);const rename=button(row,'⋯',()=>this.manageTag(tag));rename.title='管理标签：义名 / 原文标签';rename.setAttribute('aria-label','管理标签 '+A.label(data,scope,tag));}
+      this.aliasSelection.replaceChildren();for(const tag of this.filters.tags){const row=el(this.aliasSelection,'div','tag-alias-selected');__DailyTagAddress.paint(el(row,'span',''),data,scope,tag);button(row,A.get(data,scope,tag)?'修改义名':'设置义名',()=>this.manageTag(tag));}
     }
     renderResults(){
       this.resultBar.replaceChildren();const rows=this.matching(),unread=rows.filter(r=>!this.readState(r)),read=rows.filter(r=>this.readState(r));
@@ -10942,7 +11081,7 @@ function createDailyTagsFeature({ItemView,Notice,model:M,project,today,dailyType
         this.appendRows(rows,before,parent,more,read);
       });
     }
-    card(row,parent=this.records){const card=el(parent,'article','mtb-tags-card');const isRead=this.readState(row);card.classList.toggle('is-read',isRead);card.dataset.recordId=row.id;const head=el(card,'div','mtb-tags-cardhead');if(!row.unassigned){const readButton=button(head,isRead?'↶':'✓',()=>this.setRead([row],!isRead),'mtb-tags-read-toggle mtb-tags-read-action');readButton.title=isRead?'恢复未阅':'标为已阅';readButton.setAttribute('aria-label',readButton.title+' '+row.date+' '+row.serial);readButton.setAttribute('aria-pressed',String(isRead));readButton.dataset.readUnavailable=String(!row.readUnique);readButton.disabled=!row.readUnique||!!this.reading;if(!row.readUnique)readButton.title='同日有相同编号与正文，请先区分记录。';}const check=input(head,'选择 '+row.date+' '+row.serial,'checkbox');check.disabled=row.unassigned;check.checked=this.selected.has(row.id);check.onchange=()=>{check.checked?this.selected.add(row.id):this.selected.delete(row.id);this.renderBulk();};el(head,'span','mtb-tags-meta',`${row.date} · ${row.unassigned?'未分条文字':row.serial}`);if(isRead)el(head,'span','mtb-tags-read-badge','已阅');if(!row.unassigned)button(head,'编辑原文标签',()=>this.startEdit('replace',[row]));button(head,'返回原文',()=>this.returnRecord(row));let displayed=row.body;for(const span of [...row.spans].reverse())displayed=displayed.slice(0,span.start-row.start)+displayed.slice(span.end-row.start);if(!row.unassigned)displayed=displayed.slice(5);const projection=project(displayed);button(head,'复制正文',async()=>{const clipboard=this.contentEl.ownerDocument.defaultView.navigator.clipboard;if(!clipboard?.writeText)throw Error('剪贴板不可用，请选中正文后按 Ctrl+C 复制。');await clipboard.writeText(projection.text.trim());new Notice('正文已复制');});const body=el(card,'div','mtb-tags-body',projection.text.trim());if(projection.records?.length)el(card,'div','mtb-tags-meta','含图片 · 返回原文查看');if(row.body.length>280||row.body.split('\n').length>6){body.classList.add('is-clamped');const b=button(card,'展开全文',()=>{body.classList.toggle('is-clamped');b.textContent=body.classList.contains('is-clamped')?'展开全文':'收起全文';},'mtb-tags-expand');}const chips=el(card,'div','mtb-tags-chips');for(const tag of row.tags)__TagAliases.paint(button(chips,'',()=>{this.filters.tags=[tag];this.filters.kind='all';this.changedFilter();}),this.plugin.settings,this.sourceNotePath,tag);}
+    card(row,parent=this.records){const card=el(parent,'article','mtb-tags-card');const isRead=this.readState(row);card.classList.toggle('is-read',isRead);card.dataset.recordId=row.id;const head=el(card,'div','mtb-tags-cardhead');if(!row.unassigned){const readButton=button(head,isRead?'↶':'✓',()=>this.setRead([row],!isRead),'mtb-tags-read-toggle mtb-tags-read-action');readButton.title=isRead?'恢复未阅':'标为已阅';readButton.setAttribute('aria-label',readButton.title+' '+row.date+' '+row.serial);readButton.setAttribute('aria-pressed',String(isRead));readButton.dataset.readUnavailable=String(!row.readUnique);readButton.disabled=!row.readUnique||!!this.reading;if(!row.readUnique)readButton.title='同日有相同编号与正文，请先区分记录。';}const check=input(head,'选择 '+row.date+' '+row.serial,'checkbox');check.disabled=row.unassigned;check.checked=this.selected.has(row.id);check.onchange=()=>{check.checked?this.selected.add(row.id):this.selected.delete(row.id);this.renderBulk();};el(head,'span','mtb-tags-meta',`${row.date} · ${row.unassigned?'未分条文字':row.serial}`);if(isRead)el(head,'span','mtb-tags-read-badge','已阅');if(!row.unassigned)button(head,'编辑原文标签',()=>this.startEdit('replace',[row]));button(head,'返回原文',()=>this.returnRecord(row));let displayed=row.body;for(const span of [...row.spans].reverse())displayed=displayed.slice(0,span.start-row.start)+displayed.slice(span.end-row.start);if(!row.unassigned)displayed=displayed.slice(5);const projection=project(displayed);button(head,'复制正文',async()=>{const clipboard=this.contentEl.ownerDocument.defaultView.navigator.clipboard;if(!clipboard?.writeText)throw Error('剪贴板不可用，请选中正文后按 Ctrl+C 复制。');await clipboard.writeText(projection.text.trim());new Notice('正文已复制');});const body=el(card,'div','mtb-tags-body',projection.text.trim());if(projection.records?.length)el(card,'div','mtb-tags-meta','含图片 · 返回原文查看');if(row.body.length>280||row.body.split('\n').length>6){body.classList.add('is-clamped');const b=button(card,'展开全文',()=>{body.classList.toggle('is-clamped');b.textContent=body.classList.contains('is-clamped')?'展开全文':'收起全文';},'mtb-tags-expand');}const chips=el(card,'div','mtb-tags-chips');for(const tag of row.tags)__DailyTagAddress.paint(button(chips,'',()=>{this.filters.tags=[tag];this.filters.kind='all';this.changedFilter();}),this.plugin.settings,this.sourceNotePath,tag);}
     renderBulk(){this.bulk.replaceChildren();this.bulk.hidden=!this.selected.size;if(!this.selected.size)return;el(this.bulk,'span','',`已选 ${this.selected.size} 则`);for(const [k,l] of [['add','批量添加'],['remove','批量移除']])button(this.bulk,l,()=>this.startEdit(k,this.index.rows.filter(r=>this.selected.has(r.id))));for(const [read,label]of [[true,'标为已阅'],[false,'恢复未阅']]){const b=button(this.bulk,label,()=>this.setRead(this.index.rows.filter(r=>this.selected.has(r.id)),read),'mtb-tags-read-action');b.disabled=!!this.reading;}button(this.bulk,'取消勾选',()=>{this.selected.clear();this.renderResults();this.renderBulk();});}
     readState(row){return !!(row.readUnique&&row.readKey&&this.plugin.settings.dailyTagReadStateV1?.[this.sourceNotePath]?.[row.date]?.[row.readKey]);}
     setRead(rows,read){
@@ -11107,7 +11246,7 @@ function createDailyTagPicker({Modal, Notice, model: M}) {
     onOpen() {
       this.contentEl.classList.add('mtb-daily-tag-picker');this.modalEl?.classList.add('mtb-daily-tag-picker-modal');
       this.node(this.contentEl,'h2','', '插入日课标签');
-      this.node(this.contentEl,'p','mtb-picker-hint','为光标所在条目添加标签，统一放在本条末尾独立一行。');
+      this.node(this.contentEl,'p','mtb-picker-hint','按显示地址选标签；有义名显示义名。标签统一放在本条末尾独立一行。');
       this.selectedEl=this.node(this.contentEl,'div','mtb-picker-selected');
       this.search=this.node(this.contentEl,'input','mtb-picker-search');this.search.type='search';this.search.placeholder='搜索已有标签';this.search.setAttribute('aria-label','搜索已有标签');
       this.search.oninput=()=>{this.limit=80;this.renderChoices();};
@@ -11127,7 +11266,7 @@ function createDailyTagPicker({Modal, Notice, model: M}) {
     renderSelected() {
       this.selectedEl.replaceChildren();
       if(!this.selected.size)this.node(this.selectedEl,'span','mtb-picker-hint','点击下方标签进行多选');
-      for(const tag of this.selected){const b=__TagAliases.paint(this.button(this.selectedEl,'',()=>this.toggle(tag),'mtb-picker-chip is-selected'),this.owner.settings,this.source,tag,{raw:true});this.node(b,'span','',' ×');}
+      for(const tag of this.selected){const b=__DailyTagAddress.paint(this.button(this.selectedEl,'',()=>this.toggle(tag),'mtb-picker-chip is-selected'),this.owner.settings,this.source,tag);this.node(b,'span','',' ×');}
       this.confirm.textContent=this.selected.size ? `插入 ${this.selected.size} 个原标签` : '插入原标签';this.confirm.disabled=!this.selected.size;
     }
     toggle(tag) {
@@ -11136,13 +11275,13 @@ function createDailyTagPicker({Modal, Notice, model: M}) {
       for(const b of this.list.querySelectorAll('button[data-tag]')){const yes=this.selected.has(b.dataset.tag);b.classList.toggle('is-selected',yes);b.setAttribute('aria-pressed',String(yes));}
     }
     renderChoices() {
-      const query=this.search.value.trim().replace(/^#/,'').toLocaleLowerCase();
-      const matches=this.tags.filter(([tag])=>__TagAliases.matches(this.owner.settings,this.source,tag,query)).sort(([a],[b])=>__TagAliases.compare(this.owner.settings,this.source,a,b));
+      const query=this.search.value.trim().replace(/^#/,'').toLocaleLowerCase(),palette=__DailyTagAddress.colors(this.owner.settings,this.source,this.tags);
+      const matches=this.tags.filter(([tag])=>__TagAliases.matches(this.owner.settings,this.source,tag,query)).sort(([a],[b])=>__DailyTagAddress.compare(this.owner.settings,this.source,a,b));
       this.countEl.textContent=`匹配 ${matches.length} / ${this.tags.length} 个标签`;
       this.list.replaceChildren();
       for(const [tag,count] of matches.slice(0,this.limit)) {
         const existing=this.existing.has(tag),b=this.button(this.list,'#'+tag,()=>this.toggle(tag),'mtb-picker-chip');
-        __TagAliases.paint(b,this.owner.settings,this.source,tag,{raw:true});b.dataset.tag=tag;b.disabled=existing;b.title+=' · '+(existing?'本条记录已有此标签':`${count} 则记录使用`);
+        __DailyTagAddress.paint(b,this.owner.settings,this.source,tag,{indent:true});__DailyTagAddress.tint(b,this.owner.settings,this.source,tag,palette);b.dataset.tag=tag;b.disabled=existing;b.title+=' · '+(existing?'本条记录已有此标签':`${count} 则记录使用`);
         b.setAttribute('aria-pressed',String(this.selected.has(tag)));b.classList.toggle('is-selected',this.selected.has(tag));
         if(existing)this.node(b,'span','mtb-picker-existing','已有');
       }
@@ -11756,6 +11895,49 @@ async function verifyPersistedRelationMembershipV1(request, options) {
 
 
 class MandalaTimeBlocksPlugin extends Plugin {
+  async openClosureTagV1({scope,raw}) {
+    if (!scope || scope!==this.getTimeCaptureSourceNotePath()) throw Error("这份收尾记录来自另一份日课。请切回记录时的日课来源。");
+    if (typeof raw!=="string" || !raw) throw Error("这份记录缺少原标签。");
+    const occupied=view=>view && (view.intent || view.committing || view.reading || view.editComposing || view.selected.size);
+    const prior=this.app.workspace.getLeavesOfType(__MandalaDailyTags.TYPE).find(l=>l.view.sourceNotePath===scope&&!l.view.closed);
+    if(occupied(prior?.view))throw Error("标签汇总中有正在处理的操作，请先完成后再打开收尾标签。");
+    const request=this.closureTagRequest=Symbol();
+    const leaf=await __MandalaDailyTags.open(this);
+    if(request!==this.closureTagRequest)return;
+    const view=leaf?.view;
+    if(!view || view.sourceNotePath!==scope) throw Error("无法打开这份日课的标签汇总。");
+    await view.initialize();
+    if(view.loading) await view.loading;
+    if(request!==this.closureTagRequest)return;
+    view.assertSource();
+    if(occupied(view)) throw Error("标签汇总中有正在处理的操作，请先完成后再打开收尾标签。");
+    if(!view.index.rows.some(row=>row.tags.includes(raw))) throw Error("当前日课已找不到这个原标签，收尾记录仍保留当时的名称。");
+    clearTimeout(view.searchTimer);
+    Object.assign(view.filters,{q:"",tagq:"",from:"",to:"",mode:"single",kind:"all",tags:[raw]});
+    view.readOpen=true;
+    view.build();
+    view.changedFilter();
+    view.contentEl.scrollTop=0;
+  }
+  async getClosureTagsV1() {
+    const scope = this.getTimeCaptureSourceNotePath();
+    if (!scope) throw Error("请先在 Mandala 配置日课来源笔记。");
+    const store = await this.loadDailyLessons(false);
+    const model = createDailyTagsModel(), tags = new Set();
+    let count = 0;
+    for (const day of Object.values(store.daysByDate || {})) {
+      for (const row of model.parse(model.value(day))) for (const tag of row.tags) tags.add(tag);
+      if (++count % 32 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    if (this.isUnloading || this.getTimeCaptureSourceNotePath() !== scope) throw Error("日课来源已切换，请重新选择。");
+    const entries = Array.from(tags, raw => [raw]);
+    const palette = __DailyTagAddress.colors(this.settings, scope, entries);
+    return {version:1,scope,tags:entries.map(([raw]) => {
+      const label = __TagAliases.label(this.settings, scope, raw);
+      return {raw,label,color:palette.get(__DailyTagAddress.describe(label).key)};
+    })};
+  }
+
   constructor(app, manifest) {
     super(app, manifest);
     this.mandalaDragState = { draggedNodeId: "", stagedNodeIds: [] };
